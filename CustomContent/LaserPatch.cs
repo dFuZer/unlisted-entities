@@ -2,7 +2,7 @@ using HarmonyLib;
 using UnityEngine;
 using System.Reflection;
 
-namespace MiniFridgeMod.Patches
+namespace UnlistedEntities.Patches
 {
     /// <summary>
     /// Patch for Laser.Start to set the custom beam transform

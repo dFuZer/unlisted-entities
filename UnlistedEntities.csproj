@@ -39,16 +39,16 @@
         <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all"/>
     </ItemGroup>
 
-    <Target Name="CopyOutputFileToGame" AfterTargets="Build">
+    <!-- <Target Name="CopyOutputFileToGame" AfterTargets="Build">
         <Copy SourceFiles="$(OutputPath)\$(AssemblyName).dll" DestinationFolder="$(CWDir)\Plugins\$(Product)" />
-    </Target>
+    </Target> -->
 
     <ItemGroup>
         <Reference Include="Assembly-CSharp">
             <HintPath>"C:\Program Files (x86)\Steam\steamapps\common\Content Warning\Content Warning_Data\Managed\Assembly-CSharp.dll"</HintPath>
         </Reference>
         <Reference Include="DbsContentApi">
-        <HintPath>$(CWDir)\Plugins\DbsContentApi\DbsContentApi.dll</HintPath>
-      </Reference>
+            <HintPath>C:\Users\ADMIN\Desktop\DbsContentApi\bin\Debug\netstandard2.1\DbsContentApi.dll</HintPath>
+        </Reference>
     </ItemGroup>
 </Project>

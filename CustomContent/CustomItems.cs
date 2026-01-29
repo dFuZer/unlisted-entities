@@ -213,8 +213,8 @@ public static class CustomItems
     {
         item.displayName = prefabName.Replace(".prefab", "");
         item.itemObject = prefab;
-        item.persistentID = "minifridgemod." + item.displayName.ToLower();
-        item.name = "minifridge." + item.displayName.ToLower();
+        item.persistentID = "unlistedentities." + item.displayName.ToLower();
+        item.name = "unlistedentities." + item.displayName.ToLower();
 
         item.itemType = Item.ItemType.Tool;
         item.Category = category;

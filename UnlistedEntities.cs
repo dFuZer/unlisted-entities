@@ -4,7 +4,7 @@ using HarmonyLib;
 namespace UnlistedEntities;
 
 [ContentWarningPlugin("db.unlistedentities", "1.0.0", vanillaCompatible: false)]
-[BepInDependency("db.contentapi")]
+[BepInDependency("db.contentapi", BepInDependency.DependencyFlags.HardDependency)]
 [BepInPlugin("db.unlistedentities", "Unlisted Entities", "1.0.0")]
 public class UnlistedEntities : BaseUnityPlugin
 {
@@ -14,8 +14,10 @@ public class UnlistedEntities : BaseUnityPlugin
     private void Awake()
     {
         Instance = this;
-        DbsContentApi.Modules.Logger.Log("Unlisted entities Initializing...");
+        DbsContentApi.Modules.Logger.Log("Unlisted entities Initializing... [POST UPDATE]");
+        
         Patch();
+
         CustomContent.CustomContent.Init(Info);
         DbsContentApi.Modules.Logger.Log("Unlisted Entities API Loaded successfully!");
     }
