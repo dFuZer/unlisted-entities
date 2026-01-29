@@ -47,8 +47,11 @@
         <Reference Include="Assembly-CSharp">
             <HintPath>"C:\Program Files (x86)\Steam\steamapps\common\Content Warning\Content Warning_Data\Managed\Assembly-CSharp.dll"</HintPath>
         </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
         <Reference Include="DbsContentApi">
-            <HintPath>C:\Users\ADMIN\Desktop\DbsContentApi\bin\Debug\netstandard2.1\DbsContentApi.dll</HintPath>
+            <HintPath>$(DbsContentApiDir)\DbsContentApi.dll</HintPath>
         </Reference>
     </ItemGroup>
 </Project>
