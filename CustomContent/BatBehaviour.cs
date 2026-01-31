@@ -15,6 +15,8 @@ public class BatBehaviour : ItemInstanceBehaviour
 	public float swingDuration = 0.6f;
 	public float cooldownTime = 0.8f;
 
+	public SFX_Instance batHitSFX = null!;
+
 	// Collision tracking
 	private HashSet<Player> hitPlayers = new HashSet<Player>();
 
@@ -74,11 +76,10 @@ public class BatBehaviour : ItemInstanceBehaviour
 		Vector3 forceDirection = player.refs.headPos.forward;
 
 		// Add strong downward component for baseball-style swing
-		forceDirection += Vector3.down * 0.95f;  // Much more downward
+		forceDirection += Vector3.down * 0.95f;
 		forceDirection = forceDirection.normalized;
 
 		Vector3 swingDirection = (lookDirection + player.refs.headPos.right * 0.01f).normalized;
-		CreateBreakEffect(transform.position);
 		Collider batCollider = GetComponentInChildren<Collider>(true);
 		if (batCollider == null)
 		{
@@ -147,12 +148,14 @@ public class BatBehaviour : ItemInstanceBehaviour
 
 		if (hitPlayer.refs?.ragdoll != null)
 		{
-			hitPlayer.refs.ragdoll.TaseShock(5f);
+			hitPlayer.refs.ragdoll.TaseShock(1f);
 			hitPlayer.refs.ragdoll.AddForce(forceDirection * 20f, ForceMode.VelocityChange);
 		}
 
 		// Create breaking particle effect at bat position
 		CreateBreakEffect(transform.position);
+		if (batHitSFX)
+			batHitSFX.Play(transform.position);
 		// Remove the bat from inventory
 		GlobalPlayerData globalPlayerData;
 		if (GlobalPlayerData.TryGetPlayerData(player.refs.view.Owner, out globalPlayerData))

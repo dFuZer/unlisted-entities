@@ -26,9 +26,6 @@ public static class CustomItems
         void RegisterItems()
         {
             RegisterBat();
-            RegisterGenericItem();
-            // Uncomment when ready:
-            // RegisterTeapotSpawner();
         }
 
         DbsContentApi.DbsContentApiPlugin.customItemsRegistrationCallbacks.Add(RegisterItems);
@@ -38,69 +35,23 @@ public static class CustomItems
     /// Registers the Bat item.
     /// </summary>
     private static void RegisterBat()
-    {
-        Items.RegisterItem(
-            bundle: _bundle,
-            prefabName: "Bat.prefab",
-            price: 0,
-            category: ShopItemCategory.Misc,
-            iconName: "icon_bat",
-            soundEffectName: "bat-falling",
-            applyMetalMaterial: true,
-            customBehaviourSetup: (prefab, prefabName) =>
-            {
-                prefab.AddComponent<BatBehaviour>();
-            } // optional parameter
-        );
-        
-        Items.SetAllItemsFree();
-    }
-
-    /// <summary>
-    /// Registers the generic Item.
-    /// </summary>
-    private static void RegisterGenericItem()
-    {
-        Items.RegisterItem(
-            bundle: _bundle,
-            prefabName: "Item.prefab",
-            price: 0,
-            category: ShopItemCategory.Misc,
-            iconName: "icon_bat",
-            soundEffectName: "Fart sound effect",
-            applyMetalMaterial: true,
-            customBehaviourSetup: (prefab, prefabName) =>
-            {
-                prefab.AddComponent<LaserBehaviour>();
-            }
-        );
-        
-        Items.SetAllItemsFree();
-    }
-
-    /// <summary>
-    /// Registers the TeapotSpawner item.
-    /// Uncomment when TeapotFinal is properly registered in photon pool.
-    /// </summary>
-    private static void RegisterTeapotSpawner()
-    {
-        // First ensure TeapotFinal is registered in photon pool
-        // ContentLoader.RegisterPrefabInPhotonPool(CustomMobs.TeapotFinal);
-        
-        Items.RegisterItem(
-            bundle: _bundle,
-            prefabName: "TeapotSpawner.prefab",
-            price: 0,
-            category: ShopItemCategory.Misc,
-            iconName: "icon_bat",
-            soundEffectName: "Fart sound effect",
-            applyMetalMaterial: true,
-            customBehaviourSetup: (prefab, prefabName) =>
-            {
-                prefab.AddComponent<TeapotSpawnerBehaviour>();
-            }
-        );
-        
-        Items.SetAllItemsFree();
-    }
+	{
+		Items.RegisterItem(
+			bundle: _bundle,
+			prefabName: "Bat.prefab",
+			price: 0,
+			category: ShopItemCategory.Misc,
+			iconName: "icon_bat",
+			soundEffectName: "bat_fall",
+			applyMetalMaterial: true,
+			new Vector3(0.3f, 0.1f, 0.4f),
+			customBehaviourSetup: (prefab, prefabName) =>
+			{
+				BatBehaviour batBehaviour = prefab.AddComponent<BatBehaviour>();
+				batBehaviour.batHitSFX = _bundle.LoadAsset<SFX_Instance>("SFX Bat Hit");
+			}
+		);
+		
+		Items.SetAllItemsFree();
+	}
 }
