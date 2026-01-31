@@ -118,7 +118,7 @@ public static class CustomMobs
     {
         if (TeapotFinal == null)
         {
-            Logger.LogWarning("TeapotFinal is null, skipping registration");
+            Logger.LogError("TeapotFinal is null, skipping registration");
             return;
         }
 
@@ -132,7 +132,7 @@ public static class CustomMobs
         {
             // visualRig = null means use the existing RigCreator + PlayerVisual configuration on the prefab
             visualRig = null,
-            budget = new BudgetConfig(),
+            budget = new BudgetConfig { budgetCost = 2, rarity = 1f },
             controller = new ControllerConfig(),
             player = new PlayerConfig(),
             ragdoll = new RagdollConfig(),
@@ -241,6 +241,14 @@ public static class CustomMobs
             DbsContentApiPlugin.customMonsters.Add(TeapotFinal);
             Logger.Log($"TeapotFinal registration completed: {TeapotFinal.name}");
         }
+
+        if(TeapotFinal != null)
+        {
+            TeapotFinal.AddComponent<TeapotContentProvider>();
+            Logger.Log("TeapotContentProvider added to TeapotFinal");
+        }
+
+        ContentEvents.RegisterEvent(new TeapotContentEvent());
     }
 }
 
