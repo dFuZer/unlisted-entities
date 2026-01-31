@@ -17,6 +17,8 @@ public class BatBehaviour : ItemInstanceBehaviour
 
 	public SFX_Instance batHitSFX = null!;
 
+	public bool isBreakable;
+
 	// Collision tracking
 	private HashSet<Player> hitPlayers = new HashSet<Player>();
 
@@ -152,8 +154,8 @@ public class BatBehaviour : ItemInstanceBehaviour
 			hitPlayer.refs.ragdoll.AddForce(forceDirection * 20f, ForceMode.VelocityChange);
 		}
 
-		// Create breaking particle effect at bat position
-		CreateBreakEffect(transform.position);
+		if (isBreakable == true)
+			CreateBreakEffect(transform.position);
 		if (batHitSFX)
 			batHitSFX.Play(transform.position);
 		// Remove the bat from inventory
@@ -161,7 +163,7 @@ public class BatBehaviour : ItemInstanceBehaviour
 		if (GlobalPlayerData.TryGetPlayerData(player.refs.view.Owner, out globalPlayerData))
 		{
 			PlayerInventory playerInventory = globalPlayerData.inventory;
-			if (playerInventory != null && player.data.selectedItemSlot >= 0)
+			if (playerInventory != null && player.data.selectedItemSlot >= 0 && isBreakable)
 			{
 				// Get the slot and clear it properly
 				InventorySlot slot;
@@ -171,7 +173,8 @@ public class BatBehaviour : ItemInstanceBehaviour
 				}
 			}
 		}
-		Destroy(this.gameObject);
+		if (isBreakable == true)
+			Destroy(this.gameObject);
 	}
 
 	/// <summary>

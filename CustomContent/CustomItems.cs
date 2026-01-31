@@ -25,7 +25,8 @@ public static class CustomItems
 
         void RegisterItems()
         {
-            RegisterBat();
+            RegisterUnbreakableBat();
+			RegisterBreakableBat();
         }
 
         DbsContentApi.DbsContentApiPlugin.customItemsRegistrationCallbacks.Add(RegisterItems);
@@ -34,21 +35,45 @@ public static class CustomItems
     /// <summary>
     /// Registers the Bat item.
     /// </summary>
-    private static void RegisterBat()
+    private static void RegisterBreakableBat()
 	{
 		Items.RegisterItem(
 			bundle: _bundle,
-			prefabName: "Bat.prefab",
-			price: 0,
+			prefabName: "Breakable Bat.prefab",
+			displayName: "Breakable Bat",
+			price: 30,
 			category: ShopItemCategory.Misc,
 			iconName: "icon_bat",
 			soundEffectName: "bat_fall",
-			applyMetalMaterial: true,
-			new Vector3(0.3f, 0.1f, 0.4f),
+			matName: "M_House 1",
+			holdPos: new Vector3(0.3f, 0.1f, 0.4f),
 			customBehaviourSetup: (prefab, prefabName) =>
 			{
 				BatBehaviour batBehaviour = prefab.AddComponent<BatBehaviour>();
 				batBehaviour.batHitSFX = _bundle.LoadAsset<SFX_Instance>("SFX Bat Hit");
+				batBehaviour.isBreakable = true;
+			}
+		);
+		
+		Items.SetAllItemsFree();
+	}
+
+	private static void RegisterUnbreakableBat()
+	{
+		Items.RegisterItem(
+			bundle: _bundle,
+			prefabName: "Unbreakable Bat.prefab",
+			displayName: "Unbreakable Bat",
+			price: 500,
+			category: ShopItemCategory.Misc,
+			iconName: "icon_bat",
+			soundEffectName: "bat_fall",
+			holdPos: new Vector3(0.3f, 0.1f, 0.4f),
+			customBehaviourSetup: (prefab, prefabName) =>
+			{
+				BatBehaviour batBehaviour = prefab.AddComponent<BatBehaviour>();
+				batBehaviour.batHitSFX = _bundle.LoadAsset<SFX_Instance>("SFX Bat Hit");
+				batBehaviour.isBreakable = false;
 			}
 		);
 		
