@@ -25,8 +25,8 @@ public static class CustomContent
 
             AssetBundle bundle = ContentLoader.LoadAssetBundle(pluginInfo, BundleName);
 
-            CustomMobs.Setup(bundle);
             CustomItems.Setup(bundle);
+            // CustomMobs.Setup(bundle);
 
             Logger.Log("Custom content successfully initialized.");
         }
