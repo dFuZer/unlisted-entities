@@ -82,7 +82,7 @@ public class Attack_Teapot : MonoBehaviour
 
         while (elapsed < attackDuration)
         {
-            if (targetPlayer == null || _player == null || _player.NoControl()) break;
+            if (targetPlayer == null || _player == null || _player.NoControl() || _bot == null) break;
 
             if (_view.IsMine) _bot.LookAt(targetPlayer.Center(), 10f);
 
@@ -144,6 +144,7 @@ public class Attack_Teapot : MonoBehaviour
     {
         while (_currentlyPlayingSfx == sfx)
         {
+            if (sfx == null) break;
             sfx.Play(transform.position, local: false, volumeMultiplier: 1f);
             AudioClip clip = sfx.GetClip();
             yield return new WaitForSeconds(clip != null ? clip.length * 0.95f : 1f);
