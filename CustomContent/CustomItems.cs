@@ -10,32 +10,32 @@ namespace UnlistedEntities.CustomContent;
 /// </summary>
 public static class CustomItems
 {
-    private static AssetBundle? _bundle;
+	private static AssetBundle? _bundle;
 
-    /// <summary>
-    /// Configures all custom items using the loaded AssetBundle.
-    /// </summary>
-    /// <param name="bundle">The AssetBundle containing item assets.</param>
-    public static void Setup(AssetBundle bundle)
-    {
-        _bundle = bundle;
-        
-        // Queue registration for when the API is ready
-        string[] allAssets = bundle.GetAllAssetNames();
+	/// <summary>
+	/// Configures all custom items using the loaded AssetBundle.
+	/// </summary>
+	/// <param name="bundle">The AssetBundle containing item assets.</param>
+	public static void Setup(AssetBundle bundle)
+	{
+		_bundle = bundle;
 
-        void RegisterItems()
-        {
-            RegisterUnbreakableBat();
+		// Queue registration for when the API is ready
+		string[] allAssets = bundle.GetAllAssetNames();
+
+		void RegisterItems()
+		{
+			RegisterUnbreakableBat();
 			RegisterBreakableBat();
-        }
+		}
 
-        DbsContentApi.DbsContentApiPlugin.customItemsRegistrationCallbacks.Add(RegisterItems);
-    }
+		DbsContentApi.DbsContentApiPlugin.customItemsRegistrationCallbacks.Add(RegisterItems);
+	}
 
-    /// <summary>
-    /// Registers the Bat item.
-    /// </summary>
-    private static void RegisterBreakableBat()
+	/// <summary>
+	/// Registers the Bat item.
+	/// </summary>
+	private static void RegisterBreakableBat()
 	{
 		Items.RegisterItem(
 			bundle: _bundle,
@@ -45,7 +45,7 @@ public static class CustomItems
 			category: ShopItemCategory.Misc,
 			iconName: "icon_bat",
 			soundEffectName: "bat_fall",
-			matName: "M_House 1",
+			mat: GameMaterialType.M_Cowboy,
 			holdPos: new Vector3(0.3f, 0.1f, 0.4f),
 			customBehaviourSetup: (prefab, prefabName) =>
 			{
@@ -54,7 +54,7 @@ public static class CustomItems
 				batBehaviour.isBreakable = true;
 			}
 		);
-		
+
 		Items.SetAllItemsFree();
 	}
 
@@ -68,6 +68,7 @@ public static class CustomItems
 			category: ShopItemCategory.Misc,
 			iconName: "icon_bat",
 			soundEffectName: "bat_fall",
+			mat: GameMaterialType.M_Milk1,
 			holdPos: new Vector3(0.3f, 0.1f, 0.4f),
 			customBehaviourSetup: (prefab, prefabName) =>
 			{
@@ -76,7 +77,7 @@ public static class CustomItems
 				batBehaviour.isBreakable = false;
 			}
 		);
-		
+
 		Items.SetAllItemsFree();
 	}
 }
