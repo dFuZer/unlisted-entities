@@ -5,19 +5,23 @@ namespace UnlistedEntities.CustomContent;
 
 public class TeapotContentEvent : MonsterContentEvent
 {
-	public static string[] NORMAL_COMMENTS = new string[11]
+	public static string[] NORMAL_COMMENTS = new string[15]
 	{
 		"Is that a teapot?",
-        "A teapot??",
-        "wtf a teapot with legs lol",
-        "careful lmaoo its hot",
-        "I hate its little legs",
-        "use him to make tea lol",
-        "Love those videos, please make more, cheers !",
-        "is the teapot dangerous?",
-        "Teapot teapot teapot!",
-        "Hahaha its boiling hot!",
-		"teapot looks dangerous, careful"
+		"A teapot??",
+		"wtf a teapot with legs lol",
+		"careful lmaoo its hot",
+		"I hate its little legs",
+		"use him to make tea lol",
+		"Love those videos, please make more, cheers !",
+		"is the teapot dangerous?",
+		"Teapot teapot teapot!",
+		"Hahaha its boiling hot!",
+		"teapot looks dangerous, careful",
+		"thx for the content thats crazy",
+		"??? why is there a teapot with legs?",
+		"Thanks for the video. The teapot was freaking me out",
+		"I'm scared of the teapot",
 	};
 
 	public override float GetContentValue()
