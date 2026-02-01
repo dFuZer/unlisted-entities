@@ -35,16 +35,16 @@ public class BatBehaviour : ItemInstanceBehaviour
 		if (!isInitialized || player == null) return;
 
 		if (!this.isHeldByMe) return;
-		if (Player.localPlayer != null && Player.localPlayer.HasLockedInput()) return;
+		if (player != null && player.HasLockedInput()) return;
 
-		if (Player.localPlayer.input.clickWasPressed && !isSwinging)
+		if (player.input.clickWasPressed && !isSwinging)
 		{
-			view.RPC(nameof(RPCA_Swing), RpcTarget.All);
+			view.RPC("RPCA_Swing", RpcTarget.All);
 		}
 	}
 
 	[PunRPC]
-	private void RPCA_Swing()
+	public void RPCA_Swing()
 	{
 		hitPlayers.Clear();
 		PerformSwingLocal();
@@ -139,11 +139,11 @@ public class BatBehaviour : ItemInstanceBehaviour
 
 		// Find target
 		Player hitPlayer = other.GetComponentInParent<Player>();
-		if (hitPlayer != null && hitPlayer != Player.localPlayer && !hitPlayers.Contains(hitPlayer))
+		if (hitPlayer != null && hitPlayer != this.player && !hitPlayers.Contains(hitPlayer))
 		{
 			hitPlayers.Add(hitPlayer);
 			int bodyPartID = hitPlayer.refs.ragdoll.GetBodypartIDFromCollider(other);
-			view.RPC(nameof(RPCA_Hit), RpcTarget.All, hitPlayer.refs.view.ViewID, bodyPartID, forceDirection);
+			view.RPC("RPCA_Hit", RpcTarget.All, hitPlayer.refs.view.ViewID, bodyPartID, forceDirection);
 		}
 	}
 
