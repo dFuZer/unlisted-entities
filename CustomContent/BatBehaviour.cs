@@ -148,13 +148,9 @@ public class BatBehaviour : ItemInstanceBehaviour
 			float forceCurve = Mathf.Sin(progress * Mathf.PI);
 			float currentForce = swingForce * forceCurve;
 
-			// Only apply forces on the holder's client - remote ragdolls may have null/different rigs
-			if (holder.refs != null && holder.refs.view != null && holder.refs.view.IsMine && hand.rig != null && elbow.rig != null && arm.rig != null)
-			{
-				hand.rig.AddForce(forceDirection * currentForce, ForceMode.VelocityChange);
-				elbow.rig.AddForce(forceDirection * currentForce * 0.6f, ForceMode.VelocityChange);
-				arm.rig.AddForce(forceDirection * currentForce * 0.4f, ForceMode.VelocityChange);
-			}
+			hand.rig.AddForce(forceDirection * currentForce, ForceMode.VelocityChange);
+			elbow.rig.AddForce(forceDirection * currentForce * 0.6f, ForceMode.VelocityChange);
+			arm.rig.AddForce(forceDirection * currentForce * 0.4f, ForceMode.VelocityChange);
 
 			// Only the simulating client does hit detection to avoid duplicate RPCs
 			if (isSimulatedByMe)
