@@ -2,7 +2,6 @@ using UnityEngine;
 using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Zorro.Core.Serizalization;
 
 public class BatBehaviour : ItemInstanceBehaviour
@@ -67,33 +66,69 @@ public class BatBehaviour : ItemInstanceBehaviour
 		float fz = deserializer.ReadFloat();
 		Vector3 forceDirection = new Vector3(fx, fy, fz);
 
-		Player hitPlayer = PhotonNetwork.GetPhotonView(hitViewId).GetComponent<Player>();
+		PhotonView hitView = PhotonNetwork.GetPhotonView(hitViewId);
+		if (hitView == null) return;
+
+		Player hitPlayer = hitView.GetComponent<Player>();
 		Player holder = GetComponentInParent<Player>();
 
+		// Apply hit effects on all clients
 		if (hitPlayer?.refs?.ragdoll != null)
 		{
 			hitPlayer.refs.ragdoll.TaseShock(1f);
 			hitPlayer.refs.ragdoll.AddForce(forceDirection * 20f, ForceMode.VelocityChange);
 		}
 
-		if (isBreakable)
-			CreateBreakEffect(transform.position);
+		// Visual/Audio effects on all clients
 		if (batHitSFX)
 			batHitSFX.Play(transform.position);
 
-		if (isBreakable && holder != null)
+		if (isBreakable)
 		{
-			GlobalPlayerData globalPlayerData;
-			if (GlobalPlayerData.TryGetPlayerData(holder.refs.view.Owner, out globalPlayerData))
+			CreateBreakEffect(transform.position);
+
+			// ONLY the owner handles inventory clearing and destruction
+			// CHANGED: Use coroutine instead of immediate destruction to prevent NullReferenceExceptions
+			if (isSimulatedByMe && holder != null)
 			{
-				PlayerInventory playerInventory = globalPlayerData.inventory;
-				if (playerInventory != null && holder.data.selectedItemSlot >= 0)
+				StartCoroutine(DestroyBatAfterHit(holder));
+			}
+		}
+	}
+
+	/// <summary>
+	/// ADDED: Handles bat destruction after a hit with proper cleanup sequence
+	/// This prevents NullReferenceExceptions by:
+	/// 1. Clearing the inventory slot first
+	/// 2. Waiting 2 frames for the inventory system to update
+	/// 3. Only then destroying the GameObject
+	/// </summary>
+	private IEnumerator DestroyBatAfterHit(Player holder)
+	{
+		// Step 1: Clear the inventory slot
+		GlobalPlayerData globalPlayerData;
+		if (GlobalPlayerData.TryGetPlayerData(holder.refs.view.Owner, out globalPlayerData))
+		{
+			PlayerInventory playerInventory = globalPlayerData.inventory;
+			if (playerInventory != null && holder.data.selectedItemSlot >= 0)
+			{
+				InventorySlot slot;
+				if (playerInventory.TryGetSlot(holder.data.selectedItemSlot, out slot))
 				{
-					InventorySlot slot;
-					if (playerInventory.TryGetSlot(holder.data.selectedItemSlot, out slot))
-						slot.Clear();
+					slot.Clear();
 				}
 			}
+		}
+
+		// Step 2: Wait for the inventory system to process the slot clearing
+		// This prevents the PlayerItems.Unequip() NullReferenceException
+		yield return null; // Wait 1 frame
+		yield return null; // Wait another frame for safety
+
+		// Step 3: Now safely destroy the bat GameObject
+		// Check if objects still exist before destroying (player might have disconnected)
+		if (this != null && gameObject != null)
+		{
 			Destroy(gameObject);
 		}
 	}
@@ -101,11 +136,10 @@ public class BatBehaviour : ItemInstanceBehaviour
 	void Update()
 	{
 		if (!isInitialized || player == null) return;
-
 		if (!this.isHeldByMe) return;
-		if (this.player != null && this.player.HasLockedInput()) return;
+		if (player.HasLockedInput()) return;
 
-		if (this.player.input.clickWasPressed && !isSwinging)
+		if (player.input.clickWasPressed && !isSwinging)
 		{
 			TriggerSwing();
 		}
@@ -133,6 +167,13 @@ public class BatBehaviour : ItemInstanceBehaviour
 
 	private IEnumerator PerformSwingReplicated(Player holder, Bodypart hand, Bodypart elbow, Bodypart arm, Vector3 forceDirection, Vector3 lookDirection)
 	{
+		// Add null checks for safety
+		if (holder == null || hand == null || elbow == null || arm == null)
+		{
+			isSwinging = false;
+			yield break;
+		}
+
 		Collider batCollider = GetComponentInChildren<Collider>(true);
 		if (batCollider == null)
 		{
@@ -144,6 +185,15 @@ public class BatBehaviour : ItemInstanceBehaviour
 
 		while (elapsed < swingDuration)
 		{
+			// Null checks during swing (in case holder dies/disconnects)
+			if (hand == null || hand.rig == null || 
+			    elbow == null || elbow.rig == null || 
+			    arm == null || arm.rig == null)
+			{
+				isSwinging = false;
+				yield break;
+			}
+
 			float progress = elapsed / swingDuration;
 			float forceCurve = Mathf.Sin(progress * Mathf.PI);
 			float currentForce = swingForce * forceCurve;
@@ -164,7 +214,7 @@ public class BatBehaviour : ItemInstanceBehaviour
 				);
 
 				foreach (Collider hit in hits)
-					ProcessHit(hit, lookDirection, holder);
+					ProcessHit(hit, forceDirection, holder);
 			}
 
 			elapsed += Time.fixedDeltaTime;
@@ -177,7 +227,7 @@ public class BatBehaviour : ItemInstanceBehaviour
 
 	private void ProcessHit(Collider other, Vector3 forceDirection, Player holder)
 	{
-		if (!isSwinging) return;
+		if (!isSwinging || other == null || holder == null) return;
 
 		if (other.transform.root == holder?.transform.root)
 			return;
@@ -195,6 +245,10 @@ public class BatBehaviour : ItemInstanceBehaviour
 		if (!isSimulatedByMe || lastFrame == Time.frameCount)
 			return;
 		lastFrame = Time.frameCount;
+
+		// Null check before accessing ViewID
+		if (hitPlayer?.refs?.view == null)
+			return;
 
 		BinarySerializer binarySerializer = new BinarySerializer();
 		binarySerializer.WriteInt(hitPlayer.refs.view.ViewID);
@@ -218,35 +272,35 @@ public class BatBehaviour : ItemInstanceBehaviour
 
 		// Configure main module - EXPLOSIVE SETTINGS
 		var main = ps.main;
-		main.startLifetime = new ParticleSystem.MinMaxCurve(0.8f, 1.5f); // Variable lifetime
-		main.startSpeed = new ParticleSystem.MinMaxCurve(8f, 15f); // Much faster, variable speed for explosion effect
-		main.startSize = new ParticleSystem.MinMaxCurve(0.03f, 0.06f); // Smaller particles
-		main.startColor = new Color(0.6f, 0.4f, 0.2f); // Brown wood color
+		main.startLifetime = new ParticleSystem.MinMaxCurve(0.8f, 1.5f);
+		main.startSpeed = new ParticleSystem.MinMaxCurve(8f, 15f);
+		main.startSize = new ParticleSystem.MinMaxCurve(0.03f, 0.06f);
+		main.startColor = new Color(0.6f, 0.4f, 0.2f);
 		main.maxParticles = 100;
 		main.simulationSpace = ParticleSystemSimulationSpace.World;
 		main.duration = 0.3f;
 		main.loop = false;
-		main.gravityModifier = 1.5f; // Use gravity modifier instead of velocity over lifetime
+		main.gravityModifier = 1.5f;
 
-		// Configure emission - bigger burst for explosion
+		// Configure emission
 		var emission = ps.emission;
 		emission.rateOverTime = 0;
 		emission.SetBursts(new ParticleSystem.Burst[] {
-			new ParticleSystem.Burst(0f, 60, 100, 1, 0f) // More particles
-        });
+			new ParticleSystem.Burst(0f, 60, 100, 1, 0f)
+		});
 
-		// Configure shape - sphere emit in ALL directions
+		// Configure shape
 		var shape = ps.shape;
 		shape.shapeType = ParticleSystemShapeType.Sphere;
-		shape.radius = 0.05f; // Small radius for point source
-		shape.radiusThickness = 0f; // Emit from surface only
+		shape.radius = 0.05f;
+		shape.radiusThickness = 0f;
 
-		// Size over lifetime - shrink as they fade
+		// Size over lifetime
 		var sizeOverLifetime = ps.sizeOverLifetime;
 		sizeOverLifetime.enabled = true;
 		sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 1f, 1f, 0.2f));
 
-		// Color over lifetime - fade out
+		// Color over lifetime
 		var colorOverLifetime = ps.colorOverLifetime;
 		colorOverLifetime.enabled = true;
 		Gradient grad = new Gradient();
@@ -266,16 +320,12 @@ public class BatBehaviour : ItemInstanceBehaviour
 		var renderer = ps.GetComponent<ParticleSystemRenderer>();
 		renderer.renderMode = ParticleSystemRenderMode.Billboard;
 
-		// Try to find a simple material or create a basic one
 		Material particleMaterial = new Material(Shader.Find("Particles/Standard Unlit"));
-		particleMaterial.color = new Color(0.6f, 0.4f, 0.2f, 1f); // Brown wood color
+		particleMaterial.color = new Color(0.6f, 0.4f, 0.2f, 1f);
 		renderer.material = particleMaterial;
 
-		// Play the particle system
 		ps.Play();
 
-		// Destroy the particle object after it's done
 		Destroy(particleObj, main.duration + main.startLifetime.constantMax + 0.5f);
-
 	}
 }
