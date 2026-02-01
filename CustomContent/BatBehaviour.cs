@@ -7,6 +7,7 @@ using System.Diagnostics;
 public class BatBehaviour : ItemInstanceBehaviour
 {
 	private Player player;
+	private PhotonView view;
 	private bool isSwinging = false;
 	private bool isInitialized = false;
 
@@ -24,9 +25,8 @@ public class BatBehaviour : ItemInstanceBehaviour
 
 	public override void ConfigItem(ItemInstanceData data, PhotonView playerView)
 	{
-
+		view = playerView;
 		player = GetComponentInParent<Player>();
-
 		isInitialized = true;
 	}
 
@@ -39,11 +39,12 @@ public class BatBehaviour : ItemInstanceBehaviour
 
 		if (Player.localPlayer.input.clickWasPressed && !isSwinging)
 		{
-			TriggerSwing();
+			view.RPC(nameof(RPCA_Swing), RpcTarget.All);
 		}
 	}
 
-	void TriggerSwing()
+	[PunRPC]
+	private void RPCA_Swing()
 	{
 		hitPlayers.Clear();
 		PerformSwingLocal();
@@ -141,114 +142,124 @@ public class BatBehaviour : ItemInstanceBehaviour
 		if (hitPlayer != null && hitPlayer != Player.localPlayer && !hitPlayers.Contains(hitPlayer))
 		{
 			hitPlayers.Add(hitPlayer);
-			OnHitTarget(hitPlayer, forceDirection);
+			int bodyPartID = hitPlayer.refs.ragdoll.GetBodypartIDFromCollider(other);
+			view.RPC(nameof(RPCA_Hit), RpcTarget.All, hitPlayer.refs.view.ViewID, bodyPartID, forceDirection);
 		}
 	}
 
-	private void OnHitTarget(Player hitPlayer, Vector3 forceDirection)
+	[PunRPC]
+	public void RPCA_Hit(int viewID, int bodyPartID, Vector3 addForce)
 	{
+		Player hitPlayer = PlayerHandler.instance.TryGetPlayerFromViewID(viewID);
+		if (hitPlayer == null) return;
 
+		Bodypart bodypart = hitPlayer.refs.ragdoll.GetBodypartFromID(bodyPartID);
 		if (hitPlayer.refs?.ragdoll != null)
 		{
 			hitPlayer.refs.ragdoll.TaseShock(1f);
-			hitPlayer.refs.ragdoll.AddForce(forceDirection * 20f, ForceMode.VelocityChange);
+			Vector3 force = addForce.normalized * 20f;
+			if (bodypart != null)
+			{
+				bodypart.rig.AddForce(force, ForceMode.VelocityChange);
+			}
+			hitPlayer.refs.ragdoll.AddForce(force, ForceMode.VelocityChange);
 		}
 
-		if (isBreakable == true)
-			CreateBreakEffect(transform.position);
 		if (batHitSFX)
-			batHitSFX.Play(transform.position);
-		// Remove the bat from inventory
-		GlobalPlayerData globalPlayerData;
-		if (GlobalPlayerData.TryGetPlayerData(player.refs.view.Owner, out globalPlayerData))
+			batHitSFX.Play(hitPlayer.Center());
+
+		if (isBreakable)
 		{
-			PlayerInventory playerInventory = globalPlayerData.inventory;
-			if (playerInventory != null && player.data.selectedItemSlot >= 0 && isBreakable)
+			CreateBreakEffect(transform.position);
+			GlobalPlayerData globalPlayerData;
+			if (view.IsMine && GlobalPlayerData.TryGetPlayerData(player.refs.view.Owner, out globalPlayerData))
 			{
-				// Get the slot and clear it properly
-				InventorySlot slot;
-				if (playerInventory.TryGetSlot(player.data.selectedItemSlot, out slot))
+				PlayerInventory playerInventory = globalPlayerData.inventory;
+				if (playerInventory != null && player.data.selectedItemSlot >= 0)
 				{
-					slot.Clear(); // This syncs across network via RPC
+					InventorySlot slot;
+					if (playerInventory.TryGetSlot(player.data.selectedItemSlot, out slot))
+					{
+						slot.Clear();
+					}
 				}
 			}
+			Destroy(gameObject);
 		}
-		if (isBreakable == true)
-			Destroy(this.gameObject);
 	}
 
 	/// <summary>
 	/// Creates a particle effect showing the bat breaking into pieces
 	/// </summary>
-    private void CreateBreakEffect(Vector3 position)
-    {
-        // Create a temporary GameObject for the particle system
-        GameObject particleObj = new GameObject("BatBreakEffect");
-        particleObj.transform.position = position;
+	private void CreateBreakEffect(Vector3 position)
+	{
+		// Create a temporary GameObject for the particle system
+		GameObject particleObj = new GameObject("BatBreakEffect");
+		particleObj.transform.position = position;
 
-        // Add ParticleSystem component
-        ParticleSystem ps = particleObj.AddComponent<ParticleSystem>();
-        
-        // Configure main module - EXPLOSIVE SETTINGS
-        var main = ps.main;
-        main.startLifetime = new ParticleSystem.MinMaxCurve(0.8f, 1.5f); // Variable lifetime
-        main.startSpeed = new ParticleSystem.MinMaxCurve(8f, 15f); // Much faster, variable speed for explosion effect
-        main.startSize = new ParticleSystem.MinMaxCurve(0.03f, 0.06f); // Smaller particles
-        main.startColor = new Color(0.6f, 0.4f, 0.2f); // Brown wood color
-        main.maxParticles = 100;
-        main.simulationSpace = ParticleSystemSimulationSpace.World;
-        main.duration = 0.3f;
-        main.loop = false;
-        main.gravityModifier = 1.5f; // Use gravity modifier instead of velocity over lifetime
+		// Add ParticleSystem component
+		ParticleSystem ps = particleObj.AddComponent<ParticleSystem>();
 
-        // Configure emission - bigger burst for explosion
-        var emission = ps.emission;
-        emission.rateOverTime = 0;
-        emission.SetBursts(new ParticleSystem.Burst[] {
-            new ParticleSystem.Burst(0f, 60, 100, 1, 0f) // More particles
+		// Configure main module - EXPLOSIVE SETTINGS
+		var main = ps.main;
+		main.startLifetime = new ParticleSystem.MinMaxCurve(0.8f, 1.5f); // Variable lifetime
+		main.startSpeed = new ParticleSystem.MinMaxCurve(8f, 15f); // Much faster, variable speed for explosion effect
+		main.startSize = new ParticleSystem.MinMaxCurve(0.03f, 0.06f); // Smaller particles
+		main.startColor = new Color(0.6f, 0.4f, 0.2f); // Brown wood color
+		main.maxParticles = 100;
+		main.simulationSpace = ParticleSystemSimulationSpace.World;
+		main.duration = 0.3f;
+		main.loop = false;
+		main.gravityModifier = 1.5f; // Use gravity modifier instead of velocity over lifetime
+
+		// Configure emission - bigger burst for explosion
+		var emission = ps.emission;
+		emission.rateOverTime = 0;
+		emission.SetBursts(new ParticleSystem.Burst[] {
+			new ParticleSystem.Burst(0f, 60, 100, 1, 0f) // More particles
         });
 
-        // Configure shape - sphere emit in ALL directions
-        var shape = ps.shape;
-        shape.shapeType = ParticleSystemShapeType.Sphere;
-        shape.radius = 0.05f; // Small radius for point source
-        shape.radiusThickness = 0f; // Emit from surface only
+		// Configure shape - sphere emit in ALL directions
+		var shape = ps.shape;
+		shape.shapeType = ParticleSystemShapeType.Sphere;
+		shape.radius = 0.05f; // Small radius for point source
+		shape.radiusThickness = 0f; // Emit from surface only
 
-        // Size over lifetime - shrink as they fade
-        var sizeOverLifetime = ps.sizeOverLifetime;
-        sizeOverLifetime.enabled = true;
-        sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 1f, 1f, 0.2f));
+		// Size over lifetime - shrink as they fade
+		var sizeOverLifetime = ps.sizeOverLifetime;
+		sizeOverLifetime.enabled = true;
+		sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 1f, 1f, 0.2f));
 
-        // Color over lifetime - fade out
-        var colorOverLifetime = ps.colorOverLifetime;
-        colorOverLifetime.enabled = true;
-        Gradient grad = new Gradient();
-        grad.SetKeys(
-            new GradientColorKey[] { 
-                new GradientColorKey(new Color(0.5f, 0.5f, 0.5f), 0f),
-                new GradientColorKey(new Color(0.5f, 0.5f, 0.5f), 1f)
-            },
-            new GradientAlphaKey[] { 
-                new GradientAlphaKey(1f, 0f),
-                new GradientAlphaKey(0f, 1f)
-            }
-        );
-        colorOverLifetime.color = new ParticleSystem.MinMaxGradient(grad);
+		// Color over lifetime - fade out
+		var colorOverLifetime = ps.colorOverLifetime;
+		colorOverLifetime.enabled = true;
+		Gradient grad = new Gradient();
+		grad.SetKeys(
+			new GradientColorKey[] {
+				new GradientColorKey(new Color(0.5f, 0.5f, 0.5f), 0f),
+				new GradientColorKey(new Color(0.5f, 0.5f, 0.5f), 1f)
+			},
+			new GradientAlphaKey[] {
+				new GradientAlphaKey(1f, 0f),
+				new GradientAlphaKey(0f, 1f)
+			}
+		);
+		colorOverLifetime.color = new ParticleSystem.MinMaxGradient(grad);
 
-        // Add renderer
-        var renderer = ps.GetComponent<ParticleSystemRenderer>();
-        renderer.renderMode = ParticleSystemRenderMode.Billboard;
-        
-        // Try to find a simple material or create a basic one
-        Material particleMaterial = new Material(Shader.Find("Particles/Standard Unlit"));
-        particleMaterial.color = new Color(0.6f, 0.4f, 0.2f, 1f); // Brown wood color
-        renderer.material = particleMaterial;
+		// Add renderer
+		var renderer = ps.GetComponent<ParticleSystemRenderer>();
+		renderer.renderMode = ParticleSystemRenderMode.Billboard;
 
-        // Play the particle system
-        ps.Play();
+		// Try to find a simple material or create a basic one
+		Material particleMaterial = new Material(Shader.Find("Particles/Standard Unlit"));
+		particleMaterial.color = new Color(0.6f, 0.4f, 0.2f, 1f); // Brown wood color
+		renderer.material = particleMaterial;
 
-        // Destroy the particle object after it's done
-        Destroy(particleObj, main.duration + main.startLifetime.constantMax + 0.5f);
+		// Play the particle system
+		ps.Play();
+
+		// Destroy the particle object after it's done
+		Destroy(particleObj, main.duration + main.startLifetime.constantMax + 0.5f);
 
 	}
 }

@@ -16,15 +16,16 @@ public class UnlistedEntities : BaseUnityPlugin
         Instance = this;
         DbsContentApi.Modules.Logger.Log("Unlisted entities Initializing... [POST UPDATE]");
 
-        // DbsContentApi.DbsContentApiPlugin.SetModdedMobsOnly(true);
-        
+        DbsContentApi.DbsContentApiPlugin.SetModdedMobsOnly(true);
+
         Patch();
 
         CustomContent.CustomContent.Init(Info);
         DbsContentApi.Modules.Logger.Log("Unlisted Entities API Loaded successfully!");
     }
 
-    internal static void Patch() {
+    internal static void Patch()
+    {
         Harmony ??= new Harmony("db.unlistedentities");
 
         DbsContentApi.Modules.Logger.Log("Patching...");
@@ -34,7 +35,8 @@ public class UnlistedEntities : BaseUnityPlugin
         DbsContentApi.Modules.Logger.Log("Finished patching!");
     }
 
-    internal static void Unpatch() {
+    internal static void Unpatch()
+    {
         DbsContentApi.Modules.Logger.Log("Unpatching...");
 
         Harmony?.UnpatchSelf();
