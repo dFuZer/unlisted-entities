@@ -248,7 +248,7 @@ public static class CustomMobs
             Logger.Log("TeapotContentProvider added to TeapotFinal");
         }
 
-        ContentEvents.RegisterEvent(new TeapotContentEvent());
+        DbsContentApi.Modules.ContentEvents.RegisterEvent(new TeapotContentEvent());
     }
 }
 

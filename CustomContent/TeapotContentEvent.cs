@@ -1,5 +1,8 @@
 using Zorro.Core;
 
+namespace UnlistedEntities.CustomContent;
+
+
 public class TeapotContentEvent : MonsterContentEvent
 {
 	public static string[] NORMAL_COMMENTS = new string[11]
