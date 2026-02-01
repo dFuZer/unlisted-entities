@@ -3,13 +3,14 @@ using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Zorro.Core.Serizalization;
 
 public class BatBehaviour : ItemInstanceBehaviour
 {
-	private Player player;
-	private PhotonView view;
+	private Player? player;
 	private bool isSwinging = false;
 	private bool isInitialized = false;
+	private int lastFrame;
 
 	// Swing parameters - GENTLE to prevent self-knockdown
 	public float swingForce = 3f;
@@ -25,9 +26,76 @@ public class BatBehaviour : ItemInstanceBehaviour
 
 	public override void ConfigItem(ItemInstanceData data, PhotonView playerView)
 	{
-		view = playerView;
 		player = GetComponentInParent<Player>();
+		itemInstance.RegisterRPC(ItemRPC.RPC0, RPC_Hit);
+		itemInstance.RegisterRPC(ItemRPC.RPC1, RPC_StartSwing);
 		isInitialized = true;
+	}
+
+	private void RPC_StartSwing(BinaryDeserializer deserializer)
+	{
+		float fdx = deserializer.ReadFloat();
+		float fdy = deserializer.ReadFloat();
+		float fdz = deserializer.ReadFloat();
+		float ldx = deserializer.ReadFloat();
+		float ldy = deserializer.ReadFloat();
+		float ldz = deserializer.ReadFloat();
+		Vector3 forceDirection = new Vector3(fdx, fdy, fdz);
+		Vector3 lookDirection = new Vector3(ldx, ldy, ldz);
+
+		Player holder = GetComponentInParent<Player>();
+		if (holder == null || holder.refs?.ragdoll == null)
+			return;
+
+		Bodypart handR = holder.refs.ragdoll.GetBodypart(BodypartType.Hand_R);
+		Bodypart elbowR = holder.refs.ragdoll.GetBodypart(BodypartType.Elbow_R);
+		Bodypart armR = holder.refs.ragdoll.GetBodypart(BodypartType.Arm_R);
+
+		if (handR != null && elbowR != null && armR != null)
+		{
+			hitPlayers.Clear();
+			isSwinging = true;
+			StartCoroutine(PerformSwingReplicated(holder, handR, elbowR, armR, forceDirection, lookDirection));
+		}
+	}
+
+	private void RPC_Hit(BinaryDeserializer deserializer)
+	{
+		int hitViewId = deserializer.ReadInt();
+		float fx = deserializer.ReadFloat();
+		float fy = deserializer.ReadFloat();
+		float fz = deserializer.ReadFloat();
+		Vector3 forceDirection = new Vector3(fx, fy, fz);
+
+		Player hitPlayer = PhotonNetwork.GetPhotonView(hitViewId).GetComponent<Player>();
+		Player holder = GetComponentInParent<Player>();
+
+		if (hitPlayer?.refs?.ragdoll != null)
+		{
+			hitPlayer.refs.ragdoll.TaseShock(1f);
+			hitPlayer.refs.ragdoll.AddForce(forceDirection * 20f, ForceMode.VelocityChange);
+		}
+
+		if (isBreakable)
+			CreateBreakEffect(transform.position);
+		if (batHitSFX)
+			batHitSFX.Play(transform.position);
+
+		if (isBreakable && holder != null)
+		{
+			GlobalPlayerData globalPlayerData;
+			if (GlobalPlayerData.TryGetPlayerData(holder.refs.view.Owner, out globalPlayerData))
+			{
+				PlayerInventory playerInventory = globalPlayerData.inventory;
+				if (playerInventory != null && holder.data.selectedItemSlot >= 0)
+				{
+					InventorySlot slot;
+					if (playerInventory.TryGetSlot(holder.data.selectedItemSlot, out slot))
+						slot.Clear();
+				}
+			}
+			Destroy(gameObject);
+		}
 	}
 
 	void Update()
@@ -35,54 +103,36 @@ public class BatBehaviour : ItemInstanceBehaviour
 		if (!isInitialized || player == null) return;
 
 		if (!this.isHeldByMe) return;
-		if (player != null && player.HasLockedInput()) return;
+		if (this.player != null && this.player.HasLockedInput()) return;
 
-		if (player.input.clickWasPressed && !isSwinging)
+		if (this.player.input.clickWasPressed && !isSwinging)
 		{
-			view.RPC("RPCA_Swing", RpcTarget.All);
+			TriggerSwing();
 		}
 	}
 
-	[PunRPC]
-	public void RPCA_Swing()
+	void TriggerSwing()
 	{
-		hitPlayers.Clear();
-		PerformSwingLocal();
-	}
-
-	private void PerformSwingLocal()
-	{
-		if (player == null || player.refs?.ragdoll == null)
-		{
+		if (player == null || player.refs?.ragdoll == null || player.refs?.headPos == null)
 			return;
-		}
 
-		isSwinging = true;
-
-		Bodypart handR = player.refs.ragdoll.GetBodypart(BodypartType.Hand_R);
-		Bodypart elbowR = player.refs.ragdoll.GetBodypart(BodypartType.Elbow_R);
-		Bodypart armR = player.refs.ragdoll.GetBodypart(BodypartType.Arm_R);
-
-		if (handR != null && elbowR != null && armR != null)
-		{
-			StartCoroutine(PerformSwing(handR, elbowR, armR));
-		}
-		else
-		{
-			isSwinging = false;
-		}
-	}
-
-	private IEnumerator PerformSwing(Bodypart hand, Bodypart elbow, Bodypart arm)
-	{
 		Vector3 lookDirection = player.refs.headPos.forward;
 		Vector3 forceDirection = player.refs.headPos.forward;
-
-		// Add strong downward component for baseball-style swing
 		forceDirection += Vector3.down * 0.95f;
 		forceDirection = forceDirection.normalized;
 
-		Vector3 swingDirection = (lookDirection + player.refs.headPos.right * 0.01f).normalized;
+		BinarySerializer binarySerializer = new BinarySerializer();
+		binarySerializer.WriteFloat(forceDirection.x);
+		binarySerializer.WriteFloat(forceDirection.y);
+		binarySerializer.WriteFloat(forceDirection.z);
+		binarySerializer.WriteFloat(lookDirection.x);
+		binarySerializer.WriteFloat(lookDirection.y);
+		binarySerializer.WriteFloat(lookDirection.z);
+		itemInstance.CallRPC(ItemRPC.RPC1, binarySerializer);
+	}
+
+	private IEnumerator PerformSwingReplicated(Player holder, Bodypart hand, Bodypart elbow, Bodypart arm, Vector3 forceDirection, Vector3 lookDirection)
+	{
 		Collider batCollider = GetComponentInChildren<Collider>(true);
 		if (batCollider == null)
 		{
@@ -92,10 +142,8 @@ public class BatBehaviour : ItemInstanceBehaviour
 
 		float elapsed = 0f;
 
-		// SWING LOOP WITH MANUAL HIT DETECTION
 		while (elapsed < swingDuration)
 		{
-			// Gentle arm swing forces
 			float progress = elapsed / swingDuration;
 			float forceCurve = Mathf.Sin(progress * Mathf.PI);
 			float currentForce = swingForce * forceCurve;
@@ -104,88 +152,56 @@ public class BatBehaviour : ItemInstanceBehaviour
 			elbow.rig.AddForce(forceDirection * currentForce * 0.6f, ForceMode.VelocityChange);
 			arm.rig.AddForce(forceDirection * currentForce * 0.4f, ForceMode.VelocityChange);
 
-			// MANUAL HIT DETECTION using bat collider bounds
-			Collider[] hits = Physics.OverlapBox(
-				batCollider.bounds.center,
-				batCollider.bounds.extents,
-				batCollider.transform.rotation,
-				-1,
-				QueryTriggerInteraction.Collide
-			);
-
-			foreach (Collider hit in hits)
+			// Only the simulating client does hit detection to avoid duplicate RPCs
+			if (isSimulatedByMe)
 			{
-				ProcessHit(hit, lookDirection);
+				Collider[] hits = Physics.OverlapBox(
+					batCollider.bounds.center,
+					batCollider.bounds.extents,
+					batCollider.transform.rotation,
+					-1,
+					QueryTriggerInteraction.Collide
+				);
+
+				foreach (Collider hit in hits)
+					ProcessHit(hit, lookDirection, holder);
 			}
 
 			elapsed += Time.fixedDeltaTime;
 			yield return new WaitForFixedUpdate();
 		}
 
-		// Cooldown
 		yield return new WaitForSeconds(cooldownTime - swingDuration);
 		isSwinging = false;
 	}
 
-	private void ProcessHit(Collider other, Vector3 forceDirection)
+	private void ProcessHit(Collider other, Vector3 forceDirection, Player holder)
 	{
 		if (!isSwinging) return;
 
-		// Ignore self
-		if (other.transform.root == player?.transform.root)
-		{
+		if (other.transform.root == holder?.transform.root)
 			return;
-		}
 
-		// Find target
 		Player hitPlayer = other.GetComponentInParent<Player>();
-		if (hitPlayer != null && hitPlayer != this.player && !hitPlayers.Contains(hitPlayer))
+		if (hitPlayer != null && hitPlayer != holder && !hitPlayers.Contains(hitPlayer))
 		{
 			hitPlayers.Add(hitPlayer);
-			int bodyPartID = hitPlayer.refs.ragdoll.GetBodypartIDFromCollider(other);
-			view.RPC("RPCA_Hit", RpcTarget.All, hitPlayer.refs.view.ViewID, bodyPartID, forceDirection);
+			OnHitTarget(hitPlayer, forceDirection);
 		}
 	}
 
-	[PunRPC]
-	public void RPCA_Hit(int viewID, int bodyPartID, Vector3 addForce)
+	private void OnHitTarget(Player hitPlayer, Vector3 forceDirection)
 	{
-		Player hitPlayer = PlayerHandler.instance.TryGetPlayerFromViewID(viewID);
-		if (hitPlayer == null) return;
+		if (!isSimulatedByMe || lastFrame == Time.frameCount)
+			return;
+		lastFrame = Time.frameCount;
 
-		Bodypart bodypart = hitPlayer.refs.ragdoll.GetBodypartFromID(bodyPartID);
-		if (hitPlayer.refs?.ragdoll != null)
-		{
-			hitPlayer.refs.ragdoll.TaseShock(1f);
-			Vector3 force = addForce.normalized * 20f;
-			if (bodypart != null)
-			{
-				bodypart.rig.AddForce(force, ForceMode.VelocityChange);
-			}
-			hitPlayer.refs.ragdoll.AddForce(force, ForceMode.VelocityChange);
-		}
-
-		if (batHitSFX)
-			batHitSFX.Play(hitPlayer.Center());
-
-		if (isBreakable)
-		{
-			CreateBreakEffect(transform.position);
-			GlobalPlayerData globalPlayerData;
-			if (view.IsMine && GlobalPlayerData.TryGetPlayerData(player.refs.view.Owner, out globalPlayerData))
-			{
-				PlayerInventory playerInventory = globalPlayerData.inventory;
-				if (playerInventory != null && player.data.selectedItemSlot >= 0)
-				{
-					InventorySlot slot;
-					if (playerInventory.TryGetSlot(player.data.selectedItemSlot, out slot))
-					{
-						slot.Clear();
-					}
-				}
-			}
-			Destroy(gameObject);
-		}
+		BinarySerializer binarySerializer = new BinarySerializer();
+		binarySerializer.WriteInt(hitPlayer.refs.view.ViewID);
+		binarySerializer.WriteFloat(forceDirection.x);
+		binarySerializer.WriteFloat(forceDirection.y);
+		binarySerializer.WriteFloat(forceDirection.z);
+		itemInstance.CallRPC(ItemRPC.RPC0, binarySerializer);
 	}
 
 	/// <summary>
