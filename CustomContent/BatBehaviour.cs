@@ -14,7 +14,7 @@ public class BatBehaviour : ItemInstanceBehaviour
 	// Swing parameters - GENTLE to prevent self-knockdown
 	public float swingForce = 3f;
 	public float swingDuration = 0.6f;
-	public float cooldownTime = 0.8f;
+	public float cooldownTime = 1.6f;
 
 	public SFX_Instance batHitSFX = null!;
 
@@ -75,7 +75,7 @@ public class BatBehaviour : ItemInstanceBehaviour
 		// Apply hit effects on all clients
 		if (hitPlayer?.refs?.ragdoll != null)
 		{
-			hitPlayer.refs.ragdoll.TaseShock(1f);
+			hitPlayer.refs.ragdoll.TaseShock(3f);
 			hitPlayer.refs.ragdoll.AddForce(forceDirection * 20f, ForceMode.VelocityChange);
 		}
 
