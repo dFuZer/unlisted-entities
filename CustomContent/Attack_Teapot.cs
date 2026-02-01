@@ -90,8 +90,8 @@ public class Attack_Teapot : MonoBehaviour
             if (fireTimer >= fireInterval)
             {
                 fireTimer = 0f;
-                bool canSeeTarget = _bot.CanSeeTarget(targetPlayer.Center(), 10f);
-                if(canSeeTarget)
+                bool canSeeTarget = _bot.CanSeeTarget(_bot.Center(), 20f);
+                if (canSeeTarget)
                 {
                     FireProjectileAtTarget(targetPlayer);
                 }

@@ -125,7 +125,8 @@ public static class CustomMobs
         Logger.Log($"Registering TeapotFinal: {TeapotFinal.name}");
 
         Logger.Log("Restoring shaders for TeapotFinal");
-        Mobs.RestoreShaders(TeapotFinal);
+        // Mobs.RestoreShaders(TeapotFinal);
+        GameMaterials.ApplyMaterial(TeapotFinal, GameMaterialType.M_Monster, true);
 
         Logger.Log("Creating MobSetupConfig for TeapotFinal (using existing RigCreator setup)");
         var config = new MobSetupConfig
@@ -242,7 +243,7 @@ public static class CustomMobs
             Logger.Log($"TeapotFinal registration completed: {TeapotFinal.name}");
         }
 
-        if(TeapotFinal != null)
+        if (TeapotFinal != null)
         {
             TeapotFinal.AddComponent<TeapotContentProvider>();
             Logger.Log("TeapotContentProvider added to TeapotFinal");
