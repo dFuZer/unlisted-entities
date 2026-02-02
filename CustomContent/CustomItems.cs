@@ -40,8 +40,8 @@ public static class CustomItems
 		Items.RegisterItem(
 			bundle: _bundle,
 			prefabName: "Breakable Bat.prefab",
-			displayName: "Breakable Bat",
-			price: 30,
+			displayName: "Fragile Bat",
+			price: 50,
 			category: ShopItemCategory.Misc,
 			iconName: "icon_bat",
 			soundEffectName: "bat_fall",
@@ -54,8 +54,6 @@ public static class CustomItems
 				batBehaviour.isBreakable = true;
 			}
 		);
-
-		Items.SetAllItemsFree();
 	}
 
 	private static void RegisterUnbreakableBat()
@@ -63,7 +61,7 @@ public static class CustomItems
 		Items.RegisterItem(
 			bundle: _bundle,
 			prefabName: "Unbreakable Bat.prefab",
-			displayName: "Unbreakable Bat",
+			displayName: "Metal Bat",
 			price: 500,
 			category: ShopItemCategory.Misc,
 			iconName: "icon_bat",
@@ -77,7 +75,5 @@ public static class CustomItems
 				batBehaviour.isBreakable = false;
 			}
 		);
-
-		Items.SetAllItemsFree();
 	}
 }
