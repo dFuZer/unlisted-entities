@@ -11,6 +11,7 @@ namespace UnlistedEntities.CustomContent;
 public static class CustomItems
 {
 	private static AssetBundle? _bundle;
+	public static byte? WeaponsCategory = null;
 
 	/// <summary>
 	/// Configures all custom items using the loaded AssetBundle.
@@ -22,6 +23,9 @@ public static class CustomItems
 
 		// Queue registration for when the API is ready
 		string[] allAssets = bundle.GetAllAssetNames();
+
+		WeaponsCategory = Items.RegisterCustomCategory("Weapons");
+
 
 		void RegisterItems()
 		{
@@ -42,7 +46,7 @@ public static class CustomItems
 			prefabName: "Breakable Bat.prefab",
 			displayName: "Fragile Bat",
 			price: 50,
-			category: ShopItemCategory.Misc,
+			category: (ShopItemCategory)WeaponsCategory!,
 			iconName: "icon_bat",
 			soundEffectName: "bat_fall",
 			mat: GameMaterialType.M_Cowboy,
@@ -63,7 +67,7 @@ public static class CustomItems
 			prefabName: "Unbreakable Bat.prefab",
 			displayName: "Metal Bat",
 			price: 500,
-			category: ShopItemCategory.Misc,
+			category: (ShopItemCategory)WeaponsCategory!,
 			iconName: "icon_bat",
 			soundEffectName: "bat_fall",
 			mat: GameMaterialType.M_Milk1,
