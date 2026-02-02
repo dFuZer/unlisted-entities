@@ -54,6 +54,8 @@ public static class CustomItems
 				batBehaviour.isBreakable = true;
 			}
 		);
+
+		Items.SetAllItemsFree();
 	}
 
 	private static void RegisterUnbreakableBat()

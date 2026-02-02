@@ -10,29 +10,51 @@ public class BatBehaviour : ItemInstanceBehaviour
 	private bool isSwinging = false;
 	private bool isInitialized = false;
 	private int lastFrame;
+	private Coroutine currentSwingCoroutine = null;
+	
+	private static HashSet<string> registeredItems = new HashSet<string>();
 
-	// Swing parameters - GENTLE to prevent self-knockdown
 	public float swingForce = 3f;
 	public float swingDuration = 0.6f;
 	public float cooldownTime = 1.6f;
 
 	public SFX_Instance batHitSFX = null!;
-
 	public bool isBreakable;
 
-	// Collision tracking
 	private HashSet<Player> hitPlayers = new HashSet<Player>();
 
 	public override void ConfigItem(ItemInstanceData data, PhotonView playerView)
 	{
+		Debug.Log($"[BAT] ConfigItem called for {gameObject.name}");
 		player = GetComponentInParent<Player>();
-		itemInstance.RegisterRPC(ItemRPC.RPC0, RPC_Hit);
-		itemInstance.RegisterRPC(ItemRPC.RPC1, RPC_StartSwing);
+		
+		string itemId = itemInstance.GetInstanceID().ToString();
+		
+		if (!registeredItems.Contains(itemId))
+		{
+			itemInstance.RegisterRPC(ItemRPC.RPC0, RPC_Hit);
+			itemInstance.RegisterRPC(ItemRPC.RPC1, RPC_StartSwing);
+			registeredItems.Add(itemId);
+			Debug.Log($"[BAT] Registered RPCs for item {itemId}");
+		}
+		
 		isInitialized = true;
+		
+		// Reset swing state
+		if (currentSwingCoroutine != null)
+		{
+			Debug.Log($"[BAT] Stopping existing coroutine in ConfigItem");
+			StopCoroutine(currentSwingCoroutine);
+			currentSwingCoroutine = null;
+		}
+		isSwinging = false;
+		Debug.Log($"[BAT] ConfigItem complete. isSwinging={isSwinging}");
 	}
 
 	private void RPC_StartSwing(BinaryDeserializer deserializer)
 	{
+		Debug.Log($"[BAT] RPC_StartSwing called. isSwinging={isSwinging}");
+		
 		float fdx = deserializer.ReadFloat();
 		float fdy = deserializer.ReadFloat();
 		float fdz = deserializer.ReadFloat();
@@ -44,7 +66,10 @@ public class BatBehaviour : ItemInstanceBehaviour
 
 		Player holder = GetComponentInParent<Player>();
 		if (holder == null || holder.refs?.ragdoll == null)
+		{
+			Debug.LogWarning($"[BAT] RPC_StartSwing: holder or ragdoll is null");
 			return;
+		}
 
 		Bodypart handR = holder.refs.ragdoll.GetBodypart(BodypartType.Hand_R);
 		Bodypart elbowR = holder.refs.ragdoll.GetBodypart(BodypartType.Elbow_R);
@@ -54,12 +79,26 @@ public class BatBehaviour : ItemInstanceBehaviour
 		{
 			hitPlayers.Clear();
 			isSwinging = true;
-			StartCoroutine(PerformSwingReplicated(holder, handR, elbowR, armR, forceDirection, lookDirection));
+			
+			if (currentSwingCoroutine != null)
+			{
+				Debug.Log($"[BAT] Stopping previous swing coroutine");
+				StopCoroutine(currentSwingCoroutine);
+			}
+			
+			currentSwingCoroutine = StartCoroutine(PerformSwingReplicated(holder, handR, elbowR, armR, forceDirection, lookDirection));
+			Debug.Log($"[BAT] Started swing coroutine. isSwinging={isSwinging}");
+		}
+		else
+		{
+			Debug.LogWarning($"[BAT] RPC_StartSwing: Missing bodyparts");
 		}
 	}
 
 	private void RPC_Hit(BinaryDeserializer deserializer)
 	{
+		Debug.Log($"[BAT] RPC_Hit called");
+		
 		int hitViewId = deserializer.ReadInt();
 		float fx = deserializer.ReadFloat();
 		float fy = deserializer.ReadFloat();
@@ -72,14 +111,12 @@ public class BatBehaviour : ItemInstanceBehaviour
 		Player hitPlayer = hitView.GetComponent<Player>();
 		Player holder = GetComponentInParent<Player>();
 
-		// Apply hit effects on all clients
 		if (hitPlayer?.refs?.ragdoll != null)
 		{
 			hitPlayer.refs.ragdoll.TaseShock(3f);
 			hitPlayer.refs.ragdoll.AddForce(forceDirection * 20f, ForceMode.VelocityChange);
 		}
 
-		// Visual/Audio effects on all clients
 		if (batHitSFX)
 			batHitSFX.Play(transform.position);
 
@@ -87,25 +124,16 @@ public class BatBehaviour : ItemInstanceBehaviour
 		{
 			CreateBreakEffect(transform.position);
 
-			// ONLY the owner handles inventory clearing and destruction
-			// CHANGED: Use coroutine instead of immediate destruction to prevent NullReferenceExceptions
 			if (isSimulatedByMe && holder != null)
 			{
+				Debug.Log($"[BAT] Starting destroy sequence");
 				StartCoroutine(DestroyBatAfterHit(holder));
 			}
 		}
 	}
 
-	/// <summary>
-	/// ADDED: Handles bat destruction after a hit with proper cleanup sequence
-	/// This prevents NullReferenceExceptions by:
-	/// 1. Clearing the inventory slot first
-	/// 2. Waiting 2 frames for the inventory system to update
-	/// 3. Only then destroying the GameObject
-	/// </summary>
 	private IEnumerator DestroyBatAfterHit(Player holder)
 	{
-		// Step 1: Clear the inventory slot
 		GlobalPlayerData globalPlayerData;
 		if (GlobalPlayerData.TryGetPlayerData(holder.refs.view.Owner, out globalPlayerData))
 		{
@@ -120,13 +148,12 @@ public class BatBehaviour : ItemInstanceBehaviour
 			}
 		}
 
-		// Step 2: Wait for the inventory system to process the slot clearing
-		// This prevents the PlayerItems.Unequip() NullReferenceException
-		yield return null; // Wait 1 frame
-		yield return null; // Wait another frame for safety
+		yield return null;
+		yield return null;
 
-		// Step 3: Now safely destroy the bat GameObject
-		// Check if objects still exist before destroying (player might have disconnected)
+		string itemId = itemInstance.GetInstanceID().ToString();
+		registeredItems.Remove(itemId);
+
 		if (this != null && gameObject != null)
 		{
 			Destroy(gameObject);
@@ -141,20 +168,30 @@ public class BatBehaviour : ItemInstanceBehaviour
 
 		if (player.input.clickWasPressed && !isSwinging)
 		{
+			Debug.Log($"[BAT] Click detected. Triggering swing. isSwinging={isSwinging}");
 			TriggerSwing();
+		}
+		else if (player.input.clickWasPressed && isSwinging)
+		{
+			Debug.Log($"[BAT] Click detected but already swinging. isSwinging={isSwinging}");
 		}
 	}
 
 	void TriggerSwing()
 	{
 		if (player == null || player.refs?.ragdoll == null || player.refs?.headPos == null)
+		{
+			Debug.LogWarning($"[BAT] TriggerSwing: Missing player refs");
 			return;
+		}
 
 		Vector3 lookDirection = player.refs.headPos.forward;
 		Vector3 forceDirection = player.refs.headPos.forward;
 		forceDirection += Vector3.down * 0.95f;
 		forceDirection = forceDirection.normalized;
 
+		Debug.Log($"[BAT] Calling RPC_StartSwing via RPC");
+		
 		BinarySerializer binarySerializer = new BinarySerializer();
 		binarySerializer.WriteFloat(forceDirection.x);
 		binarySerializer.WriteFloat(forceDirection.y);
@@ -167,17 +204,22 @@ public class BatBehaviour : ItemInstanceBehaviour
 
 	private IEnumerator PerformSwingReplicated(Player holder, Bodypart hand, Bodypart elbow, Bodypart arm, Vector3 forceDirection, Vector3 lookDirection)
 	{
-		// Add null checks for safety
+		Debug.Log($"[BAT] PerformSwingReplicated started. Duration={swingDuration}, Cooldown={cooldownTime}");
+		
 		if (holder == null || hand == null || elbow == null || arm == null)
 		{
+			Debug.LogWarning($"[BAT] PerformSwingReplicated: Null bodyparts detected");
 			isSwinging = false;
+			currentSwingCoroutine = null;
 			yield break;
 		}
 
 		Collider batCollider = GetComponentInChildren<Collider>(true);
 		if (batCollider == null)
 		{
+			Debug.LogWarning($"[BAT] PerformSwingReplicated: No collider found");
 			isSwinging = false;
+			currentSwingCoroutine = null;
 			yield break;
 		}
 
@@ -185,12 +227,13 @@ public class BatBehaviour : ItemInstanceBehaviour
 
 		while (elapsed < swingDuration)
 		{
-			// Null checks during swing (in case holder dies/disconnects)
 			if (hand == null || hand.rig == null || 
 			    elbow == null || elbow.rig == null || 
 			    arm == null || arm.rig == null)
 			{
+				Debug.LogWarning($"[BAT] Bodypart became null during swing");
 				isSwinging = false;
+				currentSwingCoroutine = null;
 				yield break;
 			}
 
@@ -202,7 +245,6 @@ public class BatBehaviour : ItemInstanceBehaviour
 			elbow.rig.AddForce(forceDirection * currentForce * 0.6f, ForceMode.VelocityChange);
 			arm.rig.AddForce(forceDirection * currentForce * 0.4f, ForceMode.VelocityChange);
 
-			// Only the simulating client does hit detection to avoid duplicate RPCs
 			if (isSimulatedByMe)
 			{
 				Collider[] hits = Physics.OverlapBox(
@@ -221,8 +263,19 @@ public class BatBehaviour : ItemInstanceBehaviour
 			yield return new WaitForFixedUpdate();
 		}
 
-		yield return new WaitForSeconds(cooldownTime - swingDuration);
+		Debug.Log($"[BAT] Swing animation complete. Starting cooldown...");
+		
+		float remainingCooldown = Mathf.Max(0f, cooldownTime - swingDuration);
+		Debug.Log($"[BAT] Remaining cooldown: {remainingCooldown}s");
+		
+		if (remainingCooldown > 0f)
+		{
+			yield return new WaitForSeconds(remainingCooldown);
+		}
+		
 		isSwinging = false;
+		currentSwingCoroutine = null;
+		Debug.Log($"[BAT] Swing complete. isSwinging={isSwinging}");
 	}
 
 	private void ProcessHit(Collider other, Vector3 forceDirection, Player holder)
@@ -236,6 +289,7 @@ public class BatBehaviour : ItemInstanceBehaviour
 		if (hitPlayer != null && hitPlayer != holder && !hitPlayers.Contains(hitPlayer))
 		{
 			hitPlayers.Add(hitPlayer);
+			Debug.Log($"[BAT] Hit detected on player {hitPlayer.refs.view.ViewID}");
 			OnHitTarget(hitPlayer, forceDirection);
 		}
 	}
@@ -246,10 +300,11 @@ public class BatBehaviour : ItemInstanceBehaviour
 			return;
 		lastFrame = Time.frameCount;
 
-		// Null check before accessing ViewID
 		if (hitPlayer?.refs?.view == null)
 			return;
 
+		Debug.Log($"[BAT] Sending RPC_Hit for player {hitPlayer.refs.view.ViewID}");
+		
 		BinarySerializer binarySerializer = new BinarySerializer();
 		binarySerializer.WriteInt(hitPlayer.refs.view.ViewID);
 		binarySerializer.WriteFloat(forceDirection.x);
@@ -258,19 +313,34 @@ public class BatBehaviour : ItemInstanceBehaviour
 		itemInstance.CallRPC(ItemRPC.RPC0, binarySerializer);
 	}
 
-	/// <summary>
-	/// Creates a particle effect showing the bat breaking into pieces
-	/// </summary>
+	private void OnDisable()
+	{
+		Debug.Log($"[BAT] OnDisable called. isSwinging={isSwinging}");
+		isSwinging = false;
+		if (currentSwingCoroutine != null)
+		{
+			StopCoroutine(currentSwingCoroutine);
+			currentSwingCoroutine = null;
+		}
+	}
+	
+	private void OnDestroy()
+	{
+		Debug.Log($"[BAT] OnDestroy called");
+		if (itemInstance != null)
+		{
+			string itemId = itemInstance.GetInstanceID().ToString();
+			registeredItems.Remove(itemId);
+		}
+	}
+
 	private void CreateBreakEffect(Vector3 position)
 	{
-		// Create a temporary GameObject for the particle system
 		GameObject particleObj = new GameObject("BatBreakEffect");
 		particleObj.transform.position = position;
 
-		// Add ParticleSystem component
 		ParticleSystem ps = particleObj.AddComponent<ParticleSystem>();
 
-		// Configure main module - EXPLOSIVE SETTINGS
 		var main = ps.main;
 		main.startLifetime = new ParticleSystem.MinMaxCurve(0.8f, 1.5f);
 		main.startSpeed = new ParticleSystem.MinMaxCurve(8f, 15f);
@@ -282,25 +352,21 @@ public class BatBehaviour : ItemInstanceBehaviour
 		main.loop = false;
 		main.gravityModifier = 1.5f;
 
-		// Configure emission
 		var emission = ps.emission;
 		emission.rateOverTime = 0;
 		emission.SetBursts(new ParticleSystem.Burst[] {
 			new ParticleSystem.Burst(0f, 60, 100, 1, 0f)
 		});
 
-		// Configure shape
 		var shape = ps.shape;
 		shape.shapeType = ParticleSystemShapeType.Sphere;
 		shape.radius = 0.05f;
 		shape.radiusThickness = 0f;
 
-		// Size over lifetime
 		var sizeOverLifetime = ps.sizeOverLifetime;
 		sizeOverLifetime.enabled = true;
 		sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 1f, 1f, 0.2f));
 
-		// Color over lifetime
 		var colorOverLifetime = ps.colorOverLifetime;
 		colorOverLifetime.enabled = true;
 		Gradient grad = new Gradient();
@@ -316,7 +382,6 @@ public class BatBehaviour : ItemInstanceBehaviour
 		);
 		colorOverLifetime.color = new ParticleSystem.MinMaxGradient(grad);
 
-		// Add renderer
 		var renderer = ps.GetComponent<ParticleSystemRenderer>();
 		renderer.renderMode = ParticleSystemRenderMode.Billboard;
 
