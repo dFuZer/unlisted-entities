@@ -4,6 +4,6 @@
     "description": "Adds new entities to the game",
     "dependencies": [
         "BepInEx-BepInExPack-5.4.2100",
-        "Unknown-DBs_Content_API-1.0.0"
+        "BD-DBs_Content_API-1.0.0"
     ]
 }

@@ -1,5 +1,10 @@
 # Unlisted entities
 
-Adds 1 new monster to the game.
+Adds 1 monster and 2 items to the game.
 
+Monsters:
 - The Teapot: a 6 legged teapot that throws boiling water at you.
+
+Items:
+- Metal bat (500$): a bat to hit mobs or players with
+- Fragile bat (50$): a one-use bat to hit mobs or players with
