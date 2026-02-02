@@ -6,5 +6,5 @@ Monsters:
 - The Teapot: a 6 legged teapot that throws boiling water at you.
 
 Items:
-- Metal bat (500$): a bat to hit mobs or players with
+- Solid bat (500$): a bat to hit mobs or players with
 - Fragile bat (50$): a one-use bat to hit mobs or players with
