@@ -67,7 +67,7 @@ public static class CustomItems
 		Items.RegisterItem(
 			bundle: _bundle,
 			prefabName: "Unbreakable Bat.prefab",
-			displayName: "Metal Bat",
+			displayName: "Solid Bat",
 			price: 500,
 			category: (ShopItemCategory)WeaponsCategory!,
 			iconName: "icon_bat",
