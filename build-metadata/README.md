@@ -10,5 +10,6 @@ Items:
 - Fragile bat (50$): a one-use bat to hit mobs or players with
 
 WARNING:
+- only confirmed to work in cw-legacy
 - this mod has not been tested for compatibility with other mobs
 - it is possible that there are issues with multiplayer
