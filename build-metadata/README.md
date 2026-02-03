@@ -8,3 +8,7 @@ Monsters:
 Items:
 - Solid bat (500$): a bat to hit mobs or players with
 - Fragile bat (50$): a one-use bat to hit mobs or players with
+
+WARNING:
+- this mod has not been tested for compatibility with other mobs
+- it is possible that there are issues with multiplayer
