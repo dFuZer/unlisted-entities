@@ -3,9 +3,9 @@ using HarmonyLib;
 
 namespace UnlistedEntities;
 
-[ContentWarningPlugin("db.unlistedentities", "1.0.0", vanillaCompatible: false)]
+[ContentWarningPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_VERSION, MyPluginInfo.VANILLA_COMPATIBLE)]
 [BepInDependency("db.contentapi", BepInDependency.DependencyFlags.HardDependency)]
-[BepInPlugin("db.unlistedentities", "Unlisted Entities", "1.0.0")]
+[BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 public class UnlistedEntities : BaseUnityPlugin
 {
     private static Harmony Harmony;
