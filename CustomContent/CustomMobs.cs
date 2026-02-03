@@ -133,7 +133,7 @@ public static class CustomMobs
         {
             // visualRig = null means use the existing RigCreator + PlayerVisual configuration on the prefab
             visualRig = null,
-            budget = new BudgetConfig { budgetCost = 2, rarity = 1f },
+            budget = new BudgetConfig { budgetCost = 3, rarity = 1f },
             controller = new ControllerConfig(),
             player = new PlayerConfig(),
             ragdoll = new RagdollConfig(),
@@ -236,20 +236,20 @@ public static class CustomMobs
             Logger.LogWarning("TeapotSpillHit.prefab not found in bundle");
         }
 
-        Logger.Log("Adding TeapotFinal to customMonsters list");
-        if (TeapotFinal != null)
-        {
-            DbsContentApiPlugin.customMonsters.Add(TeapotFinal);
-            Logger.Log($"TeapotFinal registration completed: {TeapotFinal.name}");
-        }
-
         if (TeapotFinal != null)
         {
             TeapotFinal.AddComponent<TeapotContentProvider>();
             Logger.Log("TeapotContentProvider added to TeapotFinal");
         }
 
-        DbsContentApi.Modules.ContentEvents.RegisterEvent(new TeapotContentEvent());
+        ContentEvents.RegisterEvent(new TeapotContentEvent());
+
+        Logger.Log("Adding TeapotFinal to customMonsters list");
+        if (TeapotFinal != null)
+        {
+            DbsContentApiPlugin.customMonsters.Add(TeapotFinal);
+            Logger.Log($"TeapotFinal registration completed: {TeapotFinal.name}");
+        }
     }
 }
 

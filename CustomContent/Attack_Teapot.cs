@@ -28,6 +28,7 @@ public class Attack_Teapot : MonoBehaviour
     private bool _isAttacking;
     private Coroutine? _soundLoopRoutine;
     private SFX_Instance? _currentlyPlayingSfx;
+    private int _updateFrameCount;
 
     private void Start()
     {
@@ -38,20 +39,25 @@ public class Attack_Teapot : MonoBehaviour
 
     private void Update()
     {
-        SFX_Instance desiredSfx = _isAttacking ? hardBoilingWaterSfx : ambiantBoilingWaterSfx;
+        _updateFrameCount++;
 
-        if (_currentlyPlayingSfx != desiredSfx)
+        if (_updateFrameCount >= 5)
         {
-            if (_soundLoopRoutine != null)
-            {
-                StopCoroutine(_soundLoopRoutine);
-                _soundLoopRoutine = null;
-            }
+            SFX_Instance desiredSfx = _isAttacking ? hardBoilingWaterSfx : ambiantBoilingWaterSfx;
 
-            _currentlyPlayingSfx = desiredSfx;
-            if (desiredSfx != null)
+            if (_currentlyPlayingSfx != desiredSfx)
             {
-                _soundLoopRoutine = StartCoroutine(LoopSoundCoroutine(desiredSfx));
+                if (_soundLoopRoutine != null)
+                {
+                    StopCoroutine(_soundLoopRoutine);
+                    _soundLoopRoutine = null;
+                }
+
+                _currentlyPlayingSfx = desiredSfx;
+                if (desiredSfx != null)
+                {
+                    _soundLoopRoutine = StartCoroutine(LoopSoundCoroutine(desiredSfx));
+                }
             }
         }
 
