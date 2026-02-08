@@ -1,7 +1,7 @@
 {
     "name": "Unlisted_Entities",
     "version_number": "1.0.1",
-    "description": "Adds new entities to the game",
+    "description": "Adds new items and monsters to the game",
     "dependencies": [
         "BepInEx-BepInExPack-5.4.2100",
         "BD-DBs_Content_API-1.0.1"
