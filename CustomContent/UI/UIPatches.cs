@@ -1,11 +1,9 @@
 using System.Linq;
 using HarmonyLib;
 using TMPro;
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UI.ProceduralImage;
-using UnlistedEntities.CustomContent;
 
 /// <summary>
 /// Configuration constants for the equipable system.
