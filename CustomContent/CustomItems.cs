@@ -15,6 +15,12 @@ public static class CustomItems
 	public static byte? WeaponsCategory = null;
 	public static byte? ConsumablesCategory = null;
 	public static byte? EquipablesCategory = null;
+
+	/// <summary>
+	/// Reference to the Jumping Boots item for gameplay checks.
+	/// </summary>
+	public static Item? JumpingBootsItem = null;
+
 	/// <summary>
 	/// Configures all custom items using the loaded AssetBundle.
 	/// </summary>
@@ -69,7 +75,7 @@ public static class CustomItems
 
 	private static void RegisterJumpingBoots()
 	{
-		Items.RegisterItem(
+		JumpingBootsItem = Items.RegisterItem(
 			bundle: _bundle,
 			prefabName: "BootsEquipable.prefab",
 			displayName: "Jumping Boots",
@@ -103,6 +109,11 @@ public static class CustomItems
 				TemporaryInvisibilityItemBehaviour itemBehaviour = prefab.AddComponent<TemporaryInvisibilityItemBehaviour>();
 			}
 		);
+	}
+
+	public static Sprite GetSprite(string iconName)
+	{
+		return _bundle.LoadAsset<Sprite>(iconName);
 	}
 
 
