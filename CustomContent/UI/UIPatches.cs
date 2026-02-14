@@ -1,9 +1,12 @@
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UI.ProceduralImage;
+
 
 /// <summary>
 /// Configuration constants for the equipable system.
@@ -55,6 +58,14 @@ public class UserInterfacePatch
         }
     }
 
+    private static IEnumerator SetPositionDelayed(RectTransform rectTransform)
+    {
+        yield return null;
+        Vector2 anchoredPosition = rectTransform.anchoredPosition;
+        anchoredPosition.x = 200f;
+        rectTransform.anchoredPosition = anchoredPosition;
+    }
+
     static void InitUI(UserInterface ui)
     {
         var hotbarGameObjectTransform = ui.gameObject.transform.Find("Pivot/Others/Hotbar");
@@ -63,6 +74,12 @@ public class UserInterfacePatch
             DbsContentApi.Modules.Logger.LogError("[EquipableUI] Failed to initialize: Hotbar GameObject not found in UI hierarchy.");
             return;
         }
+
+        RectTransform component = hotbarGameObjectTransform.GetComponent<RectTransform>();
+        Vector2 sizeDelta = component.sizeDelta;
+        sizeDelta.x = 1000f;
+        component.sizeDelta = sizeDelta;
+        ui.StartCoroutine(SetPositionDelayed(component));
 
         HotbarUIExtension hotbarUIExtension = hotbarGameObjectTransform.gameObject.AddComponent<HotbarUIExtension>();
         UserInterfacePatch.hotbarUIExtension = hotbarUIExtension;
@@ -108,7 +125,8 @@ public class UserInterfacePatch
             Graphic proceduralImage = clone.GetComponent<ProceduralImage>();
             if (proceduralImage != null)
             {
-                proceduralImage.color = new Color(1f, 0f, 0f, 1f);
+                // rgb(65, 161, 176)
+                proceduralImage.color = new Color(65f / 255f, 161f / 255f, 176f / 255f, 1f);
             }
 
             clone.transform.SetAsFirstSibling();
@@ -233,4 +251,77 @@ public class EquipableSlotUI : MonoBehaviour
             }
         }
     }
+}
+
+
+/// <summary>
+/// Harmony patch for UI_Feedback that attaches a custom extension component when Awake runs.
+/// </summary>
+[HarmonyPatch(typeof(UI_Feedback))]
+public class UI_FeedbackPatch
+{
+    [HarmonyPatch("Awake"), HarmonyPostfix]
+    static void AwakePostfix(UI_Feedback __instance)
+    {
+        __instance.gameObject.AddComponent<UI_FeedbackExtension>();
+    }
+}
+
+/// <summary>
+/// Custom UI feedback extension for oxygen regen and other feedback. Attached when UI_Feedback awakens.
+/// </summary>
+public class UI_FeedbackExtension : MonoBehaviour
+{
+    public void RegenOxygenFeedback()
+    {
+        Graphic[] graphics;
+        List<Color> cols;
+        if (UI_Feedback.instance.takeDamageCor == null)
+        {
+            graphics = UI_Feedback.instance.GetComponentsInChildren<Graphic>();
+            cols = new List<Color>();
+            for (int i = 0; i < graphics.Length; i++)
+            {
+                cols.Add(graphics[i].color);
+            }
+            UI_Feedback.instance.takeDamageCor = StartCoroutine(IOxygenGainFeedback());
+        }
+        IEnumerator IOxygenGainFeedback()
+        {
+            UI_Feedback.instance.SetColor(graphics, new Color(0, 0, 1, 1));
+            yield return new WaitForSeconds(0.2f);
+            UI_Feedback.instance.SetColors(graphics, cols);
+            UI_Feedback.instance.takeDamageCor = null;
+        }
+        UI_Feedback.instance.healParticle.Play();
+    }
+
+    public void PlayerStaminaBoostFeedback()
+    {
+        Graphic[] graphics;
+        List<Color> cols;
+        if (UI_Feedback.instance.takeDamageCor == null)
+        {
+            graphics = UI_Feedback.instance.transform.Find("Pivot/Others/Stamina")!.GetComponentsInChildren<Graphic>();
+            cols = new List<Color>();
+            for (int i = 0; i < graphics.Length; i++)
+            {
+                cols.Add(graphics[i].color);
+            }
+            UI_Feedback.instance.takeDamageCor = StartCoroutine(IStaminaBoostFeedback());
+        }
+        IEnumerator IStaminaBoostFeedback()
+        {
+            UI_Feedback.instance.SetColor(graphics, new Color(0, 0.5f, 0.7f, 1));
+            yield return new WaitForSeconds(0.15f);
+            UI_Feedback.instance.SetColors(graphics, cols);
+            yield return new WaitForSeconds(0.15f);
+            UI_Feedback.instance.SetColor(graphics, new Color(0, 0.5f, 0.7f, 1));
+            yield return new WaitForSeconds(0.15f);
+            UI_Feedback.instance.SetColors(graphics, cols);
+            UI_Feedback.instance.takeDamageCor = null;
+        }
+    }
+
+
 }

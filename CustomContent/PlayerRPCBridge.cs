@@ -23,6 +23,7 @@ public class PlayerRPCBridge : MonoBehaviour
         Player player = PlayerHandler.instance.TryGetPlayerFromViewID(playerViewId);
         if (player != null)
         {
+
             StartCoroutine(MakeInvisibleCoroutine(player, duration));
         }
     }

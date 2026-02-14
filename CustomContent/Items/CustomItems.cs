@@ -15,6 +15,8 @@ public static class CustomItems
 	public static byte? WeaponsCategory = null;
 	public static byte? ConsumablesCategory = null;
 	public static byte? EquipablesCategory = null;
+	public static GameObject? FroggyBootRightPrefab = null;
+	public static GameObject? FroggyBootLeftPrefab = null;
 
 	/// <summary>
 	/// Reference to the Jumping Boots item for gameplay checks.
@@ -36,196 +38,275 @@ public static class CustomItems
 		ConsumablesCategory = Items.RegisterCustomCategory("Consumables");
 		EquipablesCategory = Items.RegisterCustomCategory("Equipables");
 
+		var oxygenRegenerationSfx = _bundle!.LoadAsset<SFX_Instance>("OxygenRegenSfx")!;
+
 		void RegisterItems()
 		{
 			RegisterUnbreakableBat();
 			RegisterBreakableBat();
-			RegisterRegenConsumables();
-			RegisterAdrenoShot();
-			RegisterInvisibilityPotion();
+			RegisterSmallO2Tank(oxygenRegenerationSfx);
+			RegisterLargeO2Tank(oxygenRegenerationSfx);
+			RegisterBandAidBox();
+			RegisterMedkit();
+			RegisterEnergyBar();
+			RegisterInvisibilitySpray();
 			RegisterJumpingBoots();
 		}
 
-		DbsContentApi.DbsContentApiPlugin.customItemsRegistrationCallbacks.Add(RegisterItems);
+		DbsContentApiPlugin.customItemsRegistrationCallbacks.Add(RegisterItems);
 	}
 
-	/// <summary>
-	/// Registers the Bat item.
-	/// </summary>
+	private static void RegisterUnbreakableBat()
+	{
+		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "Unbreakable Bat.prefab");
+		GameMaterials.ApplyMaterial(prefab, GameMaterialType.M_DARKGRAY);
+		BatBehaviour batBehaviour = prefab.AddComponent<BatBehaviour>();
+		batBehaviour.batHitSFX = _bundle!.LoadAsset<SFX_Instance>("SFX Bat Hit");
+		batBehaviour.isBreakable = false;
+
+		SFX_Instance[] impactSounds = Items.CreateSFXInstanceFromClip(_bundle!.LoadAsset<AudioClip>("bat_fall"));
+		foreach (SFX_Instance sfx in impactSounds)
+		{
+			sfx.settings.pitch = 0.8f;
+			sfx.settings.volume = 0.7f;
+		}
+
+		Items.RegisterItem(
+			bundle: _bundle!,
+			prefab: prefab,
+			displayName: "Solid bat",
+			price: 500,
+			category: (ShopItemCategory)WeaponsCategory!,
+			iconName: "icon_bat",
+			impactSounds: impactSounds,
+			holdPos: new Vector3(0.3f, -0.3f, 0.7f)
+		);
+	}
+
 	private static void RegisterBreakableBat()
 	{
+		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "Breakable Bat.prefab");
+		GameMaterials.ApplyMaterial(prefab, GameMaterialType.BROWN);
+		BatBehaviour batBehaviour = prefab.AddComponent<BatBehaviour>();
+		batBehaviour.batHitSFX = _bundle.LoadAsset<SFX_Instance>("SFX Bat Hit");
+		batBehaviour.isBreakable = true;
+
+		AudioClip batFallClip = _bundle!.LoadAsset<AudioClip>("bat_fall");
+		SFX_Instance[] impactSounds = Items.CreateSFXInstanceFromClip(batFallClip);
+
 		Items.RegisterItem(
-			bundle: _bundle,
-			prefabName: "Breakable Bat.prefab",
-			displayName: "Fragile Bat",
+			bundle: _bundle!,
+			prefab: prefab,
+			displayName: "Fragile bat",
 			price: 50,
 			category: (ShopItemCategory)WeaponsCategory!,
 			iconName: "icon_bat",
-			soundEffectName: "bat_fall",
-			mat: GameMaterialType.M_Cowboy,
-			holdPos: new Vector3(0.3f, 0.1f, 0.4f),
-			customBehaviourSetup: (prefab, prefabName) =>
-			{
-				BatBehaviour batBehaviour = prefab.AddComponent<BatBehaviour>();
-				batBehaviour.batHitSFX = _bundle.LoadAsset<SFX_Instance>("SFX Bat Hit");
-				batBehaviour.isBreakable = true;
-			}
+			impactSounds: impactSounds,
+			holdPos: new Vector3(0.3f, -0.3f, 0.7f)
+		);
+	}
+
+	private static void RegisterSmallO2Tank(SFX_Instance oxygenRegenerationSfx)
+	{
+		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.ContainerBounce1, ImpactSoundType.ContainerBounce2);
+		foreach (SFX_Instance sfx in impactSounds)
+		{
+			sfx.settings.pitch = 1.5f;
+			sfx.settings.volume = 0.3f;
+		}
+
+		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "SmallO2Tank.prefab");
+		GameObject visualRoot = prefab.transform.Find("Visual/o2tank")!.gameObject;
+		GameMaterials.ApplyMaterial(visualRoot!, GameMaterialType.M_DARKGRAY, true);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Cap")!.gameObject, GameMaterialType.M_Metal, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Rims")!.gameObject, GameMaterialType.M_Metal, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Text")!.gameObject, GameMaterialType.M_Cap_1, false);
+		RegenStatItemBehaviour behaviour = prefab.AddComponent<RegenStatItemBehaviour>();
+		behaviour.regenPercentageAmount = 30;
+		behaviour.statType = StatTypeEnum.Oxygen;
+		behaviour.oxygenRegenerationSfx = oxygenRegenerationSfx;
+
+		Items.RegisterItem(
+			bundle: _bundle!,
+			prefab: prefab,
+			displayName: "Small O2 tank",
+			price: 30,
+			category: (ShopItemCategory)ConsumablesCategory!,
+			iconName: "icon_o2_tank",
+			impactSounds: impactSounds,
+			holdPos: new Vector3(0.3f, -0.3f, 0.7f)
+		);
+	}
+
+	private static void RegisterLargeO2Tank(SFX_Instance oxygenRegenerationSfx)
+	{
+		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.ContainerBounce1, ImpactSoundType.ContainerBounce2);
+
+		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "LargeO2Tank.prefab");
+		GameObject visualRoot = prefab.transform.Find("Visual/o2tank")!.gameObject;
+		GameMaterials.ApplyMaterial(visualRoot!, GameMaterialType.M_DARKGRAY, true);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Cap")!.gameObject, GameMaterialType.M_Metal, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Rims")!.gameObject, GameMaterialType.M_Metal, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Text")!.gameObject, GameMaterialType.M_Cap_1, false);
+
+		RegenStatItemBehaviour behaviour = prefab.AddComponent<RegenStatItemBehaviour>();
+		behaviour.regenPercentageAmount = 80;
+		behaviour.statType = StatTypeEnum.Oxygen;
+		behaviour.oxygenRegenerationSfx = oxygenRegenerationSfx;
+
+		Items.RegisterItem(
+			bundle: _bundle!,
+			prefab: prefab,
+			displayName: "Large O2 tank",
+			price: 80,
+			category: (ShopItemCategory)ConsumablesCategory!,
+			iconName: "icon_o2_tank",
+			impactSounds: impactSounds,
+			holdPos: new Vector3(0.3f, -0.3f, 0.7f)
+		);
+	}
+
+	private static void RegisterBandAidBox()
+	{
+		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce3);
+
+		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "BandAidBox.prefab");
+		GameObject visualRoot = prefab.transform.Find("Item/bandaid")!.gameObject;
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Barcode")!.gameObject, GameMaterialType.VERY_DARK_GRAY, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Cross")!.gameObject, GameMaterialType.RED, false);
+		Renderer boxRenderer = visualRoot!.transform.Find("Box")!.gameObject.GetComponent<Renderer>();
+		boxRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterialType.BROWN), GameMaterials.GetMaterial(GameMaterialType.WHITE_IVORY), GameMaterials.GetMaterial(GameMaterialType.GRAY_BLUE) };
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Gauze")!.gameObject, GameMaterialType.WHITE, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("PlasterFront")!.gameObject, GameMaterialType.ORANGE_SAUSAGE, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("TextBack")!.gameObject, GameMaterialType.VERY_DARK_GRAY, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("TextFront")!.gameObject, GameMaterialType.VERY_DARK_GRAY, false);
+
+		RegenStatItemBehaviour behaviour = prefab.AddComponent<RegenStatItemBehaviour>();
+		behaviour.regenPercentageAmount = 40;
+		behaviour.statType = StatTypeEnum.Health;
+
+		Items.RegisterItem(
+			bundle: _bundle!,
+			prefab: prefab,
+			displayName: "Band-aid box",
+			price: 30,
+			category: (ShopItemCategory)ConsumablesCategory!,
+			iconName: "icon_band_aid_box",
+			impactSounds: impactSounds,
+			holdPos: new Vector3(0.3f, -0.3f, 0.7f)
+		);
+	}
+
+	private static void RegisterMedkit()
+	{
+		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce3);
+
+		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "Medkit.prefab");
+		GameObject visualRoot = prefab.transform.Find("Visual/medkit")!.gameObject;
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Rim")!.gameObject, GameMaterialType.M_Cap_1, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Case")!.gameObject, GameMaterialType.RED, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Cross")!.gameObject, GameMaterialType.M_Cap_1, false);
+
+		RegenStatItemBehaviour behaviour = prefab.AddComponent<RegenStatItemBehaviour>();
+		behaviour.regenPercentageAmount = 100;
+		behaviour.statType = StatTypeEnum.Health;
+
+		Items.RegisterItem(
+			bundle: _bundle!,
+			prefab: prefab,
+			displayName: "Medkit",
+			price: 70,
+			category: (ShopItemCategory)ConsumablesCategory!,
+			iconName: "icon_medkit",
+			impactSounds: impactSounds,
+			holdPos: new Vector3(0.3f, -0.3f, 0.7f),
+			holdRot: new Vector3(0, 0, 0)
+		);
+	}
+
+	private static void RegisterEnergyBar()
+	{
+		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "EnergyBar.prefab");
+		GameObject visualRoot = prefab.transform.Find("Item/energybar")!.gameObject;
+		GameMaterials.ApplyMaterial(visualRoot!, GameMaterialType.M_DARKGRAY, true);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Bar")!.gameObject, GameMaterialType.M_Beanie_1, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Icon")!.gameObject, GameMaterialType.M_Cap_1, false);
+		var behaviour = prefab.AddComponent<TemporaryPlayerBoostItemBehaviour>();
+		behaviour.playerCrunchSFX = _bundle!.LoadAsset<SFX_Instance>("CrunchSfx")!;
+
+
+		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.BombBounce2);
+
+		Items.RegisterItem(
+			bundle: _bundle!,
+			prefab: prefab,
+			displayName: "Energy bar",
+			price: 35,
+			category: (ShopItemCategory)ConsumablesCategory!,
+			iconName: "icon_energybar",
+			impactSounds: impactSounds,
+			holdPos: new Vector3(0.3f, -0.3f, 0.7f)
+		);
+	}
+
+	private static void RegisterInvisibilitySpray()
+	{
+		var invisibilitySpraySfx = _bundle!.LoadAsset<SFX_Instance>("SpraySfx")!;
+		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "InvisibilitySpray.prefab");
+		GameObject visualRoot = prefab.transform.Find("Item/spraycan")!.gameObject;
+		GameMaterials.ApplyMaterial(prefab, GameMaterialType.M_DARKGRAY, true);
+		GameObject cap = visualRoot!.transform.Find("Cap")!.gameObject;
+		Renderer capRenderer = cap.GetComponent<Renderer>();
+		capRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterialType.M_Cap_1), GameMaterials.GetMaterial(GameMaterialType.M_DARKGRAY) };
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Icon")!.gameObject, GameMaterialType.YELLOW, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("CanBridge")!.gameObject, GameMaterialType.M_DARKGRAY, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("CapBridge")!.gameObject, GameMaterialType.M_Cap_1, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Bulb")!.gameObject, GameMaterialType.M_Cap_1, false);
+		var behaviour = prefab.AddComponent<TemporaryInvisibilityItemBehaviour>();
+		behaviour.invisibilitySpraySfx = invisibilitySpraySfx;
+
+
+		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce6);
+
+		Items.RegisterItem(
+			bundle: _bundle!,
+			prefab: prefab,
+			displayName: "Invisibility spray",
+			price: 65,
+			category: (ShopItemCategory)ConsumablesCategory!,
+			iconName: "icon_invisibility_spray",
+			impactSounds: impactSounds,
+			holdPos: new Vector3(0.3f, -0.3f, 0.7f)
 		);
 	}
 
 	private static void RegisterJumpingBoots()
 	{
-		JumpingBootsItem = Items.RegisterItem(
-			bundle: _bundle,
-			prefabName: "BootsEquipable.prefab",
-			displayName: "Jumping Boots",
-			price: 50,
-			category: (ShopItemCategory)EquipablesCategory!,
-			iconName: "icon_bat",
-			soundEffectName: "bat_fall",
-			mat: GameMaterialType.M_Cowboy,
-			holdPos: new Vector3(0.3f, 0.1f, 0.4f),
-			customBehaviourSetup: (prefab, prefabName) =>
-			{
-				BootsEquipableItemBehaviour itemBehaviour = prefab.AddComponent<BootsEquipableItemBehaviour>();
-			}
-		);
-	}
+		FroggyBootRightPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "FroggyBootRight.prefab");
+		GameMaterials.ApplyMaterial(FroggyBootRightPrefab, GameMaterialType.GREEN2, true);
+		FroggyBootLeftPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "FroggyBootLeft.prefab");
+		GameMaterials.ApplyMaterial(FroggyBootLeftPrefab, GameMaterialType.GREEN2, true);
 
-	private static void RegisterInvisibilityPotion()
-	{
-		Items.RegisterItem(
-			bundle: _bundle,
-			prefabName: "InvisibilityPotion.prefab",
-			displayName: "Invisibility Potion",
-			price: 60,
-			category: (ShopItemCategory)ConsumablesCategory!,
-			iconName: "icon_bat",
-			soundEffectName: "bat_fall",
-			mat: GameMaterialType.M_Milk1,
-			holdPos: new Vector3(0.3f, 0.1f, 0.4f),
-			customBehaviourSetup: (prefab, prefabName) =>
-			{
-				TemporaryInvisibilityItemBehaviour itemBehaviour = prefab.AddComponent<TemporaryInvisibilityItemBehaviour>();
-			}
+		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "BootsEquipable.prefab");
+		GameMaterials.ApplyMaterial(prefab, GameMaterialType.GREEN2);
+		prefab.AddComponent<BootsEquipableItemBehaviour>();
+
+		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
+
+		JumpingBootsItem = Items.RegisterItem(
+			bundle: _bundle!,
+			prefab: prefab,
+			displayName: "Froggy boots",
+			price: 100,
+			category: (ShopItemCategory)EquipablesCategory!,
+			iconName: "icon_froggy_boots",
+			impactSounds: impactSounds,
+			holdPos: new Vector3(0.3f, -0.3f, 0.4f)
 		);
 	}
 
 	public static Sprite GetSprite(string iconName)
 	{
-		return _bundle.LoadAsset<Sprite>(iconName);
-	}
-
-
-	private static void RegisterUnbreakableBat()
-	{
-		Items.RegisterItem(
-			bundle: _bundle,
-			prefabName: "Unbreakable Bat.prefab",
-			displayName: "Solid Bat",
-			price: 500,
-			category: (ShopItemCategory)WeaponsCategory!,
-			iconName: "icon_bat",
-			soundEffectName: "bat_fall",
-			mat: GameMaterialType.M_Milk1,
-			holdPos: new Vector3(0.3f, 0.1f, 0.4f),
-			customBehaviourSetup: (prefab, prefabName) =>
-			{
-				BatBehaviour batBehaviour = prefab.AddComponent<BatBehaviour>();
-				batBehaviour.batHitSFX = _bundle.LoadAsset<SFX_Instance>("SFX Bat Hit");
-				batBehaviour.isBreakable = false;
-			}
-		);
-	}
-
-	private static void RegisterAdrenoShot()
-	{
-		Items.RegisterItem(
-			bundle: _bundle,
-			prefabName: "AdrenoShot.prefab",
-			displayName: "Adreno-Shot",
-			price: 60,
-			category: (ShopItemCategory)ConsumablesCategory!,
-			iconName: "icon_bat",
-			soundEffectName: "bat_fall",
-			mat: GameMaterialType.M_Milk1,
-			holdPos: new Vector3(0.3f, 0.1f, 0.4f),
-			customBehaviourSetup: (prefab, prefabName) =>
-			{
-				TemporaryPlayerBoostItemBehaviour itemBehaviour = prefab.AddComponent<TemporaryPlayerBoostItemBehaviour>();
-			}
-		);
-	}
-
-	private static void RegisterRegenConsumables()
-	{
-		Items.RegisterItem(
-			bundle: _bundle,
-			prefabName: "O2Canister.prefab",
-			displayName: "O2 Canister",
-			price: 30,
-			category: (ShopItemCategory)ConsumablesCategory!,
-			iconName: "icon_bat",
-			soundEffectName: "bat_fall",
-			mat: GameMaterialType.M_Milk1,
-			holdPos: new Vector3(0.3f, 0.1f, 0.4f),
-			customBehaviourSetup: (prefab, prefabName) =>
-			{
-				RegenStatItemBehaviour itemBehaviour = prefab.AddComponent<RegenStatItemBehaviour>();
-				itemBehaviour.regenPercentageAmount = 30;
-				itemBehaviour.statType = StatTypeEnum.Oxygen;
-			}
-		);
-		Items.RegisterItem(
-			bundle: _bundle,
-			prefabName: "IndustrialO2Tank.prefab",
-			displayName: "Industrial O2 Tank",
-			price: 70,
-			category: (ShopItemCategory)ConsumablesCategory!,
-			iconName: "icon_bat",
-			soundEffectName: "bat_fall",
-			mat: GameMaterialType.M_Milk1,
-			holdPos: new Vector3(0.3f, 0.1f, 0.4f),
-			customBehaviourSetup: (prefab, prefabName) =>
-			{
-				RegenStatItemBehaviour itemBehaviour = prefab.AddComponent<RegenStatItemBehaviour>();
-				itemBehaviour.regenPercentageAmount = 80;
-				itemBehaviour.statType = StatTypeEnum.Oxygen;
-			}
-		);
-		Items.RegisterItem(
-			bundle: _bundle,
-			prefabName: "MedShot.prefab",
-			displayName: "Med Shot",
-			price: 30,
-			category: (ShopItemCategory)ConsumablesCategory!,
-			iconName: "icon_bat",
-			soundEffectName: "bat_fall",
-			mat: GameMaterialType.M_Milk1,
-			holdPos: new Vector3(0.3f, 0.1f, 0.4f),
-			customBehaviourSetup: (prefab, prefabName) =>
-			{
-				RegenStatItemBehaviour itemBehaviour = prefab.AddComponent<RegenStatItemBehaviour>();
-				itemBehaviour.regenPercentageAmount = 40;
-				itemBehaviour.statType = StatTypeEnum.Health;
-			}
-		);
-		Items.RegisterItem(
-			bundle: _bundle,
-			prefabName: "TraumaKit.prefab",
-			displayName: "Trauma Kit",
-			price: 70,
-			category: (ShopItemCategory)ConsumablesCategory!,
-			iconName: "icon_bat",
-			soundEffectName: "bat_fall",
-			mat: GameMaterialType.M_Milk1,
-			holdPos: new Vector3(0.3f, 0.1f, 0.4f),
-			customBehaviourSetup: (prefab, prefabName) =>
-			{
-				RegenStatItemBehaviour itemBehaviour = prefab.AddComponent<RegenStatItemBehaviour>();
-				itemBehaviour.regenPercentageAmount = 100;
-				itemBehaviour.statType = StatTypeEnum.Health;
-			}
-		);
+		return _bundle!.LoadAsset<Sprite>(iconName);
 	}
 }

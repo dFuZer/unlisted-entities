@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Zorro.Core.Serizalization;
 using System.Runtime.CompilerServices;
 using DbsContentApi.Modules;
+using UnityEngine.UI;
 
 public enum StatTypeEnum
 {
@@ -18,7 +19,7 @@ public class RegenStatItemBehaviour : ItemInstanceBehaviour
 	public int regenPercentageAmount;
 	public StatTypeEnum statType;
 	private static float maxHealth = 100;
-
+	public SFX_Instance oxygenRegenerationSfx;
 	public override void ConfigItem(ItemInstanceData data, PhotonView playerView)
 	{
 		player = GetComponentInParent<Player>();
@@ -39,10 +40,24 @@ public class RegenStatItemBehaviour : ItemInstanceBehaviour
 			if (readStatType == StatTypeEnum.Oxygen)
 			{
 				player.data.remainingOxygen = Mathf.Min(player.data.remainingOxygen + readRegenAmount, player.data.maxOxygen);
+				if (player == Player.localPlayer)
+				{
+					var uiFeedbackExtension = UI_Feedback.instance.GetComponent<UI_FeedbackExtension>();
+					if (uiFeedbackExtension != null)
+					{
+						uiFeedbackExtension.RegenOxygenFeedback();
+						DbsContentApi.Modules.Logger.Log($"PLAYING OXYGEN REGEN SFX");
+						oxygenRegenerationSfx.Play(base.transform.position);
+					}
+				}
 			}
 			else if (readStatType == StatTypeEnum.Health)
 			{
 				player.data.health = Mathf.Min(player.data.health + readRegenAmount, maxHealth);
+				if (player == Player.localPlayer)
+				{
+					UI_Feedback.instance.HealFeedback();
+				}
 			}
 		}
 	}
