@@ -271,7 +271,7 @@ public class EquipableInventory : MonoBehaviourPun
 /// Harmony patches for integrating the EquipableInventory system with the game's player lifecycle.
 /// </summary>
 [HarmonyPatch]
-public class PlayerPatches
+public class EquipableInventoryPatches
 {
     /// <summary>
     /// Adds the EquipableInventory component to GlobalPlayerData when it awakens.

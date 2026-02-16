@@ -50,6 +50,10 @@ public static class CustomItems
 			RegisterMedkit();
 			RegisterEnergyBar();
 			RegisterInvisibilitySpray();
+			// RegisterThrowableGrenade();
+			RegisterGrenade();
+			RegisterSemtexGrenade();
+			RegisterElectricGrenade();
 			RegisterJumpingBoots();
 		}
 
@@ -280,6 +284,133 @@ public static class CustomItems
 		);
 	}
 
+	// private static void RegisterThrowableGrenade()
+	// {
+	// 	GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "ThrowableGrenade.prefab");
+	// 	GameMaterials.ApplyMaterial(prefab, GameMaterialType.M_DARKGRAY, true);
+	// 	var behaviour = prefab.AddComponent<ThrowableGrenadeItemBehaviour>();
+
+	// 	SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce6);
+
+	// 	Items.RegisterItem(
+	// 		bundle: _bundle!,
+	// 		prefab: prefab,
+	// 		displayName: "Throwable grenade",
+	// 		price: 65,
+	// 		category: (ShopItemCategory)ConsumablesCategory!,
+	// 		iconName: "icon_energybar",
+	// 		impactSounds: impactSounds,
+	// 		holdPos: new Vector3(0.3f, -0.3f, 0.7f)
+	// 	);
+	// }
+
+	private static void RegisterGrenade()
+	{
+		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "Grenade.prefab");
+		var visualRoot = prefab.transform.Find("Item/grenade")!.gameObject;
+		var grenadeTransform = visualRoot.transform.Find("Grenade")!.gameObject;
+		Renderer grenadeRenderer = grenadeTransform.GetComponent<Renderer>();
+		grenadeRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterialType.DARKGRAY2), GameMaterials.GetMaterial(GameMaterialType.GREEN) };
+
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("SmallTriggerRing")!.gameObject, GameMaterialType.DARKGRAY2, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("TriggerRing")!.gameObject, GameMaterialType.DARKGRAY2, false);
+		var behaviour = prefab.AddComponent<GrenadeItemBehaviour>();
+
+		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
+
+		Items.RegisterItem(
+			bundle: _bundle!,
+			prefab: prefab,
+			displayName: "Grenade",
+			price: 65,
+			category: (ShopItemCategory)WeaponsCategory!,
+			iconName: "icon_energybar",
+			impactSounds: impactSounds,
+			holdPos: new Vector3(0.3f, -0.6f, 0.7f)
+		);
+	}
+
+	private static void RegisterSemtexGrenade()
+	{
+		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "SemtexGrenade.prefab");
+		var visualRoot = prefab.transform.Find("Item/semtex")!.gameObject;
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Nails")!.gameObject, GameMaterialType.DARKGRAY2, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("SmallTriggerRing")!.gameObject, GameMaterialType.DARKGRAY2, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("TriggerRing")!.gameObject, GameMaterialType.DARKGRAY2, false);
+
+		var grenadeRenderer = visualRoot.transform.Find("Grenade")!.gameObject.GetComponent<Renderer>();
+		grenadeRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterialType.GREEN), GameMaterials.GetMaterial(GameMaterialType.YELLOW), GameMaterials.GetMaterial(GameMaterialType.DARKGRAY2), GameMaterials.GetMaterial(GameMaterialType.WHITE) };
+
+		var behaviour = prefab.AddComponent<SemtexItemBehaviour>();
+		behaviour.hasTickingSound = true;
+		behaviour.onStickSfx = _bundle!.LoadAsset<SFX_Instance>("SemtexStickSfx");
+		behaviour.tickingSoundClip = _bundle!.LoadAsset<AudioClip>("semtex-tick");
+		behaviour.baseTickingPitch = 0.8f;
+		behaviour.tickingPitchMultiplier = 0.25f;
+		behaviour.maxTickingPitch = 8f;
+		behaviour.minTickingPitch = 1f;
+		behaviour.tickingVolume = 0.35f;
+
+		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
+
+		Items.RegisterItem(
+			bundle: _bundle!,
+			prefab: prefab,
+			displayName: "Semtex grenade",
+			price: 65,
+			category: (ShopItemCategory)WeaponsCategory!,
+			iconName: "icon_energybar",
+			impactSounds: impactSounds,
+			holdPos: new Vector3(0.3f, -0.6f, 0.7f)
+		);
+	}
+
+	private static void RegisterElectricGrenade()
+	{
+		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "ElectricGrenade.prefab");
+		var visualRoot = prefab.transform.Find("Item/electric-grenade")!.gameObject;
+		var grenadeRenderer = visualRoot.transform.Find("Grenade")!.gameObject.GetComponent<Renderer>();
+		// gray, luminous white, dark gray
+		grenadeRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterialType.GRAY), GameMaterials.GetMaterial(GameMaterialType.BRIGHT_WHITE), GameMaterials.GetMaterial(GameMaterialType.DARKGRAY2) };
+
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("InnerRods")!.gameObject, GameMaterialType.BRIGHT_WHITE, false);
+
+		var partLRenderer = visualRoot.transform.Find("Part_L")!.gameObject.GetComponent<Renderer>();
+		var partRRenderer = visualRoot.transform.Find("Part_R")!.gameObject.GetComponent<Renderer>();
+		// for partL : darkgray, light, gray, flatgray
+		partLRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterialType.DARKGRAY2), GameMaterials.GetMaterial(GameMaterialType.BRIGHT_WHITE), GameMaterials.GetMaterial(GameMaterialType.GRAY), GameMaterials.GetMaterial(GameMaterialType.FLAT_GRAY) };
+		// for partR : darkgray, gray, flatgray, light
+		partRRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterialType.DARKGRAY2), GameMaterials.GetMaterial(GameMaterialType.GRAY), GameMaterials.GetMaterial(GameMaterialType.FLAT_GRAY), GameMaterials.GetMaterial(GameMaterialType.BRIGHT_WHITE) };
+
+		var explosionPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "ElectricExplosion.prefab");
+		ElectricGrenadeExplosionAOE explosionAOE = explosionPrefab.AddComponent<ElectricGrenadeExplosionAOE>();
+
+		var behaviour = prefab.AddComponent<ElectricGrenadeItemBehaviour>();
+		behaviour.electricExplosionPrefab = explosionPrefab;
+		behaviour.baseTickingPitch = 0.8f;
+		behaviour.tickingPitchMultiplier = 0.25f;
+		behaviour.maxTickingPitch = 8f;
+		behaviour.minTickingPitch = 1f;
+		behaviour.hasTickingSound = true;
+		behaviour.electricExplosionSfx = _bundle!.LoadAsset<SFX_Instance>("ElectricGrenadeExplosionSfx");
+		behaviour.tickingSoundClip = _bundle!.LoadAsset<AudioClip>("electric-grenade-tick");
+		behaviour.tickingVolume = 0.35f;
+
+		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
+
+		Items.RegisterItem(
+			bundle: _bundle!,
+			prefab: prefab,
+			displayName: "Electric grenade",
+			price: 65,
+			category: (ShopItemCategory)WeaponsCategory!,
+			iconName: "icon_energybar",
+			impactSounds: impactSounds,
+			holdPos: new Vector3(0.3f, -0.6f, 0.7f)
+		);
+	}
+
+
 	private static void RegisterJumpingBoots()
 	{
 		FroggyBootRightPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "FroggyBootRight.prefab");
@@ -304,6 +435,8 @@ public static class CustomItems
 			holdPos: new Vector3(0.3f, -0.3f, 0.4f)
 		);
 	}
+
+
 
 	public static Sprite GetSprite(string iconName)
 	{
