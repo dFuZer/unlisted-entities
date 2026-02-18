@@ -428,7 +428,7 @@ public static class CustomItems
 		GameMaterials.ApplyMaterial(CursedNecklace, GameMaterialType.GREEN2, true);
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "DollItem.prefab");
-		GameMaterials.ApplyMaterial(prefab, GameMaterialType.GREEN2);
+		GameMaterials.ApplyMaterial(prefab, GameMaterialType.GREEN2, true);
 		prefab.AddComponent<BootsEquipableItemBehaviour>();
 
 		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);

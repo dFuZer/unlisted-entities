@@ -138,10 +138,10 @@ public class EquipableInventory : MonoBehaviourPun
         if (torso != null)
         {
             GameObject necklace = Instantiate(UnlistedEntities.CustomContent.CustomItems.CursedNecklace, torso);
-            necklace.transform.localPosition = new UnityEngine.Vector3(0.05f, 1.56f, -0.88f);
+            necklace.transform.localPosition = new UnityEngine.Vector3(1.94f, 1.80f, 2.47f);
 
-            necklace.transform.localRotation = UnityEngine.Quaternion.Euler(0, 0, 0);
-            necklace.transform.localScale = new UnityEngine.Vector3(0.2769034f, 0.2769034f, 0.2769034f);
+            necklace.transform.localRotation = UnityEngine.Quaternion.Euler(-83.044f, 0, 0);
+            necklace.transform.localScale = new UnityEngine.Vector3(2.98f, 2.98f, 2.98f);
             spawnedVisuals[slot] = necklace;
             var playerShader = player.gameObject.transform.Find("CharacterModel/BodyRenderer").GetComponent<Renderer>().material.shader;
             foreach (var renderer in necklace.GetComponentsInChildren<Renderer>())
