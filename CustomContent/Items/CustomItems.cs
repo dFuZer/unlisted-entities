@@ -425,7 +425,7 @@ public static class CustomItems
 	private static void RegisterCursedDoll()
 	{
 		CursedNecklace = ContentLoader.LoadPrefabFromBundle(_bundle!, "CursedNecklace.prefab");
-		GameMaterials.ApplyMaterial(FroggyBootRightPrefab, GameMaterialType.GREEN2, true);
+		GameMaterials.ApplyMaterial(CursedNecklace, GameMaterialType.GREEN2, true);
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "DollItem.prefab");
 		GameMaterials.ApplyMaterial(prefab, GameMaterialType.GREEN2);

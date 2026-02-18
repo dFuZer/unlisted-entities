@@ -116,10 +116,8 @@ public class EquipableInventory : MonoBehaviourPun
             if (!spawnedVisuals.ContainsKey(i))
             {
                 // Spawn logic for specific items
-                if ((UnlistedEntities.CustomContent.CustomItems.JumpingBootsItem != null &&
-                    itemID == UnlistedEntities.CustomContent.CustomItems.JumpingBootsItem.id) ||
-					(UnlistedEntities.CustomContent.CustomItems.CursedDoll != null &&
-                    itemID == UnlistedEntities.CustomContent.CustomItems.CursedDoll.id))
+                if (UnlistedEntities.CustomContent.CustomItems.JumpingBootsItem != null &&
+                    itemID == UnlistedEntities.CustomContent.CustomItems.JumpingBootsItem.id)
                 {
                     SpawnFroggyBoot(i, player);
                 }
