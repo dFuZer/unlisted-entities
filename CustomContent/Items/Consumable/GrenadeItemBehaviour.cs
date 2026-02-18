@@ -21,6 +21,38 @@ public class GrenadeItemBehaviour : ItemInstanceBehaviour
 	[SerializeField] protected float fuseTime = 5f;
 	[SerializeField] protected float timeNotHeldBeforeImpactExplode = 0.1f;
 
+	/// <summary>
+	/// Shared explosion prefab built once during item registration.
+	/// Set by CustomItems before any grenade item is configured.
+	/// </summary>
+	public static GameObject? SharedExplosionPrefab { get; set; }
+
+	/// <summary>
+	/// Builds the grenade explosion prefab (BombItem explosion with MonsterAffectingAOE).
+	/// Call once during registration and assign to SharedExplosionPrefab.
+	/// </summary>
+	public static GameObject? BuildExplosionPrefab()
+	{
+		Item? bombItem = Items.GetItemByPrefabComponent<BombItem>();
+		if (bombItem?.itemObject == null)
+		{
+			DbsContentApi.Modules.Logger.LogError("GrenadeItemBehaviour: Could not find BombItem prefab.");
+			return null;
+		}
+		BombItem? bombItemBehaviour = bombItem.itemObject.GetComponent<BombItem>();
+		if (bombItemBehaviour?.explosion == null)
+		{
+			DbsContentApi.Modules.Logger.LogError("GrenadeItemBehaviour: BombItem has no explosion prefab.");
+			return null;
+		}
+		GameObject newPrefab = UnityEngine.Object.Instantiate(bombItemBehaviour.explosion);
+		var aoe = newPrefab.GetComponent<AOE>();
+		if (aoe != null)
+			UnityEngine.Object.Destroy(aoe);
+		newPrefab.AddComponent<MonsterAffectingAOE>();
+		return newPrefab;
+	}
+
 	[Header("Audio Settings")]
 	public bool hasTickingSound = false;
 	public AudioClip? tickingSoundClip;
@@ -62,17 +94,10 @@ public class GrenadeItemBehaviour : ItemInstanceBehaviour
 		if (hasTickingSound)
 			EnsureTickingSound();
 
-		// Find explosion prefab
-		Item? bombItem = Items.GetItemByPrefabComponent<BombItem>();
-		if (bombItem?.itemObject != null)
-		{
-			BombItem? bombItemBehaviour = bombItem.itemObject.GetComponent<BombItem>();
-			explosionPrefab = bombItemBehaviour.explosion;
-		}
-		else
-		{
-			DbsContentApi.Modules.Logger.LogError("GrenadeItemBehaviour: Could not find BombItem prefab.");
-		}
+		// Use shared explosion prefab (built once during registration)
+		explosionPrefab = SharedExplosionPrefab;
+		if (explosionPrefab == null)
+			DbsContentApi.Modules.Logger.LogError("GrenadeItemBehaviour: Shared explosion prefab not set. Ensure CustomItems calls SetSharedExplosionPrefab during registration.");
 	}
 
 	protected virtual void EnsureTickingSound()

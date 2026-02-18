@@ -50,7 +50,6 @@ public static class CustomItems
 			RegisterMedkit();
 			RegisterEnergyBar();
 			RegisterInvisibilitySpray();
-			// RegisterThrowableGrenade();
 			RegisterGrenade();
 			RegisterSemtexGrenade();
 			RegisterElectricGrenade();
@@ -284,28 +283,11 @@ public static class CustomItems
 		);
 	}
 
-	// private static void RegisterThrowableGrenade()
-	// {
-	// 	GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "ThrowableGrenade.prefab");
-	// 	GameMaterials.ApplyMaterial(prefab, GameMaterialType.M_DARKGRAY, true);
-	// 	var behaviour = prefab.AddComponent<ThrowableGrenadeItemBehaviour>();
-
-	// 	SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce6);
-
-	// 	Items.RegisterItem(
-	// 		bundle: _bundle!,
-	// 		prefab: prefab,
-	// 		displayName: "Throwable grenade",
-	// 		price: 65,
-	// 		category: (ShopItemCategory)ConsumablesCategory!,
-	// 		iconName: "icon_energybar",
-	// 		impactSounds: impactSounds,
-	// 		holdPos: new Vector3(0.3f, -0.3f, 0.7f)
-	// 	);
-	// }
-
 	private static void RegisterGrenade()
 	{
+		// Build shared explosion prefab once for all grenades/semtex that use base GrenadeItemBehaviour
+		GrenadeItemBehaviour.SharedExplosionPrefab = GrenadeItemBehaviour.BuildExplosionPrefab();
+
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "Grenade.prefab");
 		var visualRoot = prefab.transform.Find("Item/grenade")!.gameObject;
 		var grenadeTransform = visualRoot.transform.Find("Grenade")!.gameObject;
