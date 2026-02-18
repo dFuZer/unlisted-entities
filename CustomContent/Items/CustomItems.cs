@@ -17,11 +17,14 @@ public static class CustomItems
 	public static byte? EquipablesCategory = null;
 	public static GameObject? FroggyBootRightPrefab = null;
 	public static GameObject? FroggyBootLeftPrefab = null;
+	public static GameObject? CursedNecklace = null;
 
 	/// <summary>
 	/// Reference to the Jumping Boots item for gameplay checks.
 	/// </summary>
 	public static Item? JumpingBootsItem = null;
+
+	public static Item? CursedDoll = null;
 
 	/// <summary>
 	/// Configures all custom items using the loaded AssetBundle.
@@ -54,6 +57,7 @@ public static class CustomItems
 			RegisterSemtexGrenade();
 			RegisterElectricGrenade();
 			RegisterJumpingBoots();
+			RegisterCursedDoll();
 		}
 
 		DbsContentApiPlugin.customItemsRegistrationCallbacks.Add(RegisterItems);
@@ -418,7 +422,28 @@ public static class CustomItems
 		);
 	}
 
+	private static void RegisterCursedDoll()
+	{
+		CursedNecklace = ContentLoader.LoadPrefabFromBundle(_bundle!, "CursedNecklace.prefab");
+		GameMaterials.ApplyMaterial(FroggyBootRightPrefab, GameMaterialType.GREEN2, true);
 
+		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "DollItem.prefab");
+		GameMaterials.ApplyMaterial(prefab, GameMaterialType.GREEN2);
+		prefab.AddComponent<BootsEquipableItemBehaviour>();
+
+		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
+
+		CursedDoll = Items.RegisterItem(
+			bundle: _bundle!,
+			prefab: prefab,
+			displayName: "Cursed Doll",
+			price: 100,
+			category: (ShopItemCategory)EquipablesCategory!,
+			iconName: "icon_froggy_boots",
+			impactSounds: impactSounds,
+			holdPos: new Vector3(0.3f, -0.3f, 0.4f)
+		);
+	}
 
 	public static Sprite GetSprite(string iconName)
 	{
