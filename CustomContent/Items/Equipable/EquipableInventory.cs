@@ -116,14 +116,42 @@ public class EquipableInventory : MonoBehaviourPun
             if (!spawnedVisuals.ContainsKey(i))
             {
                 // Spawn logic for specific items
-                if ((UnlistedEntities.CustomContent.CustomItems.JumpingBootsItem != null &&
-                    itemID == UnlistedEntities.CustomContent.CustomItems.JumpingBootsItem.id) ||
-					(UnlistedEntities.CustomContent.CustomItems.CursedDoll != null &&
-                    itemID == UnlistedEntities.CustomContent.CustomItems.CursedDoll.id))
+                if (UnlistedEntities.CustomContent.CustomItems.JumpingBootsItem != null &&
+                    itemID == UnlistedEntities.CustomContent.CustomItems.JumpingBootsItem.id)
                 {
                     SpawnFroggyBoot(i, player);
                 }
+                else if (UnlistedEntities.CustomContent.CustomItems.CursedDoll != null &&
+                    itemID == UnlistedEntities.CustomContent.CustomItems.CursedDoll.id)
+                {
+                    SpawnCursedDoll(i, player);
+                }
             }
+        }
+    }
+
+    private void SpawnCursedDoll(int slot, Player player)
+    {
+        if (UnlistedEntities.CustomContent.CustomItems.CursedNecklace == null) return;
+        Transform? torso = player.refs.rigRoot.transform.Find("Rig/Armature/Hip/Torso");
+
+        if (torso != null)
+        {
+            GameObject necklace = Instantiate(UnlistedEntities.CustomContent.CustomItems.CursedNecklace, torso);
+            necklace.transform.localPosition = new UnityEngine.Vector3(0.05f, 1.56f, -0.88f);
+
+            necklace.transform.localRotation = UnityEngine.Quaternion.Euler(0, 0, 0);
+            necklace.transform.localScale = new UnityEngine.Vector3(0.2769034f, 0.2769034f, 0.2769034f);
+            spawnedVisuals[slot] = necklace;
+            var playerShader = player.gameObject.transform.Find("CharacterModel/BodyRenderer").GetComponent<Renderer>().material.shader;
+            foreach (var renderer in necklace.GetComponentsInChildren<Renderer>())
+            {
+                renderer.material.shader = playerShader;
+            }
+        }
+        else
+        {
+            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find Torso bone for necklace attachment.");
         }
     }
 
@@ -136,22 +164,7 @@ public class EquipableInventory : MonoBehaviourPun
         // player.refs.rigRoot is "RigCreator"
         Transform? footR = player.refs.rigRoot.transform.Find("Rig/Armature/Hip/Leg_R/Knee_R/Foot_R");
         Transform? footL = player.refs.rigRoot.transform.Find("Rig/Armature/Hip/Leg_L/Knee_L/Foot_L");
-		Transform? torso = player.refs.rigRoot.transform.Find("Rig/Armature/Hip/Torso");
 
-		if (torso != null)
-		{
-			GameObject necklace = UnityEngine.Object.Instantiate(UnlistedEntities.CustomContent.CustomItems.CursedNecklace, torso);
-            necklace.transform.localPosition = new UnityEngine.Vector3(0.05f, 1.56f, -0.88f);
-            
-            necklace.transform.localRotation = UnityEngine.Quaternion.Euler(0, 0, 0);
-            necklace.transform.localScale = new UnityEngine.Vector3(0.2769034f, 0.2769034f, 0.2769034f);
-            spawnedVisuals[slot] = necklace;
-            // necklace.GetComponent<Renderer>().material.shader = player.gameObject.transform.Find("CharacterModel/BodyRenderer").GetComponent<Renderer>().material.shader;
-		}
-		else
-        {
-            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find Torso bone for necklace attachment.");
-        }
 
         if (footR != null)
         {
