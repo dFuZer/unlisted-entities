@@ -17,7 +17,9 @@ public static class CustomItems
 	public static byte? EquipablesCategory = null;
 	public static GameObject? FroggyBootRightPrefab = null;
 	public static GameObject? FroggyBootLeftPrefab = null;
+	public static GameObject? AngelWingsPrefab = null;
 	public static GameObject? CursedNecklace = null;
+
 
 	/// <summary>
 	/// Reference to the Jumping Boots item for gameplay checks.
@@ -25,6 +27,7 @@ public static class CustomItems
 	public static Item? JumpingBootsItem = null;
 
 	public static Item? CursedDoll = null;
+	public static Item? AngelWingsItem = null;
 
 	/// <summary>
 	/// Configures all custom items using the loaded AssetBundle.
@@ -58,6 +61,7 @@ public static class CustomItems
 			RegisterElectricGrenade();
 			RegisterJumpingBoots();
 			RegisterCursedDoll();
+			RegisterAngelWings();
 		}
 
 		DbsContentApiPlugin.customItemsRegistrationCallbacks.Add(RegisterItems);
@@ -444,6 +448,31 @@ public static class CustomItems
 			holdPos: new Vector3(0.3f, -0.3f, 0.4f)
 		);
 	}
+
+	private static void RegisterAngelWings()
+	{
+		AngelWingsPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "WingsVisual.prefab");
+		GameMaterials.ApplyMaterial(AngelWingsPrefab, GameMaterialType.WHITE_IVORY, true);
+		AngelWingsPrefab.AddComponent<AngelWingsVisualAnimationHandler>();
+
+		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "WingsItem.prefab");
+		GameMaterials.ApplyMaterial(prefab, GameMaterialType.WHITE_IVORY);
+		prefab.AddComponent<BootsEquipableItemBehaviour>();
+
+		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
+
+		AngelWingsItem = Items.RegisterItem(
+			bundle: _bundle!,
+			prefab: prefab,
+			displayName: "Angel wings",
+			price: 100,
+			category: (ShopItemCategory)EquipablesCategory!,
+			iconName: "icon_froggy_boots",
+			impactSounds: impactSounds,
+			holdPos: new Vector3(0.3f, -0.3f, 0.4f)
+		);
+	}
+
 
 	public static Sprite GetSprite(string iconName)
 	{

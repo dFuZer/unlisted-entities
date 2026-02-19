@@ -126,8 +126,36 @@ public class EquipableInventory : MonoBehaviourPun
                 {
                     SpawnCursedDoll(i, player);
                 }
+                else if (UnlistedEntities.CustomContent.CustomItems.AngelWingsItem != null &&
+                    itemID == UnlistedEntities.CustomContent.CustomItems.AngelWingsItem.id)
+                {
+                    SpawnAngelWings(i, player);
+                }
             }
         }
+    }
+
+    private GameObject SpawnAngelWings(int slot, Player player)
+    {
+        if (UnlistedEntities.CustomContent.CustomItems.AngelWingsPrefab == null) return null;
+        Transform? torso = player.refs.rigRoot.transform.Find("Rig/Armature/Hip/Torso");
+
+        if (torso != null)
+        {
+            GameObject wings = Instantiate(UnlistedEntities.CustomContent.CustomItems.AngelWingsPrefab, torso);
+            wings.transform.localPosition = new UnityEngine.Vector3(0f, 1.07f, -1.83f);
+
+            wings.transform.localRotation = UnityEngine.Quaternion.Euler(-40.56f, 0, 0);
+            wings.transform.localScale = new UnityEngine.Vector3(3.2f, 3.2f, 3.2f);
+            spawnedVisuals[slot] = wings;
+            var playerShader = player.gameObject.transform.Find("CharacterModel/BodyRenderer").GetComponent<Renderer>().material.shader;
+            foreach (var renderer in wings.GetComponentsInChildren<Renderer>())
+            {
+                renderer.material.shader = playerShader;
+            }
+            return wings;
+        }
+        return null;
     }
 
     private void SpawnCursedDoll(int slot, Player player)
@@ -221,6 +249,12 @@ public class EquipableInventory : MonoBehaviourPun
         {
             equipableIDs[slot] = itemID;
             UpdateVisuals();
+            var player = GetPlayer();
+            if (player != null)
+            {
+                var cache = PlayerCache.GetCache(player);
+                cache.UpdateData();
+            }
         }
     }
 
@@ -295,6 +329,36 @@ public class EquipableInventory : MonoBehaviourPun
             }
         }
         return -1;
+    }
+
+    public static bool PlayerHasEquipable(Player player, byte itemID)
+    {
+        if (!player.TryGetInventory(out var inventory))
+        {
+            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find Inventory component on player.");
+            return false;
+        }
+
+        var equipables = inventory.gameObject.GetComponent<EquipableInventory>();
+        if (equipables == null)
+        {
+            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find EquipableInventory component on player.");
+            return false;
+        }
+
+        return equipables.HasEquipable(itemID);
+    }
+
+    public static bool PlayerHasEquipableCached(Player player, byte itemID)
+    {
+        var extendedData = PlayerCache.GetCache(player);
+        if (extendedData == null)
+        {
+            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find ExtendedData component on player.");
+            return false;
+        }
+
+        return extendedData.PlayerHasEquipable(itemID);
     }
 }
 
