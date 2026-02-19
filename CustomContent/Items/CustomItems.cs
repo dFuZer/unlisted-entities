@@ -438,14 +438,17 @@ public static class CustomItems
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "DollItem.prefab");
 		GameMaterials.ApplyMaterial(prefab, GameMaterialType.BEIGE2, true);
-		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
+
+		AudioClip squink = _bundle!.LoadAsset<AudioClip>("Squink");
+		SFX_Instance[] impactSounds = Items.CreateSFXInstanceFromClip(squink);
+
 		prefab.AddComponent<DollEquipableBehaviour>();
 
 		CursedDoll = Items.RegisterItem(
 			bundle: _bundle!,
 			prefab: prefab,
 			displayName: "Cursed Doll",
-			price: 100,
+			price: 80,
 			category: (ShopItemCategory)EquipablesCategory!,
 			iconName: "icon_froggy_boots",
 			impactSounds: impactSounds,
