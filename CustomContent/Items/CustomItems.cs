@@ -438,9 +438,8 @@ public static class CustomItems
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "DollItem.prefab");
 		GameMaterials.ApplyMaterial(prefab, GameMaterialType.BEIGE2, true);
-		prefab.AddComponent<BootsEquipableItemBehaviour>();
-
 		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
+		prefab.AddComponent<DollEquipableBehaviour>();
 
 		CursedDoll = Items.RegisterItem(
 			bundle: _bundle!,

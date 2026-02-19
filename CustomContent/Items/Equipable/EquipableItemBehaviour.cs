@@ -1,6 +1,5 @@
 using Photon.Pun;
 using UnityEngine;
-
 namespace UnlistedEntities.CustomContent;
 
 /// <summary>
@@ -74,11 +73,45 @@ public abstract class EquipableItemBehaviour : ItemInstanceBehaviour
     }
 
     /// <summary>
+    /// Unequips this item from the player's equipable inventory.
+    /// Finds the slot containing this item's ID, clears it, and calls OnUnequipped.
+    /// </summary>
+    public void TryUnequip()
+    {
+        if (!Player.localPlayer.TryGetInventory(out var inventory)) return;
+
+        var equipableInventory = inventory.gameObject.GetComponent<EquipableInventory>();
+        if (equipableInventory == null)
+        {
+            DbsContentApi.Modules.Logger.LogError("[EquipableItem] EquipableInventory component not found.");
+            return;
+        }
+
+        int slot = equipableInventory.GetSlotForItem(itemInstance.item.id);
+        if (slot == -1)
+        {
+            DbsContentApi.Modules.Logger.LogWarning("[EquipableItem] Tried to unequip but item was not found in equipable inventory.");
+            return;
+        }
+
+        // Clear the slot by setting it to empty via the networked RPC
+        equipableInventory.SetEquipable(slot, EquipableConfig.EMPTY_SLOT_ID);
+        OnUnequipped(slot);
+    }
+
+    /// <summary>
     /// Called when the item is successfully equipped.
     /// Override to add custom behavior on equip (e.g., play sounds, show messages).
     /// </summary>
     /// <param name="slotIndex">The slot index where the item was equipped.</param>
     protected virtual void OnEquipped(int slotIndex) { }
+
+    /// <summary>
+    /// Called when the item is successfully unequipped.
+    /// Override to add custom behavior on unequip (e.g., update multiplayer state).
+    /// </summary>
+    /// <param name="slotIndex">The slot index that was cleared.</param>
+    protected virtual void OnUnequipped(int slotIndex) { }
 
     /// <summary>
     /// Called when the item is already equipped and the player tries to equip it again.
