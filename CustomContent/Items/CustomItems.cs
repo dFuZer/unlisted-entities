@@ -427,8 +427,17 @@ public static class CustomItems
 		CursedNecklace = ContentLoader.LoadPrefabFromBundle(_bundle!, "CursedNecklace.prefab");
 		GameMaterials.ApplyMaterial(CursedNecklace, GameMaterialType.GREEN2, true);
 
+		var visualRoot = CursedNecklace.transform.Find("CursedNecklace")!.gameObject;
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Torus")!.gameObject, GameMaterialType.FLAT_GRAY, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Mesh_0")!.gameObject, GameMaterialType.BEIGE2, false);
+
+		var dollRenderer = visualRoot.transform.Find("Mesh_0")!.gameObject.GetComponent<Renderer>();
+		dollRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterialType.BEIGE2) };
+		var necklaceRenderer = visualRoot.transform.Find("Torus")!.gameObject.GetComponent<Renderer>();
+		necklaceRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterialType.FLAT_GRAY) };
+
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "DollItem.prefab");
-		GameMaterials.ApplyMaterial(prefab, GameMaterialType.GREEN2, true);
+		GameMaterials.ApplyMaterial(prefab, GameMaterialType.BEIGE2, true);
 		prefab.AddComponent<BootsEquipableItemBehaviour>();
 
 		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
