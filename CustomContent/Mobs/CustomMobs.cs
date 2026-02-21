@@ -50,70 +50,6 @@ public static class CustomMobs
 
         Logger.Log("Custom mobs setup completed");
     }
-
-    private static void RegisterMainCharacter()
-    {
-        if (MainCharacter == null)
-        {
-            Logger.LogWarning("MainCharacter is null, skipping registration");
-            return;
-        }
-
-        Logger.Log($"Registering MainCharacter: {MainCharacter.name}");
-
-        Logger.Log("Restoring shaders for MainCharacter");
-        Mobs.RestoreShaders(MainCharacter);
-
-        Logger.Log("Creating bodyparts configuration for MainCharacter");
-        var mainCharacterBodyparts = new List<RigCreatorBodypart> {
-            Mobs.CreatePart(BodypartType.Hip, 50f, ColliderType.Box, hasJoint: false),
-            Mobs.CreatePart(BodypartType.Spine_1, 25f, ColliderType.Box),
-            Mobs.CreatePart(BodypartType.Head, 10f, ColliderType.Sphere),
-            Mobs.CreatePart(BodypartType.Arm_L, 5f, ColliderType.Capsule),
-            Mobs.CreatePart(BodypartType.Elbow_L, 5f, ColliderType.Capsule),
-            Mobs.CreatePart(BodypartType.Arm_R, 5f, ColliderType.Capsule),
-            Mobs.CreatePart(BodypartType.Elbow_R, 5f, ColliderType.Capsule),
-            Mobs.CreatePart(BodypartType.Leg_L, 5f, ColliderType.Capsule),
-            Mobs.CreatePart(BodypartType.Knee_L, 5f, ColliderType.Capsule),
-            Mobs.CreatePart(BodypartType.Foot_L, 5f, ColliderType.Box),
-            Mobs.CreatePart(BodypartType.Leg_R, 5f, ColliderType.Capsule),
-            Mobs.CreatePart(BodypartType.Knee_R, 5f, ColliderType.Capsule),
-            Mobs.CreatePart(BodypartType.Foot_R, 5f, ColliderType.Box),
-        };
-
-        var config = new MobSetupConfig
-        {
-            visualRig = new RigCreatorConfig
-            {
-                bodyparts = mainCharacterBodyparts
-            },
-            budget = new BudgetConfig(),
-            controller = new ControllerConfig(),
-            player = new PlayerConfig(),
-            monsterAnimationValues = new MonsterAnimationValuesConfig { rightPunch = false, leftPunch = false, movementMultiplier = 1.5f },
-            ragdoll = new RagdollConfig(),
-            addMonsterSyncer = true,
-            addAnimRefHandler = true,
-            photonView = new PhotonViewConfig(),
-            bot = new BotConfig { monsterName = MainCharacter.name },
-            navMesh = new NavMeshConfig(),
-            addMonsterAnimationHandler = true,
-            addHeadFollower = true,
-            addGroundPos = true
-        };
-        Logger.Log($"Created MobSetupConfig with {mainCharacterBodyparts.Count} bodyparts");
-
-        Logger.Log("Setting up MainCharacter custom monster");
-        Mobs.SetupCustomMonster(MainCharacter, MainCharacter.name, config);
-
-        Logger.Log("Adding Bot_Chaser component to MainCharacter");
-        Mobs.AddBotChaserComponent(Mobs.GetBotChildObject(MainCharacter));
-
-        Logger.Log("Adding MainCharacter to customMonsters list");
-        DbsContentApiPlugin.customMonsters.Add(MainCharacter);
-        Logger.Log($"MainCharacter registration completed: {MainCharacter.name}");
-    }
-
     private static void RegisterTeapot(AssetBundle bundle)
     {
         if (TeapotFinal == null)
@@ -133,13 +69,13 @@ public static class CustomMobs
         {
             // visualRig = null means use the existing RigCreator + PlayerVisual configuration on the prefab
             visualRig = null,
-            budget = new BudgetConfig { budgetCost = 3, rarity = 1f },
+            budget = new BudgetConfig { budgetCost = 1, rarity = 1f },
             controller = new ControllerConfig(),
             player = new PlayerConfig(),
             ragdoll = new RagdollConfig(),
             photonView = new PhotonViewConfig(),
             bot = new BotConfig { monsterName = TeapotFinal.name },
-            navMesh = new NavMeshConfig(),
+            navMesh = new NavMeshAgentConfig { height = 1.5f, radius = 1.06f, speed = 3.5f },
             monsterAnimationValues = new MonsterAnimationValuesConfig { rightPunch = false, leftPunch = false },
             addMonsterSyncer = true,
             addAnimRefHandler = true,
@@ -159,6 +95,7 @@ public static class CustomMobs
 
         Logger.Log("Adding Attack_Teapot component to TeapotFinal bot");
         var teapotAttack = botTeapot.AddComponent<Attack_Teapot>();
+        // teapotAttack.enabled = false;
         var beakTransform = TeapotFinal?.transform.Find("Visual/TeapotFinal/Armature/Hip/Spine_1/Head/Beak");
         teapotAttack.beakTransform = beakTransform!;
         if (beakTransform != null)

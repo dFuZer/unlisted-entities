@@ -1,4 +1,3 @@
-using Photon.Pun;
 using HarmonyLib;
 using UnityEngine;
 using UnlistedEntities.CustomContent;
@@ -40,16 +39,8 @@ public static class AngelWingsVelocityPatch
 		Player player = __instance.GetComponent<Player>();
 		if (player == null) return;
 
-		// DbsContentApi.Modules.Logger.Log($"Player found for {__instance.name}");
-
-		// Use ExtendedPlayerData to check for angel wings
-		var extendedData = PlayerCache.GetCache(player);
-		// log whether extendedData is null or not
-		// DbsContentApi.Modules.Logger.Log($"Extended data is null: {extendedData == null}");
-		// log whether extendedData.hasAngelWings is true or false
 		var hasAngelWings = EquipableInventory.PlayerHasEquipableCached(player, CustomItems.AngelWingsItem!.id);
-		// DbsContentApi.Modules.Logger.Log($"Extended data hasAngelWings: {hasAngelWings}");
-		if (extendedData == null || !hasAngelWings) return;
+		if (!hasAngelWings) return;
 
 		// If the player is grounded, we don't need to cap velocity
 		if (player.data.isGrounded) return;
@@ -99,14 +90,22 @@ public class AngelWingsVisualAnimationHandler : MonoBehaviour
 		hip = player.refs.ragdoll.GetBodypart(BodypartType.Torso);
 	}
 
-	private void Update()
+	private void LateUpdate()
 	{
+		if (player.data.isGrounded)
+		{
+			if (flying)
+			{
+				SetFlying(false);
+			}
+			return;
+		}
 
 		if (gameObject.activeSelf && hip != null)
 		{
 			Vector3 velocity = hip.rig.velocity;
 			// set to true when falling faster than -1.6f
-			if (velocity.y < -MAX_DOWNWARDS_VELOCITY * 0.80f && !flying)
+			if (velocity.y < -MAX_DOWNWARDS_VELOCITY * 0.80f && !flying && !player.data.isGrounded)
 			{
 				SetFlying(true);
 			}
@@ -122,6 +121,6 @@ public class AngelWingsVisualAnimationHandler : MonoBehaviour
 	{
 		DbsContentApi.Modules.Logger.Log($"-------------- Setting flying to {flying}");
 		this.flying = flying;
-		animator.SetBool("Flying", flying);
+		animator.SetBool("Flying", value: flying);
 	}
 }

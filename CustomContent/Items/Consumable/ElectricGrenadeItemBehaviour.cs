@@ -6,7 +6,7 @@ using DbsContentApi.Modules;
 /// <summary>
 /// Electric Grenade with specific visual sync logic.
 /// </summary>
-public class ElectricGrenadeItemBehaviour : GrenadeItemBehaviour
+public class ElectricGrenadeItemBehaviour : ThrowableExplosiveBehaviour
 {
 	// Animator driving the grenade's visual state (primed/unprimed)
 	private Animator? grenadeAnimator;

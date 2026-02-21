@@ -3,6 +3,7 @@ using Photon.Pun;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Linq;
 
 /// <summary>
 /// Manages a player's equipable items inventory. Each player has a fixed number of equipable slots
@@ -87,11 +88,13 @@ public class EquipableInventory : MonoBehaviourPun
             // Cleanup visuals if player is gone
             foreach (var kvp in spawnedVisuals)
             {
-                if (kvp.Value != null) UnityEngine.Object.Destroy(kvp.Value);
+                if (kvp.Value != null) Destroy(kvp.Value);
             }
             spawnedVisuals.Clear();
             return;
         }
+
+
 
         for (int i = 0; i < equipableIDs.Length; i++)
         {
@@ -102,7 +105,7 @@ public class EquipableInventory : MonoBehaviourPun
             {
                 if (existing == null || itemID == EquipableConfig.EMPTY_SLOT_ID)
                 {
-                    if (existing != null) UnityEngine.Object.Destroy(existing);
+                    if (existing != null) Destroy(existing);
                     spawnedVisuals.Remove(i);
                 }
                 // If ID matches, we could check if it's still parented correctly, 
@@ -131,6 +134,11 @@ public class EquipableInventory : MonoBehaviourPun
                 {
                     SpawnAngelWings(i, player);
                 }
+                else if (UnlistedEntities.CustomContent.CustomItems.StrongArmItem != null &&
+                    itemID == UnlistedEntities.CustomContent.CustomItems.StrongArmItem.id)
+                {
+                    SpawnStrongArm(i, player);
+                }
             }
         }
     }
@@ -143,10 +151,10 @@ public class EquipableInventory : MonoBehaviourPun
         if (torso != null)
         {
             GameObject wings = Instantiate(UnlistedEntities.CustomContent.CustomItems.AngelWingsPrefab, torso);
-            wings.transform.localPosition = new UnityEngine.Vector3(0f, 1.07f, -1.83f);
+            wings.transform.localPosition = new UnityEngine.Vector3(0f, 0.65f, -1.64f);
 
-            wings.transform.localRotation = UnityEngine.Quaternion.Euler(-40.56f, 0, 0);
-            wings.transform.localScale = new UnityEngine.Vector3(3.2f, 3.2f, 3.2f);
+            wings.transform.localRotation = UnityEngine.Quaternion.Euler(0f, 0f, 0f);
+            wings.transform.localScale = new UnityEngine.Vector3(2.73f, 2.73f, 2.73f);
             spawnedVisuals[slot] = wings;
             var playerShader = player.gameObject.transform.Find("CharacterModel/BodyRenderer").GetComponent<Renderer>().material.shader;
             foreach (var renderer in wings.GetComponentsInChildren<Renderer>())
@@ -160,12 +168,12 @@ public class EquipableInventory : MonoBehaviourPun
 
     private void SpawnCursedDoll(int slot, Player player)
     {
-        if (UnlistedEntities.CustomContent.CustomItems.CursedNecklace == null) return;
+        if (UnlistedEntities.CustomContent.CustomItems.CursedNecklacePrefab == null) return;
         Transform? torso = player.refs.rigRoot.transform.Find("Rig/Armature/Hip/Torso");
 
         if (torso != null)
         {
-            GameObject necklace = Instantiate(UnlistedEntities.CustomContent.CustomItems.CursedNecklace, torso);
+            GameObject necklace = Instantiate(UnlistedEntities.CustomContent.CustomItems.CursedNecklacePrefab, torso);
             necklace.transform.localPosition = new UnityEngine.Vector3(1.94f, 1.80f, 2.47f);
 
             necklace.transform.localRotation = UnityEngine.Quaternion.Euler(-83.044f, 0, 0);
@@ -183,6 +191,101 @@ public class EquipableInventory : MonoBehaviourPun
         }
     }
 
+    /// When remapping the bones of a prefab's skinned mesh renderer, it is critical that the bones of our prefab map to the bones of the player
+    /// and in the order that is expected by the prefab.
+    /// After extracting the player fbx from AssetStudio then using its armature to create our Strong arm visual prefab
+    /// we logged the prefab's bone order and the player's bone order.
+    /// Since there were many mismatches, we create a new array manually mapping the player transforms to the prefab's bone order.
+    /// This function should work as long as our exported fbx armature keep the same bone order.
+    /// Mind that our bone order MAY be different from one fbx to another. If you try to
+    /// extract the player fbx from AssetStudio then use its armature to create our Strong arm visual prefab,
+    /// you may have to update this function to match YOUR prefabs' armatures bone order.
+    public static Transform[] getPlayerRigTransformsAsExpectedByDbExportedFbx(Player player)
+    {
+        var playerBones = new List<Transform>
+        {
+            player.transform.Find("RigCreator/Rig/Armature/Hip"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Extra_1"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Leg_L"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Leg_L/Knee_L"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Leg_L/Knee_L/Foot_L"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Leg_R"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Leg_R/Knee_R"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Leg_R/Knee_R/Foot_R"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Index_1_L"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Index_1_L/Finger_Index_2_L"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Index_1_L/Finger_Index_2_L/Finger_Index_3_L"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Middle_1_L"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Middle_1_L/Finger_Middle_2_L"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Middle_1_L/Finger_Middle_2_L/Finger_Middle_3_L"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Pinky_1_L"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Pinky_1_L/Finger_Pinky_2_L"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Pinky_1_L/Finger_Pinky_2_L/Finger_Pinky_3_L"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Ring_1_L"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Ring_1_L/Finger_Ring_2_L"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Ring_1_L/Finger_Ring_2_L/Finger_Ring_3_L"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Thumb_L_1"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Thumb_L_1/Thumb_L_2"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Thumb_L_1/Thumb_L_2/Thumb_L_3"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Index_1_R"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Index_1_R/Finger_Index_2_R"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Index_1_R/Finger_Index_2_R/Finger_Index_3_R"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Middle_1_R"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Middle_1_R/Finger_Middle_2_R"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Middle_1_R/Finger_Middle_2_R/Finger_Middle_3_R"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Pinky_1_R"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Pinky_1_R/Finger_Pinky_2_R"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Pinky_1_R/Finger_Pinky_2_R/Finger_Pinky_3_R"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Ring_1_R"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Ring_1_R/Finger_Ring_2_R"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Ring_1_R/Finger_Ring_2_R/Finger_Ring_3_R"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Thumb_1_R"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Thumb_1_R/Thumb_2_R"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Thumb_1_R/Thumb_2_R/Thumb_3_R"),
+            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Head"),
+        };
+
+        return playerBones.ToArray();
+    }
+
+    private void SpawnStrongArm(int slot, Player player)
+    {
+        var bodyRenderer = player.gameObject.transform.Find("CharacterModel/BodyRenderer")?.GetComponent<SkinnedMeshRenderer>();
+        var prefab = UnlistedEntities.CustomContent.CustomItems.StrongArmVisualPrefab;
+
+        if (bodyRenderer == null || prefab == null) return;
+
+        var playerBones = getPlayerRigTransformsAsExpectedByDbExportedFbx(player);
+
+        // 4. Instantiate and apply
+        Transform characterModel = player.gameObject.transform.Find("CharacterModel");
+        GameObject strongArm = Instantiate(prefab, characterModel);
+
+        // Reset transforms - usually 0,0,0 if bones are synced, but keeping your values
+        strongArm.transform.localPosition = new UnityEngine.Vector3(3.46f, 8.905f, 0.12f);
+        strongArm.transform.localRotation = UnityEngine.Quaternion.Euler(0f, 0f, 0f);
+        strongArm.transform.localScale = new UnityEngine.Vector3(7.37f, 7.37f, 7.37f);
+
+        var instanceSMR = strongArm.GetComponentInChildren<SkinnedMeshRenderer>(true);
+        instanceSMR.bones = playerBones; // Use the reordered array
+        instanceSMR.rootBone = bodyRenderer.rootBone;
+
+        // Shader sync
+        foreach (var renderer in strongArm.GetComponentsInChildren<Renderer>())
+        {
+            renderer.material.shader = bodyRenderer.material.shader;
+        }
+
+        spawnedVisuals[slot] = strongArm;
+    }
+
     private void SpawnFroggyBoot(int slot, Player player)
     {
         if (UnlistedEntities.CustomContent.CustomItems.FroggyBootRightPrefab == null) return;
@@ -196,7 +299,7 @@ public class EquipableInventory : MonoBehaviourPun
 
         if (footR != null)
         {
-            GameObject boot = UnityEngine.Object.Instantiate(UnlistedEntities.CustomContent.CustomItems.FroggyBootRightPrefab, footR);
+            GameObject boot = Instantiate(UnlistedEntities.CustomContent.CustomItems.FroggyBootRightPrefab, footR);
             boot.transform.localPosition = new UnityEngine.Vector3(0.5087553f, 0.7142437f, 0.01682295f);
             // 270 270 0
             boot.transform.localRotation = UnityEngine.Quaternion.Euler(-90, 0, -90);
@@ -213,7 +316,7 @@ public class EquipableInventory : MonoBehaviourPun
 
         if (footL != null)
         {
-            GameObject boot = UnityEngine.Object.Instantiate(UnlistedEntities.CustomContent.CustomItems.FroggyBootLeftPrefab, footL);
+            GameObject boot = Instantiate(UnlistedEntities.CustomContent.CustomItems.FroggyBootLeftPrefab, footL);
             boot.transform.localPosition = new UnityEngine.Vector3(0.5087553f, 0.7142437f, -0.07f);
             // 270 270 0
             boot.transform.localRotation = UnityEngine.Quaternion.Euler(-90, 0, -90);
@@ -276,7 +379,7 @@ public class EquipableInventory : MonoBehaviourPun
     {
         foreach (var visual in spawnedVisuals.Values)
         {
-            if (visual != null) UnityEngine.Object.Destroy(visual);
+            if (visual != null) Destroy(visual);
         }
         spawnedVisuals.Clear();
     }

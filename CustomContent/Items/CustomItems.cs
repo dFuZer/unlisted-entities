@@ -18,16 +18,48 @@ public static class CustomItems
 	public static GameObject? FroggyBootRightPrefab = null;
 	public static GameObject? FroggyBootLeftPrefab = null;
 	public static GameObject? AngelWingsPrefab = null;
-	public static GameObject? CursedNecklace = null;
+	public static GameObject? CursedNecklacePrefab = null;
+	public static GameObject? StrongArmVisualPrefab = null;
 
 
-	/// <summary>
-	/// Reference to the Jumping Boots item for gameplay checks.
-	/// </summary>
 	public static Item? JumpingBootsItem = null;
 
 	public static Item? CursedDoll = null;
 	public static Item? AngelWingsItem = null;
+	public static Item? StrongArmItem = null;
+
+	private static GameObject GetMonsterAffectingExplosionTemplate(float fall = 3f, float radius = 4f, float damage = 150f, float force = 4f)
+	{
+		Item? bombItem = Items.GetItemByPrefabComponent<BombItem>();
+		if (bombItem == null || bombItem.itemObject == null)
+		{
+			DbsContentApi.Modules.Logger.Log("CustomItems: Could not find BombItem to copy explosion from!");
+			return null!;
+		}
+
+		BombItem? bombItemBehaviour = bombItem.itemObject.GetComponent<BombItem>();
+		if (bombItemBehaviour == null || bombItemBehaviour.explosion == null)
+		{
+			DbsContentApi.Modules.Logger.Log("CustomItems: BombItem has no explosion prefab!");
+			return null!;
+		}
+
+		// Create a new instance for each call so we don't modify a shared template
+		GameObject explosionInstance = UnityEngine.Object.Instantiate(bombItemBehaviour.explosion);
+		explosionInstance.SetActive(false);
+		UnityEngine.Object.DontDestroyOnLoad(explosionInstance);
+
+		// Remove original AOE and add custom one
+		var aoe = explosionInstance.GetComponent<AOE>();
+		if (aoe != null) UnityEngine.Object.DestroyImmediate(aoe);
+		var newAoe = explosionInstance.AddComponent<MonsterAffectingAOE>();
+		newAoe.fall = fall;
+		newAoe.radius = radius;
+		newAoe.damage = damage;
+		newAoe.force = force;
+
+		return explosionInstance;
+	}
 
 	/// <summary>
 	/// Configures all custom items using the loaded AssetBundle.
@@ -62,9 +94,112 @@ public static class CustomItems
 			RegisterJumpingBoots();
 			RegisterCursedDoll();
 			RegisterAngelWings();
+			RegisterStrongArm();
+			RegisterPopit();
+			RegisterSilverFulminate();
+			// RegisterGlowingVest();
+			// RegisterTranqGun();
+
 		}
 
 		DbsContentApiPlugin.customItemsRegistrationCallbacks.Add(RegisterItems);
+	}
+
+	private static void RegisterPopit()
+	{
+		// Build shared explosion prefab once for all grenades/semtex that use base GrenadeItemBehaviour
+
+		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "Popit.prefab");
+		var visualRoot = prefab.transform.Find("Item/PopIt")!.gameObject;
+		GameMaterials.ApplyMaterial(visualRoot!, GameMaterialType.WHITE, true);
+
+		var behaviour = prefab.AddComponent<GrenadeItemBehaviour>();
+		behaviour.explodesOnImpact = true;
+
+		behaviour.explosionPrefab = GetMonsterAffectingExplosionTemplate(fall: 1.5f, radius: 1f, damage: 10f, force: 2.5f);
+		AddGamefeel popitGamefeel = behaviour.explosionPrefab.GetComponent<AddGamefeel>();
+		if (popitGamefeel != null)
+		{
+			popitGamefeel.perlinAmount = 5f;
+			popitGamefeel.perlinDuration = 0.5f;
+			popitGamefeel.scale = 5f;
+			popitGamefeel.range = 50f;
+		}
+		ParticleSystem explosionParticle = behaviour.explosionPrefab.GetComponentInChildren<ParticleSystem>(true);
+		ParticleSystem.EmissionModule emission = explosionParticle.emission;
+		emission.SetBurst(0, new ParticleSystem.Burst(0f, 14));
+		var main = explosionParticle.main;
+		main.startSpeed = new ParticleSystem.MinMaxCurve(2f, 6f);
+		main.startSize = new ParticleSystem.MinMaxCurve(1f, 2f);
+
+		SFX_PlayOneShot spos = behaviour.explosionPrefab.GetComponent<SFX_PlayOneShot>();
+		spos.sfx = _bundle!.LoadAsset<SFX_Instance>("PopitExplosionSfx");
+		spos.sfxs = new SFX_Instance[] { };
+
+		Transform explosionLight = behaviour.explosionPrefab.transform.Find("Point Light");
+		if (explosionLight != null)
+		{
+			// Use DestroyImmediate in Editor scripts, otherwise use Destroy
+			UnityEngine.Object.Destroy(explosionLight.gameObject);
+		}
+
+		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
+
+		Items.RegisterItem(
+			bundle: _bundle!,
+			prefab: prefab,
+			displayName: "Pop-it",
+			price: 7,
+			category: (ShopItemCategory)WeaponsCategory!,
+			iconName: "popit_icon",
+			impactSounds: impactSounds,
+			holdPos: new Vector3(0.3f, -0.6f, 0.7f)
+		);
+	}
+
+	private static void RegisterSilverFulminate()
+	{
+		// Build shared explosion prefab once for all grenades/semtex that use base GrenadeItemBehaviour
+
+		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "SilverFulminateCristal.prefab");
+		var visualRoot = prefab.transform.Find("Item/LargeFulminatedMercuryCristal")!.gameObject;
+		GameMaterials.ApplyMaterial(visualRoot!, GameMaterialType.WHITE, true);
+
+		var behaviour = prefab.AddComponent<GrenadeItemBehaviour>();
+		behaviour.explodesOnImpact = true;
+
+		behaviour.explosionPrefab = GetMonsterAffectingExplosionTemplate(fall: 20f, radius: 12f, damage: 300f, force: 15f);
+		AddGamefeel silverGamefeel = behaviour.explosionPrefab.GetComponent<AddGamefeel>();
+		if (silverGamefeel != null)
+		{
+			silverGamefeel.perlinAmount = 50f;
+			silverGamefeel.perlinDuration = 2f;
+			silverGamefeel.scale = 25f;
+			silverGamefeel.range = 100f;
+		}
+		ParticleSystem explosionParticle = behaviour.explosionPrefab.GetComponentInChildren<ParticleSystem>(true);
+		ParticleSystem.EmissionModule emission = explosionParticle.emission;
+		emission.SetBurst(0, new ParticleSystem.Burst(0f, 90f));
+		var main = explosionParticle.main;
+		main.startSpeed = new ParticleSystem.MinMaxCurve(10f, 30f);
+		main.startSize = new ParticleSystem.MinMaxCurve(10f, 15f);
+
+		SFX_PlayOneShot spos = behaviour.explosionPrefab.GetComponent<SFX_PlayOneShot>();
+		spos.sfx = _bundle!.LoadAsset<SFX_Instance>("SilverFulminateExplosionSfx");
+		spos.sfxs = new SFX_Instance[] { };
+
+		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
+
+		Items.RegisterItem(
+			bundle: _bundle!,
+			prefab: prefab,
+			displayName: "Silver fulminate crystal",
+			price: 150,
+			category: (ShopItemCategory)WeaponsCategory!,
+			iconName: "fulminate_icon",
+			impactSounds: impactSounds,
+			holdPos: new Vector3(0.3f, -0.6f, 0.7f)
+		);
 	}
 
 	private static void RegisterUnbreakableBat()
@@ -88,7 +223,7 @@ public static class CustomItems
 			displayName: "Solid bat",
 			price: 500,
 			category: (ShopItemCategory)WeaponsCategory!,
-			iconName: "icon_bat",
+			iconName: "bat_icon",
 			impactSounds: impactSounds,
 			holdPos: new Vector3(0.3f, -0.3f, 0.7f)
 		);
@@ -111,7 +246,7 @@ public static class CustomItems
 			displayName: "Fragile bat",
 			price: 50,
 			category: (ShopItemCategory)WeaponsCategory!,
-			iconName: "icon_bat",
+			iconName: "bat_icon",
 			impactSounds: impactSounds,
 			holdPos: new Vector3(0.3f, -0.3f, 0.7f)
 		);
@@ -143,7 +278,7 @@ public static class CustomItems
 			displayName: "Small O2 tank",
 			price: 30,
 			category: (ShopItemCategory)ConsumablesCategory!,
-			iconName: "icon_o2_tank",
+			iconName: "o2tank_icon",
 			impactSounds: impactSounds,
 			holdPos: new Vector3(0.3f, -0.3f, 0.7f)
 		);
@@ -171,7 +306,7 @@ public static class CustomItems
 			displayName: "Large O2 tank",
 			price: 80,
 			category: (ShopItemCategory)ConsumablesCategory!,
-			iconName: "icon_o2_tank",
+			iconName: "o2tank_icon",
 			impactSounds: impactSounds,
 			holdPos: new Vector3(0.3f, -0.3f, 0.7f)
 		);
@@ -202,7 +337,7 @@ public static class CustomItems
 			displayName: "Band-aid box",
 			price: 30,
 			category: (ShopItemCategory)ConsumablesCategory!,
-			iconName: "icon_band_aid_box",
+			iconName: "bandaid_icon",
 			impactSounds: impactSounds,
 			holdPos: new Vector3(0.3f, -0.3f, 0.7f)
 		);
@@ -228,7 +363,7 @@ public static class CustomItems
 			displayName: "Medkit",
 			price: 70,
 			category: (ShopItemCategory)ConsumablesCategory!,
-			iconName: "icon_medkit",
+			iconName: "medkit_icon",
 			impactSounds: impactSounds,
 			holdPos: new Vector3(0.3f, -0.3f, 0.7f),
 			holdRot: new Vector3(0, 0, 0)
@@ -254,7 +389,7 @@ public static class CustomItems
 			displayName: "Energy bar",
 			price: 35,
 			category: (ShopItemCategory)ConsumablesCategory!,
-			iconName: "icon_energybar",
+			iconName: "energybar_icon",
 			impactSounds: impactSounds,
 			holdPos: new Vector3(0.3f, -0.3f, 0.7f)
 		);
@@ -285,7 +420,7 @@ public static class CustomItems
 			displayName: "Invisibility spray",
 			price: 65,
 			category: (ShopItemCategory)ConsumablesCategory!,
-			iconName: "icon_invisibility_spray",
+			iconName: "invisibilityspray_icon",
 			impactSounds: impactSounds,
 			holdPos: new Vector3(0.3f, -0.3f, 0.7f)
 		);
@@ -294,7 +429,6 @@ public static class CustomItems
 	private static void RegisterGrenade()
 	{
 		// Build shared explosion prefab once for all grenades/semtex that use base GrenadeItemBehaviour
-		GrenadeItemBehaviour.SharedExplosionPrefab = GrenadeItemBehaviour.BuildExplosionPrefab();
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "Grenade.prefab");
 		var visualRoot = prefab.transform.Find("Item/grenade")!.gameObject;
@@ -306,15 +440,18 @@ public static class CustomItems
 		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("TriggerRing")!.gameObject, GameMaterialType.DARKGRAY2, false);
 		var behaviour = prefab.AddComponent<GrenadeItemBehaviour>();
 
+		behaviour.explosionPrefab = GetMonsterAffectingExplosionTemplate();
+
+
 		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
 
 		Items.RegisterItem(
 			bundle: _bundle!,
 			prefab: prefab,
 			displayName: "Grenade",
-			price: 65,
+			price: 40,
 			category: (ShopItemCategory)WeaponsCategory!,
-			iconName: "icon_energybar",
+			iconName: "grenade_icon",
 			impactSounds: impactSounds,
 			holdPos: new Vector3(0.3f, -0.6f, 0.7f)
 		);
@@ -332,6 +469,9 @@ public static class CustomItems
 		grenadeRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterialType.GREEN), GameMaterials.GetMaterial(GameMaterialType.YELLOW), GameMaterials.GetMaterial(GameMaterialType.DARKGRAY2), GameMaterials.GetMaterial(GameMaterialType.WHITE) };
 
 		var behaviour = prefab.AddComponent<SemtexItemBehaviour>();
+
+		behaviour.explosionPrefab = GetMonsterAffectingExplosionTemplate();
+
 		behaviour.hasTickingSound = true;
 		behaviour.onStickSfx = _bundle!.LoadAsset<SFX_Instance>("SemtexStickSfx");
 		behaviour.tickingSoundClip = _bundle!.LoadAsset<AudioClip>("semtex-tick");
@@ -347,9 +487,9 @@ public static class CustomItems
 			bundle: _bundle!,
 			prefab: prefab,
 			displayName: "Semtex grenade",
-			price: 65,
+			price: 55,
 			category: (ShopItemCategory)WeaponsCategory!,
-			iconName: "icon_energybar",
+			iconName: "semtex_icon",
 			impactSounds: impactSounds,
 			holdPos: new Vector3(0.3f, -0.6f, 0.7f)
 		);
@@ -360,6 +500,9 @@ public static class CustomItems
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "ElectricGrenade.prefab");
 		var visualRoot = prefab.transform.Find("Item/electric-grenade")!.gameObject;
 		var grenadeRenderer = visualRoot.transform.Find("Grenade")!.gameObject.GetComponent<Renderer>();
+
+		var templateExplosion = GetMonsterAffectingExplosionTemplate();
+		var lightPointGameObject = templateExplosion.transform.Find("Point Light")!.gameObject;
 		// gray, luminous white, dark gray
 		grenadeRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterialType.GRAY), GameMaterials.GetMaterial(GameMaterialType.BRIGHT_WHITE), GameMaterials.GetMaterial(GameMaterialType.DARKGRAY2) };
 
@@ -373,6 +516,8 @@ public static class CustomItems
 		partRRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterialType.DARKGRAY2), GameMaterials.GetMaterial(GameMaterialType.GRAY), GameMaterials.GetMaterial(GameMaterialType.FLAT_GRAY), GameMaterials.GetMaterial(GameMaterialType.BRIGHT_WHITE) };
 
 		var explosionPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "ElectricExplosion.prefab");
+		var lightPoint = UnityEngine.Object.Instantiate(lightPointGameObject, explosionPrefab.transform);
+		lightPoint.GetComponent<Light>().color = Color.blue;
 		ElectricGrenadeExplosionAOE explosionAOE = explosionPrefab.AddComponent<ElectricGrenadeExplosionAOE>();
 
 		var behaviour = prefab.AddComponent<ElectricGrenadeItemBehaviour>();
@@ -386,15 +531,17 @@ public static class CustomItems
 		behaviour.tickingSoundClip = _bundle!.LoadAsset<AudioClip>("electric-grenade-tick");
 		behaviour.tickingVolume = 0.35f;
 
+
+
 		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
 
 		Items.RegisterItem(
 			bundle: _bundle!,
 			prefab: prefab,
 			displayName: "Electric grenade",
-			price: 65,
+			price: 90,
 			category: (ShopItemCategory)WeaponsCategory!,
-			iconName: "icon_energybar",
+			iconName: "electricgrenade_icon",
 			impactSounds: impactSounds,
 			holdPos: new Vector3(0.3f, -0.6f, 0.7f)
 		);
@@ -420,7 +567,7 @@ public static class CustomItems
 			displayName: "Froggy boots",
 			price: 100,
 			category: (ShopItemCategory)EquipablesCategory!,
-			iconName: "icon_froggy_boots",
+			iconName: "froggyboots_icon",
 			impactSounds: impactSounds,
 			holdPos: new Vector3(0.3f, -0.3f, 0.4f)
 		);
@@ -428,12 +575,12 @@ public static class CustomItems
 
 	private static void RegisterCursedDoll()
 	{
-		CursedNecklace = ContentLoader.LoadPrefabFromBundle(_bundle!, "CursedNecklace.prefab");
-		GameMaterials.ApplyMaterial(CursedNecklace, GameMaterialType.GREEN2, true);
+		CursedNecklacePrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "CursedNecklace.prefab");
+		GameMaterials.ApplyMaterial(CursedNecklacePrefab, GameMaterialType.GREEN2, true);
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "DollItem.prefab");
 		GameMaterials.ApplyMaterial(prefab, GameMaterialType.GREEN2, true);
-		prefab.AddComponent<BootsEquipableItemBehaviour>();
+		prefab.AddComponent<CursedDollEquipableItemBehaviour>();
 
 		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
 
@@ -443,7 +590,7 @@ public static class CustomItems
 			displayName: "Cursed Doll",
 			price: 100,
 			category: (ShopItemCategory)EquipablesCategory!,
-			iconName: "icon_froggy_boots",
+			iconName: "doll_icon",
 			impactSounds: impactSounds,
 			holdPos: new Vector3(0.3f, -0.3f, 0.4f)
 		);
@@ -457,7 +604,7 @@ public static class CustomItems
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "WingsItem.prefab");
 		GameMaterials.ApplyMaterial(prefab, GameMaterialType.WHITE_IVORY);
-		prefab.AddComponent<BootsEquipableItemBehaviour>();
+		prefab.AddComponent<AngelWingsEquipableItemBehaviour>();
 
 		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
 
@@ -467,7 +614,30 @@ public static class CustomItems
 			displayName: "Angel wings",
 			price: 100,
 			category: (ShopItemCategory)EquipablesCategory!,
-			iconName: "icon_froggy_boots",
+			iconName: "wings_icon",
+			impactSounds: impactSounds,
+			holdPos: new Vector3(0.3f, -0.3f, 0.4f)
+		);
+	}
+
+	private static void RegisterStrongArm()
+	{
+		StrongArmVisualPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "StrongArmVisual.prefab");
+		GameMaterials.ApplyMaterial(StrongArmVisualPrefab, GameMaterialType.GRAY, true);
+
+		GameObject itemPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "StrongArmItem.prefab");
+		GameMaterials.ApplyMaterial(itemPrefab, GameMaterialType.GRAY);
+		itemPrefab.AddComponent<StrongArmEquipableItemBehaviour>();
+
+		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
+
+		StrongArmItem = Items.RegisterItem(
+			bundle: _bundle!,
+			prefab: itemPrefab,
+			displayName: "Strong arm",
+			price: 100,
+			category: (ShopItemCategory)EquipablesCategory!,
+			iconName: "strongarm_icon",
 			impactSounds: impactSounds,
 			holdPos: new Vector3(0.3f, -0.3f, 0.4f)
 		);

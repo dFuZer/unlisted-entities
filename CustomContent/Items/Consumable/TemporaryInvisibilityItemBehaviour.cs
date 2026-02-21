@@ -19,6 +19,8 @@ public class TemporaryInvisibilityItemBehaviour : ItemInstanceBehaviour
 				DbsContentApi.Modules.Logger.LogError($"TemporaryInvisibilityItemBehaviour: Could not find PlayerRPCBridge on {Player.localPlayer.gameObject.name}.");
 				return;
 			}
+			if (bridge.isInvisibilityActive)
+				return;
 			bridge!.view.RPC(nameof(PlayerRPCBridge.RPCA_Make_Invisible), RpcTarget.All, bridge.view.ViewID, duration);
 			Player.localPlayer.refs.emotes.DoBookEquipEffect(Player.localPlayer.refs.view.ViewID, itemInstance.item.id, base.transform.position, base.transform.rotation);
 			if (player == Player.localPlayer)

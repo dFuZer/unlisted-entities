@@ -9,7 +9,7 @@ public class MonsterAffectingAOE : MonoBehaviour
 
 	public float force = 4f;
 
-	public float fall = 2f;
+	public float fall = 3f;
 
 	public float radius = 8f;
 
@@ -24,13 +24,16 @@ public class MonsterAffectingAOE : MonoBehaviour
 			if ((bool)collider.attachedRigidbody)
 			{
 				Player componentInParent = collider.GetComponentInParent<Player>();
-				if ((bool)componentInParent && componentInParent.refs.view.IsMine && !list.Contains(componentInParent))
+				if ((bool)componentInParent && (componentInParent.refs.view.IsMine || componentInParent.ai) && !list.Contains(componentInParent))
 				{
 					list.Add(componentInParent);
 					float value = Vector3.Distance(base.transform.position, collider.transform.position);
 					float num = Mathf.InverseLerp(radius, innerRadius, value);
-					Vector3 vector = (componentInParent.Center() - base.transform.position).normalized * num * force;
-					componentInParent.CallTakeDamageAndAddForceAndFall(damage * num, vector, fall * num);
+					var aiDmgMultiplier = componentInParent.ai ? 0f : 1f;
+					var aiForceMultiplier = componentInParent.ai ? 1.6f : 1f;
+					var aiFallMultiplier = componentInParent.ai ? 1.6f : 1f;
+					Vector3 vector = (componentInParent.Center() - base.transform.position).normalized * num * force * aiForceMultiplier;
+					componentInParent.CallTakeDamageAndAddForceAndFall(damage * num * aiDmgMultiplier, vector, fall * num * aiFallMultiplier);
 				}
 			}
 		}

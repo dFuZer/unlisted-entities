@@ -124,7 +124,7 @@ public class CustomAnimation
         {
             if (adjustedTime >= callback.time && !callback.hasBeenCalled)
             {
-                callback.callback.Invoke();
+                callback.callback?.Invoke();
                 callback.hasBeenCalled = true;
             }
         }

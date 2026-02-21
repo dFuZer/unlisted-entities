@@ -8,6 +8,12 @@ using HarmonyLib;
 public class PlayerRPCBridge : MonoBehaviour
 {
     public PhotonView view = null!;
+
+    /// <summary>True while a temporary invisibility effect is active (used to block stacking and incorrect restore).</summary>
+    public bool isInvisibilityActive;
+
+    /// <summary>True while a temporary boost effect is active (used to block stacking and incorrect restore).</summary>
+    public bool isBoostActive;
     public void Start()
     {
         view = GetComponent<PhotonView>();
@@ -30,41 +36,60 @@ public class PlayerRPCBridge : MonoBehaviour
 
     private IEnumerator MakeInvisibleCoroutine(Player player, float duration)
     {
-        if (PhotonNetwork.IsMasterClient)
+        isInvisibilityActive = true;
+        try
         {
-            List<Bot> allBots = BotHandler.instance.bots;
-            foreach (Bot bot in allBots)
+            if (PhotonNetwork.IsMasterClient)
             {
-                if (bot.view.IsMine)
+                List<Bot> allBots = BotHandler.instance.bots;
+                foreach (Bot bot in allBots)
                 {
-                    bot.IgnoreTargetFor(player, duration);
-                }
-                else
-                {
-                    DbsContentApi.Modules.Logger.Log($"Bot {bot.name} is not mine, but I am the host. This is unexpected.");
+                    if (bot.view.IsMine)
+                    {
+                        bot.IgnoreTargetFor(player, duration);
+                    }
+                    else
+                    {
+                        DbsContentApi.Modules.Logger.Log($"Bot {bot.name} is not mine, but I am the host. This is unexpected.");
+                    }
                 }
             }
-        }
-        var playerObject = player.gameObject;
-        GameMaterials.Materials.TryGetValue(GameMaterialType.M_ShopGlass, out Material glassMaterial);
-        if (glassMaterial == null)
-        {
-            DbsContentApi.Modules.Logger.LogError($"PlayerRPCBridge: Could not find glass material.");
-            yield break;
-        }
-        var bodyRenderer = playerObject.transform.Find("CharacterModel/BodyRenderer").GetComponent<Renderer>();
-        var headRenderer = playerObject.transform.Find("CharacterModel/HeadRenderer").GetComponent<Renderer>();
-        var originalMaterialsBodyRendererArray = bodyRenderer.materials;
-        var originalMaterialsHeadRendererArray = headRenderer.materials;
-        if (glassMaterial != null)
-        {
-            bodyRenderer.materials = new Material[] { glassMaterial };
-            headRenderer.materials = new Material[] { glassMaterial };
-        }
+            var playerObject = player.gameObject;
+            GameMaterials.Materials.TryGetValue(GameMaterialType.M_ShopGlass, out Material glassMaterial);
+            if (glassMaterial == null)
+            {
+                DbsContentApi.Modules.Logger.LogError($"PlayerRPCBridge: Could not find glass material.");
+                yield break;
+            }
+            var bodyRenderer = playerObject.transform.Find("CharacterModel/BodyRenderer").GetComponent<Renderer>();
+            var headRenderer = playerObject.transform.Find("CharacterModel/HeadRenderer").GetComponent<Renderer>();
+            var originalMaterialsBodyRendererArray = bodyRenderer.materials;
+            var originalMaterialsHeadRendererArray = headRenderer.materials;
+            if (glassMaterial != null)
+            {
+                bodyRenderer.materials = new Material[] { glassMaterial };
+                headRenderer.materials = new Material[] { glassMaterial };
+            }
 
-        yield return new WaitForSeconds(duration);
-        bodyRenderer.materials = originalMaterialsBodyRendererArray;
-        headRenderer.materials = originalMaterialsHeadRendererArray;
+            yield return new WaitForSeconds(duration);
+            bodyRenderer.materials = originalMaterialsBodyRendererArray;
+            headRenderer.materials = originalMaterialsHeadRendererArray;
+        }
+        finally
+        {
+            isInvisibilityActive = false;
+        }
+    }
+
+    /// <summary>
+    /// Plays the custom throw animation on this player (used by other clients when this player throws).
+    /// </summary>
+    [PunRPC]
+    public void RPCA_PlayThrowAnimation()
+    {
+        var animator = GetComponentInChildren<CustomPlayerAnimator>(true);
+        if (animator != null)
+            animator.TryActivateThrowAnimation(() => { });
     }
 
     [PunRPC]
@@ -81,21 +106,27 @@ public class PlayerRPCBridge : MonoBehaviour
     {
         var controller = player.gameObject.GetComponent<PlayerController>();
         if (controller == null)
-        {
             yield break;
+
+        isBoostActive = true;
+        try
+        {
+            var originalMovementForce = controller.movementForce;
+            var originalStaminaRegRate = controller.staminaRegRate;
+
+            controller.movementForce = originalMovementForce * moveSpeedMultiplier;
+            player.data.currentStamina = Mathf.Min(player.data.currentStamina + staminaInstantRegen, controller.maxStamina);
+            controller.staminaRegRate = originalStaminaRegRate * staminaRegRateMultiplier;
+
+            yield return new WaitForSeconds(duration);
+
+            controller.movementForce = originalMovementForce;
+            controller.staminaRegRate = originalStaminaRegRate;
         }
-
-        var originalMovementForce = controller.movementForce;
-        var originalStaminaRegRate = controller.staminaRegRate;
-
-        controller.movementForce = originalMovementForce * moveSpeedMultiplier;
-        player.data.currentStamina = Mathf.Min(player.data.currentStamina + staminaInstantRegen, controller.maxStamina);
-        controller.staminaRegRate = originalStaminaRegRate * staminaRegRateMultiplier;
-
-        yield return new WaitForSeconds(duration);
-
-        controller.movementForce = originalMovementForce;
-        controller.staminaRegRate = originalStaminaRegRate;
+        finally
+        {
+            isBoostActive = false;
+        }
     }
 }
 
