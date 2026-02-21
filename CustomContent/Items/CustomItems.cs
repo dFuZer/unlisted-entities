@@ -129,8 +129,8 @@ public static class CustomItems
 		ParticleSystem.EmissionModule emission = explosionParticle.emission;
 		emission.SetBurst(0, new ParticleSystem.Burst(0f, 14));
 		var main = explosionParticle.main;
-		main.startSpeed = new ParticleSystem.MinMaxCurve(2f, 6f);
-		main.startSize = new ParticleSystem.MinMaxCurve(1f, 2f);
+		main.startSpeed = new ParticleSystem.MinMaxCurve(2f, 3f);
+		main.startSize = new ParticleSystem.MinMaxCurve(0.2f, 0.5f);
 
 		SFX_PlayOneShot spos = behaviour.explosionPrefab.GetComponent<SFX_PlayOneShot>();
 		spos.sfx = _bundle!.LoadAsset<SFX_Instance>("PopitExplosionSfx");
