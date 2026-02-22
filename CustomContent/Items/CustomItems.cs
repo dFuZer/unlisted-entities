@@ -15,6 +15,7 @@ public static class CustomItems
 	public static byte? WeaponsCategory = null;
 	public static byte? ConsumablesCategory = null;
 	public static byte? EquipablesCategory = null;
+	public static byte? ExplosivesCategory = null;
 	public static GameObject? FroggyBootRightPrefab = null;
 	public static GameObject? FroggyBootLeftPrefab = null;
 	public static GameObject? AngelWingsPrefab = null;
@@ -75,6 +76,7 @@ public static class CustomItems
 		WeaponsCategory = Items.RegisterCustomCategory("Weapons");
 		ConsumablesCategory = Items.RegisterCustomCategory("Consumables");
 		EquipablesCategory = Items.RegisterCustomCategory("Equipables");
+		ExplosivesCategory = Items.RegisterCustomCategory("Explosives");
 
 		var oxygenRegenerationSfx = _bundle!.LoadAsset<SFX_Instance>("OxygenRegenSfx")!;
 
@@ -98,13 +100,88 @@ public static class CustomItems
 			RegisterPopit();
 			RegisterSilverFulminate();
 			// RegisterGlowingVest();
-			// RegisterTranqGun();
+			RegisterTranqGun();
 
 		}
 
 		DbsContentApiPlugin.customItemsRegistrationCallbacks.Add(RegisterItems);
 	}
 
+	private static void RegisterTranqGun()
+	{
+		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "TranqGun2.prefab");
+		var visualRoot = prefab.transform.Find("TranqGun")!.gameObject;
+		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Barrel")!.gameObject, GameMaterialType.M_Metal);
+		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Lower")!.gameObject, GameMaterialType.FLAT_GRAY);
+		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Magazine")!.gameObject, GameMaterialType.M_DARKGRAY);
+		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Rear_Sights")!.gameObject, GameMaterialType.M_Metal);
+		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Red_Dot_Sight")!.gameObject, GameMaterialType.M_Metal);
+		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Slide")!.gameObject, GameMaterialType.M_DARKGRAY);
+		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Trigger")!.gameObject, GameMaterialType.M_Metal);
+
+		// Configure TranqGun behaviour
+		var behaviour = prefab.AddComponent<TranqGunItemBehaviour>();
+		behaviour.firePoint = prefab.transform.Find("FirePoint");
+
+		SFX_Instance shotSfx = _bundle!.LoadAsset<SFX_Instance>("TranqGunShotSfx");
+
+		// Load and configure projectile prefab
+		GameObject shotPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "TranqShot.prefab");
+		var shotPrefabVisualRoot = shotPrefab.transform.Find("wrapper")!.gameObject;
+		GameMaterials.ApplyMaterial(shotPrefabVisualRoot.transform.Find("glass")!.gameObject, GameMaterialType.M_ShopGlass);
+		GameMaterials.ApplyMaterial(shotPrefabVisualRoot.transform.Find("liquid")!.gameObject, GameMaterialType.GREEN);
+		GameMaterials.ApplyMaterial(shotPrefabVisualRoot.transform.Find("shell")!.gameObject, GameMaterialType.M_Metal);
+
+		SFX_PlayOneShot shotSfxComponent = shotPrefab.AddComponent<SFX_PlayOneShot>();
+		shotSfxComponent.playOnStart = true;
+		shotSfxComponent.playOnEnable = false;
+		shotSfxComponent.playOnClick = false;
+		shotSfxComponent.sfx = shotSfx;
+		shotSfxComponent.sfxs = new SFX_Instance[] { shotSfx };
+
+		// Add components at runtime to the shotPrefab
+		var proj = shotPrefab.AddComponent<Projectile>();
+		proj.velocity = 3f;
+		proj.gravity = 8f;
+		proj.upVelocity = 1f;
+		proj.fall = 1f;
+		proj.damage = 0f; // Tranq gun doesn't deal direct damage
+		proj.force = 1f;
+		proj.postHitBehavior = Projectile.PostHitBehaviour.Disable;
+		proj.layerType = HelperFunctions.LayerType.All;
+
+		shotPrefab.AddComponent<TranqProjectileLogic>();
+
+		var stickComponent = shotPrefab.AddComponent<ProjectileStick>();
+		var syringeHitSfx = _bundle!.LoadAsset<SFX_Instance>("SyringeHitSfx");
+		if (syringeHitSfx == null)
+		{
+			DbsContentApi.Modules.Logger.LogError("CustomItems: SyringeHitSfx not found!");
+		}
+		stickComponent.hitSFX = new SFX_Instance[] { syringeHitSfx };
+
+		var remove = shotPrefab.AddComponent<RemoveAfterSeconds>();
+		remove.seconds = 10f;
+
+		behaviour.projectilePrefab = shotPrefab;
+
+		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
+
+		Items.RegisterItem(
+			bundle: _bundle!,
+			prefab: prefab,
+			displayName: "Tranquilizer gun",
+			price: 200,
+			category: (ShopItemCategory)WeaponsCategory!,
+			iconName: "tranqgun_icon",
+			impactSounds: impactSounds,
+			holdPos: new Vector3(0.3f, -0.3f, 0.7f),
+			holdRot: new Vector3(0, 0, 0),
+			useAlternativeHoldPos: true,
+			useAlternativeHoldRot: false,
+			alternativeHoldingPos: new Vector3(0.2f, -0.22f, 0.7f)
+		);
+	}
 	private static void RegisterPopit()
 	{
 		// Build shared explosion prefab once for all grenades/semtex that use base GrenadeItemBehaviour
@@ -150,7 +227,7 @@ public static class CustomItems
 			prefab: prefab,
 			displayName: "Pop-it",
 			price: 7,
-			category: (ShopItemCategory)WeaponsCategory!,
+			category: (ShopItemCategory)ExplosivesCategory!,
 			iconName: "popit_icon",
 			impactSounds: impactSounds,
 			holdPos: new Vector3(0.3f, -0.6f, 0.7f)
@@ -195,7 +272,7 @@ public static class CustomItems
 			prefab: prefab,
 			displayName: "Silver fulminate crystal",
 			price: 150,
-			category: (ShopItemCategory)WeaponsCategory!,
+			category: (ShopItemCategory)ExplosivesCategory!,
 			iconName: "fulminate_icon",
 			impactSounds: impactSounds,
 			holdPos: new Vector3(0.3f, -0.6f, 0.7f)
@@ -450,7 +527,7 @@ public static class CustomItems
 			prefab: prefab,
 			displayName: "Grenade",
 			price: 40,
-			category: (ShopItemCategory)WeaponsCategory!,
+			category: (ShopItemCategory)ExplosivesCategory!,
 			iconName: "grenade_icon",
 			impactSounds: impactSounds,
 			holdPos: new Vector3(0.3f, -0.6f, 0.7f)
@@ -488,7 +565,7 @@ public static class CustomItems
 			prefab: prefab,
 			displayName: "Semtex grenade",
 			price: 55,
-			category: (ShopItemCategory)WeaponsCategory!,
+			category: (ShopItemCategory)ExplosivesCategory!,
 			iconName: "semtex_icon",
 			impactSounds: impactSounds,
 			holdPos: new Vector3(0.3f, -0.6f, 0.7f)
@@ -540,7 +617,7 @@ public static class CustomItems
 			prefab: prefab,
 			displayName: "Electric grenade",
 			price: 90,
-			category: (ShopItemCategory)WeaponsCategory!,
+			category: (ShopItemCategory)ExplosivesCategory!,
 			iconName: "electricgrenade_icon",
 			impactSounds: impactSounds,
 			holdPos: new Vector3(0.3f, -0.6f, 0.7f)
