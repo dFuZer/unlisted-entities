@@ -66,7 +66,7 @@ namespace UnlistedEntities.Patches
 
             // Get all colliders on the item to ignore them during raycast
             Collider[] itemColliders = __instance.GetComponentsInChildren<Collider>();
-            
+
             // Temporarily disable item colliders to prevent self-collision
             foreach (var col in itemColliders)
             {
@@ -77,11 +77,11 @@ namespace UnlistedEntities.Patches
             // Perform the raycast
             Vector3 startPos = __instance.transform.position + __instance.transform.forward * 0.2f;
             Vector3 endPos = startPos + __instance.transform.forward * 100f;
-            
+
             RaycastHit raycastHit = HelperFunctions.LineCheck(
-                startPos, 
-                endPos, 
-                HelperFunctions.LayerType.TerrainProp, 
+                startPos,
+                endPos,
+                HelperFunctions.LayerType.TerrainProp,
                 0f
             );
 
