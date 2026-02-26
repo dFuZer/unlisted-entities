@@ -21,13 +21,13 @@ public static class CustomItems
 	public static GameObject? AngelWingsPrefab = null;
 	public static GameObject? CursedNecklacePrefab = null;
 	public static GameObject? StrongArmVisualPrefab = null;
-
-
+	public static GameObject? GlowingVestPrefab = null;
+	public static GameObject? SmallLightBeamPrefab = null;
 	public static Item? JumpingBootsItem = null;
-
 	public static Item? CursedDoll = null;
 	public static Item? AngelWingsItem = null;
 	public static Item? StrongArmItem = null;
+	public static Item? GlowingVest = null;
 
 	private static GameObject GetMonsterAffectingExplosionTemplate(float fall = 3f, float radius = 4f, float damage = 150f, float force = 4f)
 	{
@@ -99,9 +99,8 @@ public static class CustomItems
 			RegisterStrongArm();
 			RegisterPopit();
 			RegisterSilverFulminate();
-			// RegisterGlowingVest();
+			RegisterGlowingVest();
 			RegisterTranqGun();
-
 		}
 
 		DbsContentApiPlugin.customItemsRegistrationCallbacks.Add(RegisterItems);
@@ -141,7 +140,7 @@ public static class CustomItems
 
 		// Add components at runtime to the shotPrefab
 		var proj = shotPrefab.AddComponent<Projectile>();
-		proj.velocity = 3f;
+		proj.velocity = 20f;
 		proj.gravity = 8f;
 		proj.upVelocity = 1f;
 		proj.fall = 1f;
@@ -205,9 +204,10 @@ public static class CustomItems
 		ParticleSystem explosionParticle = behaviour.explosionPrefab.GetComponentInChildren<ParticleSystem>(true);
 		ParticleSystem.EmissionModule emission = explosionParticle.emission;
 		emission.SetBurst(0, new ParticleSystem.Burst(0f, 14));
-		var main = explosionParticle.main;
-		main.startSpeed = new ParticleSystem.MinMaxCurve(2f, 3f);
-		main.startSize = new ParticleSystem.MinMaxCurve(0.2f, 0.5f);
+		var particlesMain = explosionParticle.main;
+		particlesMain.startSpeed = new ParticleSystem.MinMaxCurve(2f, 3f);
+		particlesMain.startSize = new ParticleSystem.MinMaxCurve(0.2f, 0.5f);
+		particlesMain.startLifetime = new ParticleSystem.MinMaxCurve(0.3f, 0.7f);
 
 		SFX_PlayOneShot spos = behaviour.explosionPrefab.GetComponent<SFX_PlayOneShot>();
 		spos.sfx = _bundle!.LoadAsset<SFX_Instance>("PopitExplosionSfx");
@@ -692,6 +692,63 @@ public static class CustomItems
 			price: 100,
 			category: (ShopItemCategory)EquipablesCategory!,
 			iconName: "wings_icon",
+			impactSounds: impactSounds,
+			holdPos: new Vector3(0.3f, -0.3f, 0.4f)
+		);
+	}
+
+	private static void RegisterGlowingVest()
+	{
+		// SmallLightBeamPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "VestLightPrefab.prefab");
+		var randomLamp = Items.GetItemByPrefabComponent<Flashlight>();
+		if (randomLamp != null)
+		{
+			HierarchyUtility.LogHierarchy(randomLamp.itemObject);
+			var tempInstance = GameObject.Instantiate(randomLamp.itemObject);
+			var lightObject = tempInstance.transform.Find("Light")!.gameObject;
+			lightObject.transform.SetParent(null);
+			UnityEngine.Object.DestroyImmediate(tempInstance);
+			lightObject.SetActive(false);
+			var lightComponent = lightObject.GetComponent<Light>();
+			lightComponent.innerSpotAngle = 0f;
+			lightComponent.intensity = 60f;
+			lightComponent.spotAngle = 40f;
+			lightComponent.enabled = true;
+			SmallLightBeamPrefab = lightObject;
+			UnityEngine.Object.DontDestroyOnLoad(lightObject);
+		}
+
+		GlowingVestPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "VestVisual.prefab");
+		var materials = new Material[] {
+			GameMaterials.GetMaterial(GameMaterialType.DARKGRAY2),
+			GameMaterials.GetMaterial(GameMaterialType.M_Flashlight_1_1),
+			GameMaterials.GetMaterial(GameMaterialType.BRIGHT_WHITE),
+			GameMaterials.GetMaterial(GameMaterialType.YELLOW2),
+			GameMaterials.GetMaterial(GameMaterialType.GRAY_BLUE)
+		};
+
+		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "VestItem.prefab");
+
+		{
+			var visualRoot = prefab.transform.Find("Item/vest")!.gameObject;
+			var renderer = visualRoot.transform.Find("Vest")!.gameObject.GetComponent<Renderer>();
+			renderer.materials = materials;
+		}
+		{
+			var renderer = GlowingVestPrefab.transform.Find("Vest")!.gameObject.GetComponent<Renderer>();
+			renderer.materials = materials;
+		}
+		prefab.AddComponent<GlowingVestEquipableItemBehaviour>();
+
+		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
+
+		GlowingVest = Items.RegisterItem(
+			bundle: _bundle!,
+			prefab: prefab,
+			displayName: "Bright vest",
+			price: 150,
+			category: (ShopItemCategory)EquipablesCategory!,
+			iconName: "glowing_vest_icon",
 			impactSounds: impactSounds,
 			holdPos: new Vector3(0.3f, -0.3f, 0.4f)
 		);

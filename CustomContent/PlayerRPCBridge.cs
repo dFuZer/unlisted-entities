@@ -46,6 +46,10 @@ public class PlayerRPCBridge : MonoBehaviour
                 {
                     if (bot.view.IsMine)
                     {
+                        if (bot.targetPlayer != null && bot.targetPlayer.refs.view.ViewID == player.refs.view.ViewID)
+                        {
+                            bot.targetPlayer = null;
+                        }
                         bot.IgnoreTargetFor(player, duration);
                     }
                     else

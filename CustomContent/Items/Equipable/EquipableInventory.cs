@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Linq;
+using pworld.Scripts;
 
 /// <summary>
 /// Manages a player's equipable items inventory. Each player has a fixed number of equipable slots
@@ -138,9 +139,58 @@ public class EquipableInventory : MonoBehaviourPun
                     itemID == UnlistedEntities.CustomContent.CustomItems.StrongArmItem.id)
                 {
                     SpawnStrongArm(i, player);
+                    StrongArmAlterPlayerJoints(player);
+                }
+                else if (UnlistedEntities.CustomContent.CustomItems.GlowingVest != null &&
+                    itemID == UnlistedEntities.CustomContent.CustomItems.GlowingVest.id)
+                {
+                    SpawnGlowingVest(i, player);
                 }
             }
         }
+    }
+
+    private void StrongArmAlterPlayerJoints(Player player)
+    {
+        var rightArm = player.refs.ragdoll.GetBodypart(BodypartType.Arm_R);
+        var rightElbow = player.refs.ragdoll.GetBodypart(BodypartType.Elbow_R);
+        var rightHand = player.refs.ragdoll.GetBodypart(BodypartType.Hand_R);
+
+        if (rightArm == null || rightElbow == null || rightHand == null)
+        {
+            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find right arm, elbow, or hand for StrongArmAlterPlayerJoints.");
+            return;
+        }
+
+        var rightArmjointDrive = rightArm.joint.angularXDrive;
+        rightArmjointDrive.m_PositionSpring = 80f;
+        rightArmjointDrive.m_PositionDamper = 300f;
+        rightArm.joint.angularXDrive = rightArmjointDrive;
+
+        var rightElbowjointDrive = rightElbow.joint.angularXDrive;
+        rightElbowjointDrive.m_PositionSpring = 80f;
+        rightElbowjointDrive.m_PositionDamper = 300f;
+        rightElbow.joint.angularXDrive = rightElbowjointDrive;
+
+        var rightHandjointDrive = rightHand.joint.angularXDrive;
+        rightHandjointDrive.m_PositionSpring = 80f;
+        rightHandjointDrive.m_PositionDamper = 300f;
+        rightHand.joint.angularXDrive = rightHandjointDrive;
+
+        var rightArmjointDrive2 = rightArm.joint.angularYZDrive;
+        rightArmjointDrive2.m_PositionSpring = 80f;
+        rightArmjointDrive2.m_PositionDamper = 300f;
+        rightArm.joint.angularYZDrive = rightArmjointDrive2;
+
+        var rightElbowjointDrive2 = rightElbow.joint.angularYZDrive;
+        rightElbowjointDrive2.m_PositionSpring = 80f;
+        rightElbowjointDrive2.m_PositionDamper = 300f;
+        rightElbow.joint.angularYZDrive = rightElbowjointDrive2;
+
+        var rightHandjointDrive2 = rightHand.joint.angularYZDrive;
+        rightHandjointDrive2.m_PositionSpring = 80f;
+        rightHandjointDrive2.m_PositionDamper = 300f;
+        rightHand.joint.angularYZDrive = rightHandjointDrive2;
     }
 
     private GameObject SpawnAngelWings(int slot, Player player)
@@ -284,6 +334,109 @@ public class EquipableInventory : MonoBehaviourPun
         }
 
         spawnedVisuals[slot] = strongArm;
+    }
+
+
+    private void SpawnGlowingVest(int slot, Player player)
+    {
+        var playerBodyRenderer = player.gameObject.transform.Find("CharacterModel/BodyRenderer")?.GetComponent<SkinnedMeshRenderer>();
+        var prefab = UnlistedEntities.CustomContent.CustomItems.GlowingVestPrefab;
+        var lightPrefab = UnlistedEntities.CustomContent.CustomItems.SmallLightBeamPrefab;
+        if (playerBodyRenderer == null)
+        {
+            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] playerBodyRenderer missing for SpawnGlowingVest.");
+            return;
+        }
+        if (lightPrefab == null)
+        {
+            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] lightPrefab missing for SpawnGlowingVest.");
+            return;
+        }
+
+        if (prefab == null)
+        {
+            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] prefab missing for SpawnGlowingVest.");
+            return;
+        }
+
+        var rearrangedBones = getPlayerRigTransformsAsExpectedByDbExportedFbx(player);
+
+        // 4. Instantiate and apply
+        Transform characterModel = player.gameObject.transform.Find("CharacterModel");
+        GameObject glowingVestInstance = Instantiate(prefab, characterModel);
+
+        // Reset transforms - usually 0,0,0 if bones are synced, but keeping your values
+        glowingVestInstance.transform.localPosition = new UnityEngine.Vector3(0f, 8f, 0.07f);
+        glowingVestInstance.transform.localRotation = UnityEngine.Quaternion.Euler(0f, 0f, 0f);
+        glowingVestInstance.transform.localScale = new UnityEngine.Vector3(4.47f, 4.47f, 4.47f);
+
+        var instanceSMR = glowingVestInstance.GetComponentInChildren<SkinnedMeshRenderer>(true);
+
+        instanceSMR.bones = rearrangedBones; // Use the reordered array
+        instanceSMR.rootBone = playerBodyRenderer.rootBone;
+
+
+        var renderer = glowingVestInstance.GetComponentInChildren<Renderer>(true);
+        for (int i = 0; i < renderer.materials.Length; i++)
+        {
+            if (i == 2) continue; // Skip the flashlight material
+            renderer.materials[i].shader = playerBodyRenderer.material.shader;
+        }
+
+        // Spawn the 4 light beams
+        {
+            var characterModelHip = player.refs.rigRoot.transform.Find("Rig/Armature/Hip");
+            var characterModelTorso = player.refs.rigRoot.transform.Find("Rig/Armature/Hip/Torso");
+            if (characterModelHip == null || characterModelTorso == null)
+            {
+                DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find CharacterModel/Armature/Hip or CharacterModel/Armature/Hip/Torso.");
+                return;
+            }
+            // two hip-attached beams and two torso-attached beams
+            var leftHipLightBeam = Instantiate(lightPrefab, characterModelHip);
+            leftHipLightBeam.SetActive(true);
+            leftHipLightBeam.transform.localPosition = new UnityEngine.Vector3(0.869f, 1.582f, 1.507f);
+            leftHipLightBeam.transform.localRotation = UnityEngine.Quaternion.Euler(10f, 20f, 0f);
+            var rightHipLightBeam = Instantiate(lightPrefab, characterModelHip);
+            rightHipLightBeam.SetActive(true);
+            rightHipLightBeam.transform.localPosition = new UnityEngine.Vector3(-0.784f, 1.561f, 1.55f);
+            rightHipLightBeam.transform.localRotation = UnityEngine.Quaternion.Euler(10f, -20f, 0f);
+
+            var leftTorsoLightBeam = Instantiate(lightPrefab, characterModelTorso);
+            leftTorsoLightBeam.SetActive(true);
+            leftTorsoLightBeam.transform.localPosition = new UnityEngine.Vector3(0.659f, 0.259f, 1.64f);
+            leftTorsoLightBeam.transform.localRotation = UnityEngine.Quaternion.Euler(-10f, 20f, 0f);
+            var rightTorsoLightBeam = Instantiate(lightPrefab, characterModelTorso);
+            rightTorsoLightBeam.SetActive(true);
+            rightTorsoLightBeam.transform.localPosition = new UnityEngine.Vector3(-0.796f, 0.259f, 1.616f);
+            rightTorsoLightBeam.transform.localRotation = UnityEngine.Quaternion.Euler(-10f, -20f, 0f);
+        }
+
+
+        spawnedVisuals[slot] = glowingVestInstance;
+    }
+
+    private void VerifyBones(Transform[] originalCustomItemBones, Transform[] rearrangedCustomItemBones, Transform[] playerBones)
+    {
+        var hasError = false;
+        if (rearrangedCustomItemBones.Length != playerBones.Length)
+        {
+            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Custom item bones length does not match player bones length.");
+            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Custom item bones length: " + rearrangedCustomItemBones.Length + " Player bones length: " + playerBones.Length);
+            hasError = true;
+        }
+        for (int i = 0; i < originalCustomItemBones.Length; i++)
+        {
+            DbsContentApi.Modules.Logger.Log("[EquipableInventory] Custom item bone " + i + " name: " + originalCustomItemBones[i].name);
+        }
+        for (int i = 0; i < playerBones.Length; i++)
+        {
+            DbsContentApi.Modules.Logger.Log("[EquipableInventory] Player bone " + i + " name: " + playerBones[i].name);
+        }
+        if (hasError)
+        {
+            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Custom item bones do not match player bones.");
+        }
     }
 
     private void SpawnFroggyBoot(int slot, Player player)

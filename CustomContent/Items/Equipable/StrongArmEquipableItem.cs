@@ -26,37 +26,26 @@ public static class VideoCameraConfigItemPatch
 
 		if (hasStrongArm)
 		{
-			__instance.gameObject.AddComponent<StrongArmVideoCameraComponent>();
+			// __instance.gameObject.AddComponent<StrongArmVideoCameraComponent>();
 		}
 	}
 }
 
-public class StrongArmVideoCameraComponent : MonoBehaviour
-{
-	private Player player = null!;
-	private Rigidbody rb = null!;
-	void Start()
-	{
-		player = GetComponentInParent<Player>();
-		rb = GetComponent<Rigidbody>();
-	}
-	void LateUpdate()
-	{
-		if (player == null || rb == null) return;
+// public class StrongArmVideoCameraComponent : MonoBehaviour
+// {
+// 	private Player player = null!;
+// 	private Bodypart rightHand = null!;
+// 	void Start()
+// 	{
+// 		player = GetComponentInParent<Player>();
+// 		rb = GetComponent<Rigidbody>();
+// 		rightHand = player.refs.ragdoll.GetBodypart(BodypartType.Hand_R);
+// 	}
+// 	void LateUpdate()
+// 	{
+// 		if (player == null || rb == null) return;
 
-		// The camera is attached to the player ragdoll's hand/arm.
-		// We want to stabilize the camera by smoothing its movement.
-		// We do this by calculating a target rotation based on the player's look direction
-		// and applying it to the camera's rigidbody.
-
-		var head = player.refs.ragdoll.GetBodypart(BodypartType.Head);
-		if (head == null) return;
-
-		// Target rotation is the player's head rotation (where they are looking)
-		Quaternion targetRotation = head.transform.rotation;
-
-		// Smoothly interpolate the rotation
-		rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.deltaTime * 10f);
-		rb.angularVelocity = Vector3.zero;
-	}
-}
+// 		rb.velocity = Vector3.zero;
+// 		rb.angularVelocity = Vector3.zero;
+// 	}
+// }

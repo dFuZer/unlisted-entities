@@ -35,7 +35,15 @@ public class TranqProjectileLogic : MonoBehaviour
 
             if (hitPlayer.refs.view.IsMine)
             {
-
+                var bot = hitPlayer.GetComponentInChildren<Bot>();
+                if (bot != null)
+                {
+                    bot.targetPlayer = null;
+                    for (int i = 0; i < PlayerHandler.instance.players.Count; i++)
+                    {
+                        bot.IgnoreTargetFor(PlayerHandler.instance.players[i], 10f);
+                    }
+                }
             }
 
             // Example: apply a custom effect or log the hit
