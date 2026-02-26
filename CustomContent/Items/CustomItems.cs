@@ -20,13 +20,11 @@ public static class CustomItems
 	public static GameObject? FroggyBootLeftPrefab = null;
 	public static GameObject? AngelWingsPrefab = null;
 	public static GameObject? CursedNecklacePrefab = null;
-	public static GameObject? StrongArmVisualPrefab = null;
 	public static GameObject? GlowingVestPrefab = null;
 	public static GameObject? SmallLightBeamPrefab = null;
 	public static Item? JumpingBootsItem = null;
 	public static Item? CursedDoll = null;
 	public static Item? AngelWingsItem = null;
-	public static Item? StrongArmItem = null;
 	public static Item? GlowingVest = null;
 
 	private static GameObject GetMonsterAffectingExplosionTemplate(float fall = 3f, float radius = 4f, float damage = 150f, float force = 4f)
@@ -96,7 +94,6 @@ public static class CustomItems
 			RegisterJumpingBoots();
 			RegisterCursedDoll();
 			RegisterAngelWings();
-			RegisterStrongArm();
 			RegisterPopit();
 			RegisterSilverFulminate();
 			RegisterGlowingVest();
@@ -753,30 +750,6 @@ public static class CustomItems
 			holdPos: new Vector3(0.3f, -0.3f, 0.4f)
 		);
 	}
-
-	private static void RegisterStrongArm()
-	{
-		StrongArmVisualPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "StrongArmVisual.prefab");
-		GameMaterials.ApplyMaterial(StrongArmVisualPrefab, GameMaterialType.GRAY, true);
-
-		GameObject itemPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "StrongArmItem.prefab");
-		GameMaterials.ApplyMaterial(itemPrefab, GameMaterialType.GRAY);
-		itemPrefab.AddComponent<StrongArmEquipableItemBehaviour>();
-
-		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
-
-		StrongArmItem = Items.RegisterItem(
-			bundle: _bundle!,
-			prefab: itemPrefab,
-			displayName: "Strong arm",
-			price: 100,
-			category: (ShopItemCategory)EquipablesCategory!,
-			iconName: "strongarm_icon",
-			impactSounds: impactSounds,
-			holdPos: new Vector3(0.3f, -0.3f, 0.4f)
-		);
-	}
-
 
 	public static Sprite GetSprite(string iconName)
 	{

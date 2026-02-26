@@ -135,12 +135,6 @@ public class EquipableInventory : MonoBehaviourPun
                 {
                     SpawnAngelWings(i, player);
                 }
-                else if (UnlistedEntities.CustomContent.CustomItems.StrongArmItem != null &&
-                    itemID == UnlistedEntities.CustomContent.CustomItems.StrongArmItem.id)
-                {
-                    SpawnStrongArm(i, player);
-                    StrongArmAlterPlayerJoints(player);
-                }
                 else if (UnlistedEntities.CustomContent.CustomItems.GlowingVest != null &&
                     itemID == UnlistedEntities.CustomContent.CustomItems.GlowingVest.id)
                 {
@@ -148,49 +142,6 @@ public class EquipableInventory : MonoBehaviourPun
                 }
             }
         }
-    }
-
-    private void StrongArmAlterPlayerJoints(Player player)
-    {
-        var rightArm = player.refs.ragdoll.GetBodypart(BodypartType.Arm_R);
-        var rightElbow = player.refs.ragdoll.GetBodypart(BodypartType.Elbow_R);
-        var rightHand = player.refs.ragdoll.GetBodypart(BodypartType.Hand_R);
-
-        if (rightArm == null || rightElbow == null || rightHand == null)
-        {
-            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find right arm, elbow, or hand for StrongArmAlterPlayerJoints.");
-            return;
-        }
-
-        var rightArmjointDrive = rightArm.joint.angularXDrive;
-        rightArmjointDrive.m_PositionSpring = 80f;
-        rightArmjointDrive.m_PositionDamper = 300f;
-        rightArm.joint.angularXDrive = rightArmjointDrive;
-
-        var rightElbowjointDrive = rightElbow.joint.angularXDrive;
-        rightElbowjointDrive.m_PositionSpring = 80f;
-        rightElbowjointDrive.m_PositionDamper = 300f;
-        rightElbow.joint.angularXDrive = rightElbowjointDrive;
-
-        var rightHandjointDrive = rightHand.joint.angularXDrive;
-        rightHandjointDrive.m_PositionSpring = 80f;
-        rightHandjointDrive.m_PositionDamper = 300f;
-        rightHand.joint.angularXDrive = rightHandjointDrive;
-
-        var rightArmjointDrive2 = rightArm.joint.angularYZDrive;
-        rightArmjointDrive2.m_PositionSpring = 80f;
-        rightArmjointDrive2.m_PositionDamper = 300f;
-        rightArm.joint.angularYZDrive = rightArmjointDrive2;
-
-        var rightElbowjointDrive2 = rightElbow.joint.angularYZDrive;
-        rightElbowjointDrive2.m_PositionSpring = 80f;
-        rightElbowjointDrive2.m_PositionDamper = 300f;
-        rightElbow.joint.angularYZDrive = rightElbowjointDrive2;
-
-        var rightHandjointDrive2 = rightHand.joint.angularYZDrive;
-        rightHandjointDrive2.m_PositionSpring = 80f;
-        rightHandjointDrive2.m_PositionDamper = 300f;
-        rightHand.joint.angularYZDrive = rightHandjointDrive2;
     }
 
     private GameObject SpawnAngelWings(int slot, Player player)
@@ -243,12 +194,12 @@ public class EquipableInventory : MonoBehaviourPun
 
     /// When remapping the bones of a prefab's skinned mesh renderer, it is critical that the bones of our prefab map to the bones of the player
     /// and in the order that is expected by the prefab.
-    /// After extracting the player fbx from AssetStudio then using its armature to create our Strong arm visual prefab
+    /// After extracting the player fbx from AssetStudio then using its armature to create our glowing vestvisual prefab
     /// we logged the prefab's bone order and the player's bone order.
     /// Since there were many mismatches, we create a new array manually mapping the player transforms to the prefab's bone order.
     /// This function should work as long as our exported fbx armature keep the same bone order.
     /// Mind that our bone order MAY be different from one fbx to another. If you try to
-    /// extract the player fbx from AssetStudio then use its armature to create our Strong arm visual prefab,
+    /// extract the player fbx from AssetStudio then use its armature to create our glowing vest visual prefab,
     /// you may have to update this function to match YOUR prefabs' armatures bone order.
     public static Transform[] getPlayerRigTransformsAsExpectedByDbExportedFbx(Player player)
     {
@@ -304,38 +255,6 @@ public class EquipableInventory : MonoBehaviourPun
 
         return playerBones.ToArray();
     }
-
-    private void SpawnStrongArm(int slot, Player player)
-    {
-        var bodyRenderer = player.gameObject.transform.Find("CharacterModel/BodyRenderer")?.GetComponent<SkinnedMeshRenderer>();
-        var prefab = UnlistedEntities.CustomContent.CustomItems.StrongArmVisualPrefab;
-
-        if (bodyRenderer == null || prefab == null) return;
-
-        var playerBones = getPlayerRigTransformsAsExpectedByDbExportedFbx(player);
-
-        // 4. Instantiate and apply
-        Transform characterModel = player.gameObject.transform.Find("CharacterModel");
-        GameObject strongArm = Instantiate(prefab, characterModel);
-
-        // Reset transforms - usually 0,0,0 if bones are synced, but keeping your values
-        strongArm.transform.localPosition = new UnityEngine.Vector3(3.46f, 8.905f, 0.12f);
-        strongArm.transform.localRotation = UnityEngine.Quaternion.Euler(0f, 0f, 0f);
-        strongArm.transform.localScale = new UnityEngine.Vector3(7.37f, 7.37f, 7.37f);
-
-        var instanceSMR = strongArm.GetComponentInChildren<SkinnedMeshRenderer>(true);
-        instanceSMR.bones = playerBones; // Use the reordered array
-        instanceSMR.rootBone = bodyRenderer.rootBone;
-
-        // Shader sync
-        foreach (var renderer in strongArm.GetComponentsInChildren<Renderer>())
-        {
-            renderer.material.shader = bodyRenderer.material.shader;
-        }
-
-        spawnedVisuals[slot] = strongArm;
-    }
-
 
     private void SpawnGlowingVest(int slot, Player player)
     {
