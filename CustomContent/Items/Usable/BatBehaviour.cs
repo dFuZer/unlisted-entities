@@ -7,12 +7,9 @@ using Zorro.Core.Serizalization;
 public class BatBehaviour : ItemInstanceBehaviour
 {
 	private Player? player;
-	private bool isSwinging = false;
-	private bool isInitialized = false;
-	private int lastFrame;
-	private Coroutine currentSwingCoroutine = null;
-	
-	private static HashSet<string> registeredItems = new HashSet<string>();
+	private bool isSwinging;
+	private Coroutine? currentSwingCoroutine;
+	private HashSet<Player> hitPlayersThisSwing = new HashSet<Player>();
 
 	public float swingForce = 3f;
 	public float swingDuration = 0.6f;
@@ -21,24 +18,13 @@ public class BatBehaviour : ItemInstanceBehaviour
 	public SFX_Instance batHitSFX = null!;
 	public bool isBreakable;
 
-	private HashSet<Player> hitPlayers = new HashSet<Player>();
-
 	public override void ConfigItem(ItemInstanceData data, PhotonView playerView)
 	{
 		player = GetComponentInParent<Player>();
-		
-		string itemId = itemInstance.GetInstanceID().ToString();
-		
-		if (!registeredItems.Contains(itemId))
-		{
-			itemInstance.RegisterRPC(ItemRPC.RPC0, RPC_Hit);
-			itemInstance.RegisterRPC(ItemRPC.RPC1, RPC_StartSwing);
-			registeredItems.Add(itemId);
-		}
-		
-		isInitialized = true;
-		
-		// Reset swing state
+		itemInstance.RegisterRPC(ItemRPC.RPC0, RPC_Hit);
+		itemInstance.RegisterRPC(ItemRPC.RPC1, RPC_StartSwing);
+
+		hitPlayersThisSwing.Clear();
 		if (currentSwingCoroutine != null)
 		{
 			StopCoroutine(currentSwingCoroutine);
@@ -68,20 +54,16 @@ public class BatBehaviour : ItemInstanceBehaviour
 
 		if (handR != null && elbowR != null && armR != null)
 		{
-			hitPlayers.Clear();
+			hitPlayersThisSwing.Clear();
 			isSwinging = true;
-			
 			if (currentSwingCoroutine != null)
-			{
 				StopCoroutine(currentSwingCoroutine);
-			}
-			
 			currentSwingCoroutine = StartCoroutine(PerformSwingReplicated(holder, handR, elbowR, armR, forceDirection, lookDirection));
 		}
 	}
 
 	private void RPC_Hit(BinaryDeserializer deserializer)
-	{	
+	{
 		int hitViewId = deserializer.ReadInt();
 		float fx = deserializer.ReadFloat();
 		float fy = deserializer.ReadFloat();
@@ -133,47 +115,32 @@ public class BatBehaviour : ItemInstanceBehaviour
 		yield return null;
 		yield return null;
 
-		string itemId = itemInstance.GetInstanceID().ToString();
-		registeredItems.Remove(itemId);
-
 		if (this != null && gameObject != null)
-		{
 			Destroy(gameObject);
-		}
 	}
 
-	void Update()
+	private void Update()
 	{
-		if (!isInitialized || player == null) return;
-		if (!this.isHeldByMe) return;
-		if (player.HasLockedInput()) return;
-
+		if (player == null || !isHeldByMe || player.HasLockedInput()) return;
 		if (player.input.clickWasPressed && !isSwinging)
-		{
 			TriggerSwing();
-		}
 	}
 
-	void TriggerSwing()
+	private void TriggerSwing()
 	{
-		if (player == null || player.refs?.ragdoll == null || player.refs?.headPos == null)
-		{
-			return;
-		}
+		if (player == null || player.refs?.ragdoll == null || player.refs?.headPos == null) return;
 
 		Vector3 lookDirection = player.refs.headPos.forward;
-		Vector3 forceDirection = player.refs.headPos.forward;
-		forceDirection += Vector3.down * 0.95f;
-		forceDirection = forceDirection.normalized;
-		
-		BinarySerializer binarySerializer = new BinarySerializer();
-		binarySerializer.WriteFloat(forceDirection.x);
-		binarySerializer.WriteFloat(forceDirection.y);
-		binarySerializer.WriteFloat(forceDirection.z);
-		binarySerializer.WriteFloat(lookDirection.x);
-		binarySerializer.WriteFloat(lookDirection.y);
-		binarySerializer.WriteFloat(lookDirection.z);
-		itemInstance.CallRPC(ItemRPC.RPC1, binarySerializer);
+		Vector3 forceDirection = (player.refs.headPos.forward + Vector3.down * 0.95f).normalized;
+
+		BinarySerializer s = new BinarySerializer();
+		s.WriteFloat(forceDirection.x);
+		s.WriteFloat(forceDirection.y);
+		s.WriteFloat(forceDirection.z);
+		s.WriteFloat(lookDirection.x);
+		s.WriteFloat(lookDirection.y);
+		s.WriteFloat(lookDirection.z);
+		itemInstance.CallRPC(ItemRPC.RPC1, s);
 	}
 
 	private IEnumerator PerformSwingReplicated(Player holder, Bodypart hand, Bodypart elbow, Bodypart arm, Vector3 forceDirection, Vector3 lookDirection)
@@ -197,9 +164,9 @@ public class BatBehaviour : ItemInstanceBehaviour
 
 		while (elapsed < swingDuration)
 		{
-			if (hand == null || hand.rig == null || 
-			    elbow == null || elbow.rig == null || 
-			    arm == null || arm.rig == null)
+			if (hand == null || hand.rig == null ||
+				elbow == null || elbow.rig == null ||
+				arm == null || arm.rig == null)
 			{
 				isSwinging = false;
 				currentSwingCoroutine = null;
@@ -232,14 +199,14 @@ public class BatBehaviour : ItemInstanceBehaviour
 			yield return new WaitForFixedUpdate();
 		}
 
-		
+
 		float remainingCooldown = Mathf.Max(0f, cooldownTime - swingDuration);
-		
+
 		if (remainingCooldown > 0f)
 		{
 			yield return new WaitForSeconds(remainingCooldown);
 		}
-		
+
 		isSwinging = false;
 		currentSwingCoroutine = null;
 	}
@@ -247,51 +214,35 @@ public class BatBehaviour : ItemInstanceBehaviour
 	private void ProcessHit(Collider other, Vector3 forceDirection, Player holder)
 	{
 		if (!isSwinging || other == null || holder == null) return;
-
-		if (other.transform.root == holder?.transform.root)
-			return;
+		if (other.transform.root == holder.transform.root) return;
 
 		Player hitPlayer = other.GetComponentInParent<Player>();
-		if (hitPlayer != null && hitPlayer != holder && !hitPlayers.Contains(hitPlayer))
-		{
-			hitPlayers.Add(hitPlayer);
-			OnHitTarget(hitPlayer, forceDirection);
-		}
+		if (hitPlayer == null || hitPlayer == holder || hitPlayersThisSwing.Contains(hitPlayer)) return;
+
+		hitPlayersThisSwing.Add(hitPlayer);
+		OnHitTarget(hitPlayer, forceDirection);
 	}
 
 	private void OnHitTarget(Player hitPlayer, Vector3 forceDirection)
 	{
-		if (!isSimulatedByMe || lastFrame == Time.frameCount)
-			return;
-		lastFrame = Time.frameCount;
+		if (!isSimulatedByMe || hitPlayer?.refs?.view == null) return;
 
-		if (hitPlayer?.refs?.view == null)
-			return;
-		
-		BinarySerializer binarySerializer = new BinarySerializer();
-		binarySerializer.WriteInt(hitPlayer.refs.view.ViewID);
-		binarySerializer.WriteFloat(forceDirection.x);
-		binarySerializer.WriteFloat(forceDirection.y);
-		binarySerializer.WriteFloat(forceDirection.z);
-		itemInstance.CallRPC(ItemRPC.RPC0, binarySerializer);
+		BinarySerializer s = new BinarySerializer();
+		s.WriteInt(hitPlayer.refs.view.ViewID);
+		s.WriteFloat(forceDirection.x);
+		s.WriteFloat(forceDirection.y);
+		s.WriteFloat(forceDirection.z);
+		itemInstance.CallRPC(ItemRPC.RPC0, s);
 	}
 
 	private void OnDisable()
 	{
+		hitPlayersThisSwing.Clear();
 		isSwinging = false;
 		if (currentSwingCoroutine != null)
 		{
 			StopCoroutine(currentSwingCoroutine);
 			currentSwingCoroutine = null;
-		}
-	}
-	
-	private void OnDestroy()
-	{
-		if (itemInstance != null)
-		{
-			string itemId = itemInstance.GetInstanceID().ToString();
-			registeredItems.Remove(itemId);
 		}
 	}
 

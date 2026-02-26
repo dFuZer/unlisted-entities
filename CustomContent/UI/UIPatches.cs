@@ -113,6 +113,11 @@ public class UserInterfacePatch
             // Transfer icon reference from HotbarSlotUI before destroying it
             equipableSlotUI.m_icon = hotbarSlotUI.m_icon;
             equipableSlotUI.m_unknownIcon = hotbarSlotUI.m_unkownIcon;
+
+            // Initialize the slot to be empty immediately to prevent visual bugs when cloning
+            equipableSlotUI.Awake(); // Ensure canvasGroup is assigned
+            equipableSlotUI.SetData(EquipableConfig.EMPTY_SLOT_ID);
+
             UnityEngine.Object.DestroyImmediate(hotbarSlotUI);
 
             clone.transform.SetParent(itemsGameObject);

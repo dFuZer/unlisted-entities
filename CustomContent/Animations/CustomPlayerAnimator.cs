@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using HarmonyLib;
+using Photon.Pun;
 using UnityEngine;
 public class CustomPlayerAnimator : MonoBehaviour
 {
@@ -97,6 +98,11 @@ public class CustomPlayerAnimator : MonoBehaviour
         animationStartTime = Time.time;
         DbsContentApi.Modules.Logger.Log($"CustomPlayerAnimator: Activated throw animation");
         currentCustomAnimation.LogKeyFrames();
+
+        // Sync animation to other clients so they see this player's throw
+        var pv = GetComponentInParent<PhotonView>();
+        if (pv != null && pv.IsMine)
+            pv.RPC(nameof(PlayerRPCBridge.RPCA_PlayThrowAnimation), RpcTarget.Others);
     }
 
     // set lateUpdate to modify the rig

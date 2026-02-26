@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class SemtexItemBehaviour : GrenadeItemBehaviour
+public class SemtexItemBehaviour : ThrowableExplosiveBehaviour
 {
     private Vector3 relativePos;
     private Quaternion relativeRot;

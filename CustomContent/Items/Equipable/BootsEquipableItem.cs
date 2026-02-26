@@ -1,8 +1,8 @@
-using Photon.Pun;
 using HarmonyLib;
 using UnityEngine;
 using System.Collections;
 using UnlistedEntities.CustomContent;
+using Photon.Voice.Unity.UtilityScripts;
 
 /// <summary>
 /// Equipable item that grants increased jump power when worn.
@@ -24,20 +24,10 @@ public class JumpPatch
 	static void PrefixPatchJumpImpulse(PlayerController __instance)
 	{
 		var player = __instance.GetComponent<Player>();
-		if (!player.TryGetInventory(out var inventory))
-		{
-			return;
-		}
-
-		var equipables = inventory.gameObject.GetComponent<EquipableInventory>();
-		if (equipables == null)
-		{
-			return;
-		}
+		var hasBootsEquipable = EquipableInventory.PlayerHasEquipableCached(player, CustomItems.JumpingBootsItem!.id); ;
 
 		// Check if player has jumping boots equipped using the actual item ID
-		if (CustomItems.JumpingBootsItem != null &&
-			equipables.HasEquipable(CustomItems.JumpingBootsItem.id))
+		if (hasBootsEquipable)
 		{
 			__instance.StartCoroutine(BoostJumpTemporarily(__instance));
 		}

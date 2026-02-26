@@ -22,14 +22,16 @@ public class ElectricGrenadeExplosionAOE : MonoBehaviour
 			if ((bool)collider.attachedRigidbody)
 			{
 				Player componentInParent = collider.GetComponentInParent<Player>();
-				if ((bool)componentInParent && componentInParent.refs.view.IsMine && !list.Contains(componentInParent))
+				if ((bool)componentInParent && (componentInParent.refs.view.IsMine || componentInParent.ai) && !list.Contains(componentInParent))
 				{
 					list.Add(componentInParent);
 					float value = Vector3.Distance(base.transform.position, collider.transform.position);
 					float num = Mathf.InverseLerp(radius, innerRadius, value);
-					Vector3 vector = (componentInParent.Center() - base.transform.position).normalized * num * force;
-					var dmgMultiplier = componentInParent.ai ? 0f : 1f;
-					componentInParent.CallTakeDamageAndAddForceAndFall(damage * num * dmgMultiplier, vector, fall * num);
+					var aiForceMultiplier = componentInParent.ai ? 1.6f : 1f;
+					var aiFallMultiplier = componentInParent.ai ? 1.6f : 1f;
+					var aiDmgMultiplier = componentInParent.ai ? 0f : 1f;
+					Vector3 vector = (componentInParent.Center() - base.transform.position).normalized * num * force * aiForceMultiplier;
+					componentInParent.CallTakeDamageAndAddForceAndFall(damage * num * aiDmgMultiplier, vector, fall * num * aiFallMultiplier);
 					if (componentInParent.TryGetInventory(out var inv))
 					{
 						const float rechargeFraction = 0.4f;

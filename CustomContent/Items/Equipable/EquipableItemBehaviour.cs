@@ -68,6 +68,7 @@ public abstract class EquipableItemBehaviour : ItemInstanceBehaviour
             base.transform.rotation
         );
 
+
         // Consume the item from inventory
         slot.Clear();
     }
