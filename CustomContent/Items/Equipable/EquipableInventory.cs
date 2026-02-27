@@ -2,9 +2,6 @@ using HarmonyLib;
 using Photon.Pun;
 using UnityEngine;
 using System.Collections.Generic;
-using System.Numerics;
-using System.Linq;
-using pworld.Scripts;
 
 /// <summary>
 /// Manages a player's equipable items inventory. Each player has a fixed number of equipable slots

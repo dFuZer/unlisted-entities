@@ -43,4 +43,9 @@ public class TeapotContentEvent : MonsterContentEvent
 	{
 		return new Comment(NORMAL_COMMENTS.GetRandom());
 	}
+
+	public override string[] GetAllComments()
+	{
+		return NORMAL_COMMENTS;
+	}
 }
