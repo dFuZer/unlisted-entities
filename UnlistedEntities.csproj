@@ -56,54 +56,54 @@
     <ItemGroup>
         <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.2" PrivateAssets="all" />
         <Reference Include="0Harmony">
-          <HintPath>$(CWDir)\Content Warning_Data\Managed\0Harmony.dll</HintPath>
+            <HintPath>$(CWDir)\Content Warning_Data\Managed\0Harmony.dll</HintPath>
         </Reference>
         <Reference Include="Assembly-CSharp">
-          <HintPath>$(CWDir)\Content Warning_Data\Managed\Assembly-CSharp.dll</HintPath>
-          <Publicize>true</Publicize>
+            <HintPath>$(CWDir)\Content Warning_Data\Managed\Assembly-CSharp.dll</HintPath>
+            <Publicize>true</Publicize>
         </Reference>
         <Reference Include="BepInEx">
-          <HintPath>$(CWDir)\Content Warning_Data\Managed\BepInEx.dll</HintPath>
+            <HintPath>$(CWDir)\Content Warning_Data\Managed\BepInEx.dll</HintPath>
         </Reference>
         <Reference Include="LocalizationAssembly">
-          <HintPath>$(CWDir)\Content Warning_Data\Managed\LocalizationAssembly.dll</HintPath>
+            <HintPath>$(CWDir)\Content Warning_Data\Managed\LocalizationAssembly.dll</HintPath>
         </Reference>
         <Reference Include="PhotonRealtime">
-          <HintPath>$(CWDir)\Content Warning_Data\Managed\PhotonRealtime.dll</HintPath>
+            <HintPath>$(CWDir)\Content Warning_Data\Managed\PhotonRealtime.dll</HintPath>
         </Reference>
         <Reference Include="PhotonUnityNetworking">
-          <HintPath>$(CWDir)\Content Warning_Data\Managed\PhotonUnityNetworking.dll</HintPath>
+            <HintPath>$(CWDir)\Content Warning_Data\Managed\PhotonUnityNetworking.dll</HintPath>
         </Reference>
         <Reference Include="Sirenix.Serialization">
-          <HintPath>$(CWDir)\Content Warning_Data\Managed\Sirenix.Serialization.dll</HintPath>
+            <HintPath>$(CWDir)\Content Warning_Data\Managed\Sirenix.Serialization.dll</HintPath>
         </Reference>
         <Reference Include="System"/>
         <Reference Include="System.Core"/>
         <Reference Include="System.Data"/>
         <Reference Include="System.Xml"/>
         <Reference Include="Unity.AI.Navigation">
-          <HintPath>$(CWDir)\Content Warning_Data\Managed\Unity.AI.Navigation.dll</HintPath>
+            <HintPath>$(CWDir)\Content Warning_Data\Managed\Unity.AI.Navigation.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine">
-          <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.dll</HintPath>
+            <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.AIModule">
-          <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.AIModule.dll</HintPath>
+            <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.AIModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.AssetBundleModule">
-          <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
+            <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.CoreModule">
-          <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+            <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.InputLegacyModule">
-          <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+            <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
         </Reference>
         <Reference Include="Unity.TextMeshPro">
-          <HintPath>$(CWDir)\Content Warning_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+            <HintPath>$(CWDir)\Content Warning_Data\Managed\Unity.TextMeshPro.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.InputModule">
-          <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.InputModule.dll</HintPath>
+            <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.InputModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.AnimationModule">
             <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
@@ -115,26 +115,26 @@
             <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.UIModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.AudioModule">
-          <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
+            <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.PhysicsModule">
-          <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+            <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
         </Reference>
         <Reference Include="Zorro.Core.Runtime">
-          <HintPath>$(CWDir)\Content Warning_Data\Managed\Zorro.Core.Runtime.dll</HintPath>
+            <HintPath>$(CWDir)\Content Warning_Data\Managed\Zorro.Core.Runtime.dll</HintPath>
         </Reference>
         <Reference Include="Zorro.UI.Runtime">
-          <HintPath>$(CWDir)\Content Warning_Data\Managed\Zorro.UI.Runtime.dll</HintPath>
+            <HintPath>$(CWDir)\Content Warning_Data\Managed\Zorro.UI.Runtime.dll</HintPath>
         </Reference>
         <Reference Include="Photon3Unity3D">
             <HintPath>$(CWDir)\Content Warning_Data\Managed\Photon3Unity3D.dll</HintPath>
-            </Reference>
-            <Reference Include="Unity.Mathematics">
+        </Reference>
+        <Reference Include="Unity.Mathematics">
             <HintPath>$(CWDir)\Content Warning_Data\Managed\Unity.Mathematics.dll</HintPath>
-            </Reference>
-            <Reference Include="UnityEngine.ParticleSystemModule">
+        </Reference>
+        <Reference Include="UnityEngine.ParticleSystemModule">
             <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
-            </Reference>
+        </Reference>
     </ItemGroup>
 
     <ItemGroup>
