@@ -43,6 +43,7 @@ public class UserInterfacePatch
 {
     private static HotbarUIExtension? hotbarUIExtension;
     private static GameObject[] slots = new GameObject[EquipableConfig.SLOT_COUNT] { null!, null! };
+    // private static bool hasShiftedPositionsOnce = false;
 
     [HarmonyPatch("LateUpdate"), HarmonyPostfix]
     static void UserInterfaceAwakePostfix(UserInterface __instance)
@@ -61,38 +62,31 @@ public class UserInterfacePatch
     private static IEnumerator SetPositionDelayed(RectTransform rectTransform)
     {
         yield return null;
-        Vector2 anchoredPosition = rectTransform.anchoredPosition;
-        anchoredPosition.x = 200f;
-        rectTransform.anchoredPosition = anchoredPosition;
+
+        rectTransform.localPosition = new Vector3(-60f, -7f, 0f);
     }
 
     static void InitUI(UserInterface ui)
     {
-        var hotbarGameObjectTransform = ui.gameObject.transform.Find("Pivot/Others/Hotbar");
-        if (hotbarGameObjectTransform == null)
+        var itemsGameObjectTransform = ui.gameObject.transform.Find("HelmetUIToggler/Pivot/Others/Hotbar/Items");
+        if (itemsGameObjectTransform == null)
         {
             DbsContentApi.Modules.Logger.LogError("[EquipableUI] Failed to initialize: Hotbar GameObject not found in UI hierarchy.");
             return;
         }
 
-        RectTransform component = hotbarGameObjectTransform.GetComponent<RectTransform>();
-        Vector2 sizeDelta = component.sizeDelta;
-        sizeDelta.x = 1000f;
-        component.sizeDelta = sizeDelta;
-        ui.StartCoroutine(SetPositionDelayed(component));
+        // if (!hasShiftedPositionsOnce)
+        {
+            RectTransform component = itemsGameObjectTransform.GetComponent<RectTransform>();
 
-        HotbarUIExtension hotbarUIExtension = hotbarGameObjectTransform.gameObject.AddComponent<HotbarUIExtension>();
+            ui.StartCoroutine(SetPositionDelayed(component));
+        }
+
+        HotbarUIExtension hotbarUIExtension = itemsGameObjectTransform.gameObject.AddComponent<HotbarUIExtension>();
         UserInterfacePatch.hotbarUIExtension = hotbarUIExtension;
         hotbarUIExtension.slots = new EquipableSlotUI[EquipableConfig.SLOT_COUNT];
 
-        var itemsGameObject = hotbarGameObjectTransform.Find("Items");
-        if (itemsGameObject == null)
-        {
-            DbsContentApi.Modules.Logger.LogError("[EquipableUI] Failed to initialize: Items GameObject not found under Hotbar.");
-            return;
-        }
-
-        var slot1 = itemsGameObject.transform.Find("HotbarSlot");
+        var slot1 = itemsGameObjectTransform.Find("HotbarSlot");
         if (slot1 == null)
         {
             DbsContentApi.Modules.Logger.LogError("[EquipableUI] Failed to initialize: HotbarSlot template not found.");
@@ -100,7 +94,7 @@ public class UserInterfacePatch
         }
         for (int i = EquipableConfig.SLOT_COUNT - 1; i >= 0; i--)
         {
-            if (itemsGameObject.transform.Find($"EquipableSlot{i + 1}") != null)
+            if (itemsGameObjectTransform.Find($"EquipableSlot{i + 1}") != null)
             {
                 DbsContentApi.Modules.Logger.LogError($"[EquipableUI] EquipableSlot{i + 1} already exists, skipping creation.");
                 continue;
@@ -120,7 +114,7 @@ public class UserInterfacePatch
 
             UnityEngine.Object.DestroyImmediate(hotbarSlotUI);
 
-            clone.transform.SetParent(itemsGameObject);
+            clone.transform.SetParent(itemsGameObjectTransform);
             clone.name = $"EquipableSlot{i + 1}";
             clone.transform.localPosition = Vector3.zero;
             clone.transform.localScale = Vector3.one;
@@ -307,7 +301,7 @@ public class UI_FeedbackExtension : MonoBehaviour
         List<Color> cols;
         if (UI_Feedback.instance.takeDamageCor == null)
         {
-            graphics = UI_Feedback.instance.transform.Find("Pivot/Others/Stamina")!.GetComponentsInChildren<Graphic>();
+            graphics = UI_Feedback.instance.transform.Find("HelmetUIToggler/Pivot/Others/Stamina")!.GetComponentsInChildren<Graphic>();
             cols = new List<Color>();
             for (int i = 0; i < graphics.Length; i++)
             {

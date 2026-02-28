@@ -23,17 +23,6 @@ public static class CustomMobs
     {
         Logger.Log("Starting custom mobs setup");
 
-        // Logger.Log("Loading MainCharacter prefab from bundle");
-        // MainCharacter = ContentLoader.LoadPrefabFromBundle(bundle, "MainCharacter.prefab");
-        // if (MainCharacter == null)
-        // {
-        //     Logger.LogError("Failed to load MainCharacter.prefab from bundle");
-        // }
-        // else
-        // {
-        //     Logger.Log($"MainCharacter prefab loaded: {MainCharacter.name}");
-        // }
-
         Logger.Log("Loading TeapotFinal prefab from bundle");
         TeapotFinal = ContentLoader.LoadPrefabFromBundle(bundle, "TeapotFinal.prefab");
         if (TeapotFinal == null)
@@ -45,7 +34,6 @@ public static class CustomMobs
             Logger.Log($"TeapotFinal prefab loaded: {TeapotFinal.name}");
         }
 
-        // RegisterMainCharacter();
         RegisterTeapot(bundle);
 
         Logger.Log("Custom mobs setup completed");
@@ -62,7 +50,7 @@ public static class CustomMobs
 
         Logger.Log("Restoring shaders for TeapotFinal");
         // Mobs.RestoreShaders(TeapotFinal);
-        GameMaterials.ApplyMaterial(TeapotFinal, GameMaterialType.M_Monster, true);
+        GameMaterials.ApplyMaterial(TeapotFinal, GameMaterial.M_Monster, true);
 
         Logger.Log("Creating MobSetupConfig for TeapotFinal (using existing RigCreator setup)");
         var config = new MobSetupConfig
@@ -117,12 +105,12 @@ public static class CustomMobs
             var inner = teapotDroplet.transform.Find("Inner");
             if (outer != null)
             {
-                GameMaterials.ApplyMaterial(outer.gameObject, GameMaterialType.M_ShopGlass);
+                GameMaterials.ApplyMaterial(outer.gameObject, GameMaterial.M_ShopGlass);
                 Logger.Log("Applied M_ShopGlass material to TeapotDroplet Outer");
             }
             if (inner != null)
             {
-                GameMaterials.ApplyMaterial(inner.gameObject, GameMaterialType.M_Pool_7);
+                GameMaterials.ApplyMaterial(inner.gameObject, GameMaterial.M_Pool_7);
                 Logger.Log("Applied M_Pool_7 material to TeapotDroplet Inner");
             }
         }
@@ -160,7 +148,7 @@ public static class CustomMobs
             var psRenderer = teapotDropletSpill.GetComponent<ParticleSystem>()?.GetComponent<ParticleSystemRenderer>();
             if (psRenderer != null)
             {
-                psRenderer.material = GameMaterials.GetMaterial(GameMaterialType.M_ShopGlass);
+                psRenderer.material = GameMaterials.GetMaterial(GameMaterial.M_ShopGlass);
                 Logger.Log("Applied M_ShopGlass material to TeapotSpillHit particle system");
             }
             else

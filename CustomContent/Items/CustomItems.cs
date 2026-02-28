@@ -2,6 +2,7 @@ using UnityEngine;
 using DbsContentApi.Modules;
 using System;
 using DbsContentApi;
+using System.Linq;
 
 namespace UnlistedEntities.CustomContent;
 
@@ -16,6 +17,7 @@ public static class CustomItems
 	public static byte? ConsumablesCategory = null;
 	public static byte? EquipablesCategory = null;
 	public static byte? ExplosivesCategory = null;
+	public static byte? MaterialTestersCategory = null;
 	public static GameObject? FroggyBootRightPrefab = null;
 	public static GameObject? FroggyBootLeftPrefab = null;
 	public static GameObject? AngelWingsPrefab = null;
@@ -43,7 +45,7 @@ public static class CustomItems
 			return null!;
 		}
 
-		// Create a new instance for each call so we don't modify a shared template
+		// Create a new instance for each call so we don't modify a shaM_Jester_4 template
 		GameObject explosionInstance = UnityEngine.Object.Instantiate(bombItemBehaviour.explosion);
 		explosionInstance.SetActive(false);
 		UnityEngine.Object.DontDestroyOnLoad(explosionInstance);
@@ -75,6 +77,7 @@ public static class CustomItems
 		ConsumablesCategory = Items.RegisterCustomCategory("Consumables");
 		EquipablesCategory = Items.RegisterCustomCategory("Equipables");
 		ExplosivesCategory = Items.RegisterCustomCategory("Explosives");
+		MaterialTestersCategory = Items.RegisterCustomCategory("Material Testers");
 
 		var oxygenRegenerationSfx = _bundle!.LoadAsset<SFX_Instance>("OxygenRegenSfx")!;
 
@@ -98,22 +101,52 @@ public static class CustomItems
 			RegisterSilverFulminate();
 			RegisterGlowingVest();
 			RegisterTranqGun();
+			// RegisterMaterialTesters();
 		}
 
 		DbsContentApiPlugin.customItemsRegistrationCallbacks.Add(RegisterItems);
 	}
 
+	private static void RegisterMaterialTesters()
+	{
+		for (int i = 0; i < 8; i++)
+		{
+			// we load MaterialTester.prefab, duplicate it, and apply the material PAGE*8 + i to the duplicate
+			// this allows us to test all materials in the game one by one using shop items
+
+			var loadedMaterials = GameMaterials._materials.Keys.ToList();
+			DbsContentApi.Modules.Logger.Log($"Loaded {loadedMaterials.Count} materials: {string.Join(", ", loadedMaterials.Select(m => m.ToString()))}");
+			GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "MaterialTester.prefab");
+			GameObject duplicate = UnityEngine.Object.Instantiate(prefab);
+			var ithMaterial = GameMaterials._materials.Keys.ElementAt(i);
+			GameMaterials.ApplyMaterial(duplicate, ithMaterial);
+			var materialName = ithMaterial.ToString();
+			Items.RegisterItem(
+				bundle: _bundle!,
+				prefab: duplicate,
+				displayName: $"{materialName}",
+				price: 0,
+				category: (ShopItemCategory)MaterialTestersCategory!,
+				iconName: $"popit_icon",
+				impactSounds: new SFX_Instance[] { },
+				holdPos: new Vector3(0.3f, -0.3f, 0.7f),
+				holdRot: new Vector3(0, 0, 0)
+			);
+		}
+	}
+
+
 	private static void RegisterTranqGun()
 	{
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "TranqGun2.prefab");
 		var visualRoot = prefab.transform.Find("TranqGun")!.gameObject;
-		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Barrel")!.gameObject, GameMaterialType.M_Metal);
-		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Lower")!.gameObject, GameMaterialType.FLAT_GRAY);
-		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Magazine")!.gameObject, GameMaterialType.M_DARKGRAY);
-		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Rear_Sights")!.gameObject, GameMaterialType.M_Metal);
-		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Red_Dot_Sight")!.gameObject, GameMaterialType.M_Metal);
-		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Slide")!.gameObject, GameMaterialType.M_DARKGRAY);
-		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Trigger")!.gameObject, GameMaterialType.M_Metal);
+		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Barrel")!.gameObject, GameMaterial.M_Metal);
+		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Lower")!.gameObject, GameMaterial.M_Player);
+		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Magazine")!.gameObject, GameMaterial.M_Balaclava);
+		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Rear_Sights")!.gameObject, GameMaterial.M_Metal);
+		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Red_Dot_Sight")!.gameObject, GameMaterial.M_Metal);
+		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Slide")!.gameObject, GameMaterial.M_Balaclava);
+		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Trigger")!.gameObject, GameMaterial.M_Metal);
 
 		// Configure TranqGun behaviour
 		var behaviour = prefab.AddComponent<TranqGunItemBehaviour>();
@@ -124,9 +157,9 @@ public static class CustomItems
 		// Load and configure projectile prefab
 		GameObject shotPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "TranqShot.prefab");
 		var shotPrefabVisualRoot = shotPrefab.transform.Find("wrapper")!.gameObject;
-		GameMaterials.ApplyMaterial(shotPrefabVisualRoot.transform.Find("glass")!.gameObject, GameMaterialType.M_ShopGlass);
-		GameMaterials.ApplyMaterial(shotPrefabVisualRoot.transform.Find("liquid")!.gameObject, GameMaterialType.GREEN);
-		GameMaterials.ApplyMaterial(shotPrefabVisualRoot.transform.Find("shell")!.gameObject, GameMaterialType.M_Metal);
+		GameMaterials.ApplyMaterial(shotPrefabVisualRoot.transform.Find("glass")!.gameObject, GameMaterial.M_ShopGlass);
+		GameMaterials.ApplyMaterial(shotPrefabVisualRoot.transform.Find("liquid")!.gameObject, GameMaterial.M_Child_2);
+		GameMaterials.ApplyMaterial(shotPrefabVisualRoot.transform.Find("shell")!.gameObject, GameMaterial.M_Metal);
 
 		SFX_PlayOneShot shotSfxComponent = shotPrefab.AddComponent<SFX_PlayOneShot>();
 		shotSfxComponent.playOnStart = true;
@@ -180,11 +213,11 @@ public static class CustomItems
 	}
 	private static void RegisterPopit()
 	{
-		// Build shared explosion prefab once for all grenades/semtex that use base GrenadeItemBehaviour
+		// Build shaM_Jester_4 explosion prefab once for all grenades/semtex that use base GrenadeItemBehaviour
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "Popit.prefab");
 		var visualRoot = prefab.transform.Find("Item/PopIt")!.gameObject;
-		GameMaterials.ApplyMaterial(visualRoot!, GameMaterialType.WHITE, true);
+		GameMaterials.ApplyMaterial(visualRoot!, GameMaterial.M_Child_1, true);
 
 		var behaviour = prefab.AddComponent<GrenadeItemBehaviour>();
 		behaviour.explodesOnImpact = true;
@@ -233,11 +266,11 @@ public static class CustomItems
 
 	private static void RegisterSilverFulminate()
 	{
-		// Build shared explosion prefab once for all grenades/semtex that use base GrenadeItemBehaviour
+		// Build shaM_Jester_4 explosion prefab once for all grenades/semtex that use base GrenadeItemBehaviour
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "SilverFulminateCristal.prefab");
 		var visualRoot = prefab.transform.Find("Item/LargeFulminatedMercuryCristal")!.gameObject;
-		GameMaterials.ApplyMaterial(visualRoot!, GameMaterialType.WHITE, true);
+		GameMaterials.ApplyMaterial(visualRoot!, GameMaterial.M_Child_1, true);
 
 		var behaviour = prefab.AddComponent<GrenadeItemBehaviour>();
 		behaviour.explodesOnImpact = true;
@@ -279,7 +312,7 @@ public static class CustomItems
 	private static void RegisterUnbreakableBat()
 	{
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "Unbreakable Bat.prefab");
-		GameMaterials.ApplyMaterial(prefab, GameMaterialType.M_DARKGRAY);
+		GameMaterials.ApplyMaterial(prefab, GameMaterial.M_Balaclava);
 		BatBehaviour batBehaviour = prefab.AddComponent<BatBehaviour>();
 		batBehaviour.batHitSFX = _bundle!.LoadAsset<SFX_Instance>("SFX Bat Hit");
 		batBehaviour.isBreakable = false;
@@ -306,7 +339,7 @@ public static class CustomItems
 	private static void RegisterBreakableBat()
 	{
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "Breakable Bat.prefab");
-		GameMaterials.ApplyMaterial(prefab, GameMaterialType.BROWN);
+		GameMaterials.ApplyMaterial(prefab, GameMaterial.M_Milk2);
 		BatBehaviour batBehaviour = prefab.AddComponent<BatBehaviour>();
 		batBehaviour.batHitSFX = _bundle.LoadAsset<SFX_Instance>("SFX Bat Hit");
 		batBehaviour.isBreakable = true;
@@ -337,10 +370,10 @@ public static class CustomItems
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "SmallO2Tank.prefab");
 		GameObject visualRoot = prefab.transform.Find("Visual/o2tank")!.gameObject;
-		GameMaterials.ApplyMaterial(visualRoot!, GameMaterialType.M_DARKGRAY, true);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Cap")!.gameObject, GameMaterialType.M_Metal, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Rims")!.gameObject, GameMaterialType.M_Metal, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Text")!.gameObject, GameMaterialType.M_Cap_1, false);
+		GameMaterials.ApplyMaterial(visualRoot!, GameMaterial.M_Balaclava, true);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Cap")!.gameObject, GameMaterial.M_Metal, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Rims")!.gameObject, GameMaterial.M_Metal, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Text")!.gameObject, GameMaterial.M_Cap_1, false);
 		RegenStatItemBehaviour behaviour = prefab.AddComponent<RegenStatItemBehaviour>();
 		behaviour.regenPercentageAmount = 30;
 		behaviour.statType = StatTypeEnum.Oxygen;
@@ -364,10 +397,10 @@ public static class CustomItems
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "LargeO2Tank.prefab");
 		GameObject visualRoot = prefab.transform.Find("Visual/o2tank")!.gameObject;
-		GameMaterials.ApplyMaterial(visualRoot!, GameMaterialType.M_DARKGRAY, true);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Cap")!.gameObject, GameMaterialType.M_Metal, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Rims")!.gameObject, GameMaterialType.M_Metal, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Text")!.gameObject, GameMaterialType.M_Cap_1, false);
+		GameMaterials.ApplyMaterial(visualRoot!, GameMaterial.M_Balaclava, true);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Cap")!.gameObject, GameMaterial.M_Metal, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Rims")!.gameObject, GameMaterial.M_Metal, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Text")!.gameObject, GameMaterial.M_Cap_1, false);
 
 		RegenStatItemBehaviour behaviour = prefab.AddComponent<RegenStatItemBehaviour>();
 		behaviour.regenPercentageAmount = 80;
@@ -392,14 +425,14 @@ public static class CustomItems
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "BandAidBox.prefab");
 		GameObject visualRoot = prefab.transform.Find("Item/bandaid")!.gameObject;
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Barcode")!.gameObject, GameMaterialType.VERY_DARK_GRAY, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Cross")!.gameObject, GameMaterialType.RED, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Barcode")!.gameObject, GameMaterial.M_Balaclava, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Cross")!.gameObject, GameMaterial.M_Jester_4, false);
 		Renderer boxRenderer = visualRoot!.transform.Find("Box")!.gameObject.GetComponent<Renderer>();
-		boxRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterialType.BROWN), GameMaterials.GetMaterial(GameMaterialType.WHITE_IVORY), GameMaterials.GetMaterial(GameMaterialType.GRAY_BLUE) };
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Gauze")!.gameObject, GameMaterialType.WHITE, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("PlasterFront")!.gameObject, GameMaterialType.ORANGE_SAUSAGE, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("TextBack")!.gameObject, GameMaterialType.VERY_DARK_GRAY, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("TextFront")!.gameObject, GameMaterialType.VERY_DARK_GRAY, false);
+		boxRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Milk2), GameMaterials.GetMaterial(GameMaterial.M_Child_1), GameMaterials.GetMaterial(GameMaterial.M_Jester_3) };
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Gauze")!.gameObject, GameMaterial.M_Child_1, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("PlasterFront")!.gameObject, GameMaterial.M_Hotdog_2, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("TextBack")!.gameObject, GameMaterial.M_Balaclava, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("TextFront")!.gameObject, GameMaterial.M_Balaclava, false);
 
 		RegenStatItemBehaviour behaviour = prefab.AddComponent<RegenStatItemBehaviour>();
 		behaviour.regenPercentageAmount = 40;
@@ -423,9 +456,9 @@ public static class CustomItems
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "Medkit.prefab");
 		GameObject visualRoot = prefab.transform.Find("Visual/medkit")!.gameObject;
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Rim")!.gameObject, GameMaterialType.M_Cap_1, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Case")!.gameObject, GameMaterialType.RED, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Cross")!.gameObject, GameMaterialType.M_Cap_1, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Rim")!.gameObject, GameMaterial.M_Cap_1, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Case")!.gameObject, GameMaterial.M_Jester_4, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Cross")!.gameObject, GameMaterial.M_Cap_1, false);
 
 		RegenStatItemBehaviour behaviour = prefab.AddComponent<RegenStatItemBehaviour>();
 		behaviour.regenPercentageAmount = 100;
@@ -448,9 +481,9 @@ public static class CustomItems
 	{
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "EnergyBar.prefab");
 		GameObject visualRoot = prefab.transform.Find("Item/energybar")!.gameObject;
-		GameMaterials.ApplyMaterial(visualRoot!, GameMaterialType.M_DARKGRAY, true);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Bar")!.gameObject, GameMaterialType.M_Beanie_1, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Icon")!.gameObject, GameMaterialType.M_Cap_1, false);
+		GameMaterials.ApplyMaterial(visualRoot!, GameMaterial.M_Balaclava, true);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Bar")!.gameObject, GameMaterial.M_Beanie_1, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Icon")!.gameObject, GameMaterial.M_Cap_1, false);
 		var behaviour = prefab.AddComponent<TemporaryPlayerBoostItemBehaviour>();
 		behaviour.playerCrunchSFX = _bundle!.LoadAsset<SFX_Instance>("CrunchSfx")!;
 
@@ -474,14 +507,14 @@ public static class CustomItems
 		var invisibilitySpraySfx = _bundle!.LoadAsset<SFX_Instance>("SpraySfx")!;
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "InvisibilitySpray.prefab");
 		GameObject visualRoot = prefab.transform.Find("Item/spraycan")!.gameObject;
-		GameMaterials.ApplyMaterial(prefab, GameMaterialType.M_DARKGRAY, true);
+		GameMaterials.ApplyMaterial(prefab, GameMaterial.M_Balaclava, true);
 		GameObject cap = visualRoot!.transform.Find("Cap")!.gameObject;
 		Renderer capRenderer = cap.GetComponent<Renderer>();
-		capRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterialType.M_Cap_1), GameMaterials.GetMaterial(GameMaterialType.M_DARKGRAY) };
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Icon")!.gameObject, GameMaterialType.YELLOW, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("CanBridge")!.gameObject, GameMaterialType.M_DARKGRAY, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("CapBridge")!.gameObject, GameMaterialType.M_Cap_1, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Bulb")!.gameObject, GameMaterialType.M_Cap_1, false);
+		capRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Cap_1), GameMaterials.GetMaterial(GameMaterial.M_Balaclava) };
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Icon")!.gameObject, GameMaterial.M_Jester_3, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("CanBridge")!.gameObject, GameMaterial.M_Balaclava, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("CapBridge")!.gameObject, GameMaterial.M_Cap_1, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Bulb")!.gameObject, GameMaterial.M_Cap_1, false);
 		var behaviour = prefab.AddComponent<TemporaryInvisibilityItemBehaviour>();
 		behaviour.invisibilitySpraySfx = invisibilitySpraySfx;
 
@@ -502,16 +535,16 @@ public static class CustomItems
 
 	private static void RegisterGrenade()
 	{
-		// Build shared explosion prefab once for all grenades/semtex that use base GrenadeItemBehaviour
+		// Build shaM_Jester_4 explosion prefab once for all grenades/semtex that use base GrenadeItemBehaviour
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "Grenade.prefab");
 		var visualRoot = prefab.transform.Find("Item/grenade")!.gameObject;
 		var grenadeTransform = visualRoot.transform.Find("Grenade")!.gameObject;
 		Renderer grenadeRenderer = grenadeTransform.GetComponent<Renderer>();
-		grenadeRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterialType.DARKGRAY2), GameMaterials.GetMaterial(GameMaterialType.GREEN) };
+		grenadeRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Balaclava), GameMaterials.GetMaterial(GameMaterial.M_Child_2) };
 
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("SmallTriggerRing")!.gameObject, GameMaterialType.DARKGRAY2, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("TriggerRing")!.gameObject, GameMaterialType.DARKGRAY2, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("SmallTriggerRing")!.gameObject, GameMaterial.M_Balaclava, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("TriggerRing")!.gameObject, GameMaterial.M_Balaclava, false);
 		var behaviour = prefab.AddComponent<GrenadeItemBehaviour>();
 
 		behaviour.explosionPrefab = GetMonsterAffectingExplosionTemplate();
@@ -535,12 +568,12 @@ public static class CustomItems
 	{
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "SemtexGrenade.prefab");
 		var visualRoot = prefab.transform.Find("Item/semtex")!.gameObject;
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Nails")!.gameObject, GameMaterialType.DARKGRAY2, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("SmallTriggerRing")!.gameObject, GameMaterialType.DARKGRAY2, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("TriggerRing")!.gameObject, GameMaterialType.DARKGRAY2, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Nails")!.gameObject, GameMaterial.M_Balaclava, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("SmallTriggerRing")!.gameObject, GameMaterial.M_Balaclava, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("TriggerRing")!.gameObject, GameMaterial.M_Balaclava, false);
 
 		var grenadeRenderer = visualRoot.transform.Find("Grenade")!.gameObject.GetComponent<Renderer>();
-		grenadeRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterialType.GREEN), GameMaterials.GetMaterial(GameMaterialType.YELLOW), GameMaterials.GetMaterial(GameMaterialType.DARKGRAY2), GameMaterials.GetMaterial(GameMaterialType.WHITE) };
+		grenadeRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Child_2), GameMaterials.GetMaterial(GameMaterial.M_Jester_3), GameMaterials.GetMaterial(GameMaterial.M_Balaclava), GameMaterials.GetMaterial(GameMaterial.M_Child_1) };
 
 		var behaviour = prefab.AddComponent<SemtexItemBehaviour>();
 
@@ -577,17 +610,17 @@ public static class CustomItems
 
 		var templateExplosion = GetMonsterAffectingExplosionTemplate();
 		var lightPointGameObject = templateExplosion.transform.Find("Point Light")!.gameObject;
-		// gray, luminous white, dark gray
-		grenadeRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterialType.GRAY), GameMaterials.GetMaterial(GameMaterialType.BRIGHT_WHITE), GameMaterials.GetMaterial(GameMaterialType.DARKGRAY2) };
+		// gray, luminous M_Child_1, dark gray
+		grenadeRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Player_1), GameMaterials.GetMaterial(GameMaterial.M_Child_1), GameMaterials.GetMaterial(GameMaterial.M_Balaclava) };
 
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("InnerRods")!.gameObject, GameMaterialType.BRIGHT_WHITE, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("InnerRods")!.gameObject, GameMaterial.M_Child_1, false);
 
 		var partLRenderer = visualRoot.transform.Find("Part_L")!.gameObject.GetComponent<Renderer>();
 		var partRRenderer = visualRoot.transform.Find("Part_R")!.gameObject.GetComponent<Renderer>();
 		// for partL : darkgray, light, gray, flatgray
-		partLRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterialType.DARKGRAY2), GameMaterials.GetMaterial(GameMaterialType.BRIGHT_WHITE), GameMaterials.GetMaterial(GameMaterialType.GRAY), GameMaterials.GetMaterial(GameMaterialType.FLAT_GRAY) };
+		partLRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Balaclava), GameMaterials.GetMaterial(GameMaterial.M_Child_1), GameMaterials.GetMaterial(GameMaterial.M_Player_1), GameMaterials.GetMaterial(GameMaterial.M_Player) };
 		// for partR : darkgray, gray, flatgray, light
-		partRRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterialType.DARKGRAY2), GameMaterials.GetMaterial(GameMaterialType.GRAY), GameMaterials.GetMaterial(GameMaterialType.FLAT_GRAY), GameMaterials.GetMaterial(GameMaterialType.BRIGHT_WHITE) };
+		partRRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Balaclava), GameMaterials.GetMaterial(GameMaterial.M_Player_1), GameMaterials.GetMaterial(GameMaterial.M_Player), GameMaterials.GetMaterial(GameMaterial.M_Child_1) };
 
 		var explosionPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "ElectricExplosion.prefab");
 		var lightPoint = UnityEngine.Object.Instantiate(lightPointGameObject, explosionPrefab.transform);
@@ -625,12 +658,12 @@ public static class CustomItems
 	private static void RegisterJumpingBoots()
 	{
 		FroggyBootRightPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "FroggyBootRight.prefab");
-		GameMaterials.ApplyMaterial(FroggyBootRightPrefab, GameMaterialType.GREEN2, true);
+		GameMaterials.ApplyMaterial(FroggyBootRightPrefab, GameMaterial.M_Child_2, true);
 		FroggyBootLeftPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "FroggyBootLeft.prefab");
-		GameMaterials.ApplyMaterial(FroggyBootLeftPrefab, GameMaterialType.GREEN2, true);
+		GameMaterials.ApplyMaterial(FroggyBootLeftPrefab, GameMaterial.M_Child_2, true);
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "BootsEquipable.prefab");
-		GameMaterials.ApplyMaterial(prefab, GameMaterialType.GREEN2);
+		GameMaterials.ApplyMaterial(prefab, GameMaterial.M_Child_2);
 		prefab.AddComponent<BootsEquipableItemBehaviour>();
 
 		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
@@ -650,19 +683,19 @@ public static class CustomItems
 	private static void RegisterCursedDoll()
 	{
 		CursedNecklacePrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "CursedNecklace.prefab");
-		GameMaterials.ApplyMaterial(CursedNecklacePrefab, GameMaterialType.GREEN2, true);
+		GameMaterials.ApplyMaterial(CursedNecklacePrefab, GameMaterial.M_Child_2, true);
 
 		var visualRoot = CursedNecklacePrefab.transform.Find("CursedNecklace")!.gameObject;
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Torus")!.gameObject, GameMaterialType.FLAT_GRAY, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Mesh_0")!.gameObject, GameMaterialType.BEIGE2, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Torus")!.gameObject, GameMaterial.M_Player, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Mesh_0")!.gameObject, GameMaterial.M_Child_5, false);
 
 		var dollRenderer = visualRoot.transform.Find("Mesh_0")!.gameObject.GetComponent<Renderer>();
-		dollRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterialType.BEIGE2) };
+		dollRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Child_5) };
 		var necklaceRenderer = visualRoot.transform.Find("Torus")!.gameObject.GetComponent<Renderer>();
-		necklaceRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterialType.FLAT_GRAY) };
+		necklaceRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Player) };
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "DollItem.prefab");
-		GameMaterials.ApplyMaterial(prefab, GameMaterialType.BEIGE2, true);
+		GameMaterials.ApplyMaterial(prefab, GameMaterial.M_Child_5, true);
 
 		AudioClip squink = _bundle!.LoadAsset<AudioClip>("Squink");
 		SFX_Instance[] impactSounds = Items.CreateSFXInstanceFromClip(squink);
@@ -684,11 +717,11 @@ public static class CustomItems
 	private static void RegisterAngelWings()
 	{
 		AngelWingsPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "WingsVisual.prefab");
-		GameMaterials.ApplyMaterial(AngelWingsPrefab, GameMaterialType.WHITE_IVORY, true);
+		GameMaterials.ApplyMaterial(AngelWingsPrefab, GameMaterial.M_Child_1, true);
 		AngelWingsPrefab.AddComponent<AngelWingsVisualAnimationHandler>();
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "WingsItem.prefab");
-		GameMaterials.ApplyMaterial(prefab, GameMaterialType.WHITE_IVORY);
+		GameMaterials.ApplyMaterial(prefab, GameMaterial.M_Child_1);
 		prefab.AddComponent<AngelWingsEquipableItemBehaviour>();
 
 		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
@@ -728,11 +761,11 @@ public static class CustomItems
 
 		GlowingVestPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "VestVisual.prefab");
 		var materials = new Material[] {
-			GameMaterials.GetMaterial(GameMaterialType.DARKGRAY2),
-			GameMaterials.GetMaterial(GameMaterialType.M_Flashlight_1_1),
-			GameMaterials.GetMaterial(GameMaterialType.BRIGHT_WHITE),
-			GameMaterials.GetMaterial(GameMaterialType.YELLOW2),
-			GameMaterials.GetMaterial(GameMaterialType.GRAY_BLUE)
+			GameMaterials.GetMaterial(GameMaterial.M_Balaclava),
+			GameMaterials.GetMaterial(GameMaterial.M_Flashlight_1_1),
+			GameMaterials.GetMaterial(GameMaterial.M_Child_1),
+			GameMaterials.GetMaterial(GameMaterial.M_Jester_3),
+			GameMaterials.GetMaterial(GameMaterial.M_FredGull_2)
 		};
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "VestItem.prefab");

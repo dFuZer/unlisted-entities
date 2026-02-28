@@ -139,6 +139,8 @@ public class CustomPlayerAnimatorPatches
     [HarmonyPostfix]
     static void StartPostfixPatch(Player __instance, ref IEnumerator __result)
     {
+        if (__instance.ai) return;
+
         __result = WrapEnumerator(__instance, __result);
     }
 
