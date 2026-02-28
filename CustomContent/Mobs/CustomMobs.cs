@@ -129,11 +129,11 @@ public static class CustomMobs
         }
 
         Logger.Log("Loading TeapotSpillHit prefab from bundle");
-        GameObject teapotDropletSpill = bundle.LoadAsset<GameObject>("TeapotSpillHit.prefab");
-        if (teapotDropletSpill != null)
+        GameObject teapotDropletSpillHit = bundle.LoadAsset<GameObject>("TeapotSpillHit.prefab");
+        if (teapotDropletSpillHit != null)
         {
             Logger.Log("TeapotSpillHit prefab loaded, configuring particle system material");
-            var psRenderer = teapotDropletSpill.GetComponent<ParticleSystem>()?.GetComponent<ParticleSystemRenderer>();
+            var psRenderer = teapotDropletSpillHit.GetComponent<ParticleSystem>()?.GetComponent<ParticleSystemRenderer>();
             if (psRenderer != null)
             {
                 psRenderer.material = GameMaterials.GetMaterial(GameMaterial.M_ShopGlass);
@@ -176,8 +176,14 @@ public static class CustomMobs
             }
             if (inner != null)
             {
-                GameMaterials.ApplyMaterial(inner.gameObject, GameMaterial.M_Pool_7);
+                GameMaterials.ApplyMaterial(inner.gameObject, DescriptiveMaterial.DARK_BLUE_CYAN);
                 Logger.Log("Applied M_Pool_7 material to TeapotDroplet Inner");
+            }
+
+            var teapotSpillhitParticleSystem = teapotDropletSpillHit!.GetComponent<ParticleSystemRenderer>();
+            if (teapotSpillhitParticleSystem != null)
+            {
+                teapotSpillhitParticleSystem.trailMaterial = GameMaterials.GetMaterial(DescriptiveMaterial.DARK_BLUE_CYAN);
             }
         };
     }
