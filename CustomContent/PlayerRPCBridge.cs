@@ -36,55 +36,53 @@ public class PlayerRPCBridge : MonoBehaviour
 
     private IEnumerator MakeInvisibleCoroutine(Player player, float duration)
     {
-        yield return new WaitForSeconds(0.1f);
+        isInvisibilityActive = true;
+        try
+        {
+            if (PhotonNetwork.IsMasterClient)
+            {
+                List<Bot> allBots = BotHandler.instance.bots;
+                foreach (Bot bot in allBots)
+                {
+                    if (bot.view.IsMine)
+                    {
+                        if (bot.targetPlayer != null && bot.targetPlayer.refs.view.ViewID == player.refs.view.ViewID)
+                        {
+                            bot.targetPlayer = null;
+                        }
+                        bot.IgnoreTargetFor(player, duration);
+                    }
+                    else
+                    {
+                        DbsContentApi.Modules.Logger.Log($"Bot {bot.name} is not mine, but I am the host. This is unexpected.");
+                    }
+                }
+            }
+            var playerObject = player.gameObject;
+            GameMaterials._materials.TryGetValue(GameMaterial.M_ShopGlass, out Material glassMaterial);
+            if (glassMaterial == null)
+            {
+                DbsContentApi.Modules.Logger.LogError($"PlayerRPCBridge: Could not find glass material.");
+                yield break;
+            }
+            var bodyRenderer = playerObject.transform.Find("CharacterModel/BodyRenderer").GetComponent<Renderer>();
+            var headRenderer = playerObject.transform.Find("CharacterModel/HeadRenderer").GetComponent<Renderer>();
+            var originalMaterialsBodyRendererArray = bodyRenderer.materials;
+            var originalMaterialsHeadRendererArray = headRenderer.materials;
+            if (glassMaterial != null)
+            {
+                bodyRenderer.materials = new Material[] { glassMaterial };
+                headRenderer.materials = new Material[] { glassMaterial };
+            }
 
-        // isInvisibilityActive = true;
-        // try
-        // {
-        //     if (PhotonNetwork.IsMasterClient)
-        //     {
-        //         List<Bot> allBots = BotHandler.instance.bots;
-        //         foreach (Bot bot in allBots)
-        //         {
-        //             if (bot.view.IsMine)
-        //             {
-        //                 if (bot.targetPlayer != null && bot.targetPlayer.refs.view.ViewID == player.refs.view.ViewID)
-        //                 {
-        //                     bot.targetPlayer = null;
-        //                 }
-        //                 bot.IgnoreTargetFor(player, duration);
-        //             }
-        //             else
-        //             {
-        //                 DbsContentApi.Modules.Logger.Log($"Bot {bot.name} is not mine, but I am the host. This is unexpected.");
-        //             }
-        //         }
-        //     }
-        //     var playerObject = player.gameObject;
-        //     GameMaterials.Materials.TryGetValue(GameMaterialType.M_ShopGlass, out Material glassMaterial);
-        //     if (glassMaterial == null)
-        //     {
-        //         DbsContentApi.Modules.Logger.LogError($"PlayerRPCBridge: Could not find glass material.");
-        //         yield break;
-        //     }
-        //     var bodyRenderer = playerObject.transform.Find("CharacterModel/BodyRenderer").GetComponent<Renderer>();
-        //     var headRenderer = playerObject.transform.Find("CharacterModel/HeadRenderer").GetComponent<Renderer>();
-        //     var originalMaterialsBodyRendererArray = bodyRenderer.materials;
-        //     var originalMaterialsHeadRendererArray = headRenderer.materials;
-        //     if (glassMaterial != null)
-        //     {
-        //         bodyRenderer.materials = new Material[] { glassMaterial };
-        //         headRenderer.materials = new Material[] { glassMaterial };
-        //     }
-
-        //     yield return new WaitForSeconds(duration);
-        //     bodyRenderer.materials = originalMaterialsBodyRendererArray;
-        //     headRenderer.materials = originalMaterialsHeadRendererArray;
-        // }
-        // finally
-        // {
-        //     isInvisibilityActive = false;
-        // }
+            yield return new WaitForSeconds(duration);
+            bodyRenderer.materials = originalMaterialsBodyRendererArray;
+            headRenderer.materials = originalMaterialsHeadRendererArray;
+        }
+        finally
+        {
+            isInvisibilityActive = false;
+        }
     }
 
     /// <summary>

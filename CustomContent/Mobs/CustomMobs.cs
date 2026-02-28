@@ -50,7 +50,6 @@ public static class CustomMobs
 
         Logger.Log("Restoring shaders for TeapotFinal");
         // Mobs.RestoreShaders(TeapotFinal);
-        GameMaterials.ApplyMaterial(TeapotFinal, GameMaterial.M_Monster, true);
 
         Logger.Log("Creating MobSetupConfig for TeapotFinal (using existing RigCreator setup)");
         var config = new MobSetupConfig
@@ -101,18 +100,7 @@ public static class CustomMobs
         {
             Logger.Log("TeapotDroplet prefab loaded, configuring materials");
             teapotAttack.waterProjectilePrefab = teapotDroplet;
-            var outer = teapotDroplet.transform.Find("Outer");
-            var inner = teapotDroplet.transform.Find("Inner");
-            if (outer != null)
-            {
-                GameMaterials.ApplyMaterial(outer.gameObject, GameMaterial.M_ShopGlass);
-                Logger.Log("Applied M_ShopGlass material to TeapotDroplet Outer");
-            }
-            if (inner != null)
-            {
-                GameMaterials.ApplyMaterial(inner.gameObject, GameMaterial.M_Pool_7);
-                Logger.Log("Applied M_Pool_7 material to TeapotDroplet Inner");
-            }
+
         }
         else
         {
@@ -175,6 +163,23 @@ public static class CustomMobs
             DbsContentApiPlugin.customMonsters.Add(TeapotFinal);
             Logger.Log($"TeapotFinal registration completed: {TeapotFinal.name}");
         }
+
+        GameMaterials.OnMaterialsLoaded += () =>
+        {
+            GameMaterials.ApplyMaterial(TeapotFinal!, GameMaterial.M_Monster, true);
+            var outer = teapotDroplet!.transform.Find("Outer");
+            var inner = teapotDroplet!.transform.Find("Inner");
+            if (outer != null)
+            {
+                GameMaterials.ApplyMaterial(outer.gameObject, GameMaterial.M_ShopGlass);
+                Logger.Log("Applied M_ShopGlass material to TeapotDroplet Outer");
+            }
+            if (inner != null)
+            {
+                GameMaterials.ApplyMaterial(inner.gameObject, GameMaterial.M_Pool_7);
+                Logger.Log("Applied M_Pool_7 material to TeapotDroplet Inner");
+            }
+        };
     }
 }
 

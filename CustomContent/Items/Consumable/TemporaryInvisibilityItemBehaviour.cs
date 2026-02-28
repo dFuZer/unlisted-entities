@@ -20,7 +20,9 @@ public class TemporaryInvisibilityItemBehaviour : ItemInstanceBehaviour
 				return;
 			}
 			if (bridge.isInvisibilityActive)
-				return;
+			{
+				DbsContentApi.Modules.Logger.LogError($"TemporaryInvisibilityItemBehaviour: Invisibility is already active on {Player.localPlayer.gameObject.name}.");
+			}
 			bridge!.view.RPC(nameof(PlayerRPCBridge.RPCA_Make_Invisible), RpcTarget.All, bridge.view.ViewID, duration);
 			Player.localPlayer.refs.emotes.DoBookEquipEffect(Player.localPlayer.refs.view.ViewID, itemInstance.item.id, base.transform.position, base.transform.rotation);
 			if (player == Player.localPlayer)
