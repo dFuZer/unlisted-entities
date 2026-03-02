@@ -166,12 +166,12 @@ public class EquipableInventory : MonoBehaviourPun
 
     private void SpawnCursedDoll(int slot, Player player)
     {
-        if (UnlistedEntities.CustomContent.CustomItems.CursedNecklacePrefab == null) return;
+        if (UnlistedEntities.CustomContent.CustomItems.CursedNecklaceVisualPrefab == null) return;
         Transform? torso = player.refs.rigRoot.transform.Find("Rig/Armature/Hip/Torso");
 
         if (torso != null)
         {
-            GameObject necklace = Instantiate(UnlistedEntities.CustomContent.CustomItems.CursedNecklacePrefab, torso);
+            GameObject necklace = Instantiate(UnlistedEntities.CustomContent.CustomItems.CursedNecklaceVisualPrefab, torso);
             necklace.transform.localPosition = new UnityEngine.Vector3(1.94f, 1.80f, 2.47f);
 
             necklace.transform.localRotation = UnityEngine.Quaternion.Euler(-83.044f, 0, 0);

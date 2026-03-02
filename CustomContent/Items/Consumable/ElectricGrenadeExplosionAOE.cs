@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Photon.Pun;
 using UnityEngine;
 
 public class ElectricGrenadeExplosionAOE : MonoBehaviour
@@ -15,6 +16,7 @@ public class ElectricGrenadeExplosionAOE : MonoBehaviour
 
 	private void Start()
 	{
+		DbsContentApi.Modules.Logger.Log("ElectricGrenadeExplosionAOE: start");
 		List<Player> list = new List<Player>();
 		Collider[] array = Physics.OverlapSphere(base.transform.position, radius);
 		foreach (Collider collider in array)
@@ -22,8 +24,9 @@ public class ElectricGrenadeExplosionAOE : MonoBehaviour
 			if ((bool)collider.attachedRigidbody)
 			{
 				Player componentInParent = collider.GetComponentInParent<Player>();
-				if ((bool)componentInParent && (componentInParent.refs.view.IsMine || componentInParent.ai) && !list.Contains(componentInParent))
+				if ((bool)componentInParent && !list.Contains(componentInParent))
 				{
+					DbsContentApi.Modules.Logger.Log("ElectricGrenadeExplosionAOE: player found");
 					list.Add(componentInParent);
 					float value = Vector3.Distance(base.transform.position, collider.transform.position);
 					float num = Mathf.InverseLerp(radius, innerRadius, value);
@@ -31,7 +34,12 @@ public class ElectricGrenadeExplosionAOE : MonoBehaviour
 					var aiFallMultiplier = componentInParent.ai ? 1.6f : 1f;
 					var aiDmgMultiplier = componentInParent.ai ? 0f : 1f;
 					Vector3 vector = (componentInParent.Center() - base.transform.position).normalized * num * force * aiForceMultiplier;
-					componentInParent.CallTakeDamageAndAddForceAndFall(damage * num * aiDmgMultiplier, vector, fall * num * aiFallMultiplier);
+
+					if (componentInParent.refs.view.IsMine || (PhotonNetwork.IsMasterClient && componentInParent.ai))
+					{
+						componentInParent.CallTakeDamageAndAddForceAndFall(damage * num * aiDmgMultiplier, vector, fall * num * aiFallMultiplier);
+					}
+
 					if (componentInParent.TryGetInventory(out var inv))
 					{
 						const float rechargeFraction = 0.4f;

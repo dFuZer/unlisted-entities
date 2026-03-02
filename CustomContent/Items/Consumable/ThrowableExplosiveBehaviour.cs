@@ -92,9 +92,6 @@ public class ThrowableExplosiveBehaviour : ItemInstanceBehaviour
 
 	protected virtual void Update()
 	{
-		if (primedEntry == null || fuseEntry == null || stashAbleEntry == null)
-			return;
-
 		bool primed = primedEntry.on && !exploded;
 
 		UpdateTickingSound(primed);
@@ -110,7 +107,7 @@ public class ThrowableExplosiveBehaviour : ItemInstanceBehaviour
 		if (primed)
 			fuseEntry.m_lifeTimeLeft -= Time.deltaTime;
 
-		// Explode by time when in world (not held)
+		// Explode by time when in world (not held) - ALL clients run this
 		if (primed && fuseEntry.m_lifeTimeLeft <= 0f && !isHeld)
 			SpawnExplosion();
 	}
@@ -127,7 +124,8 @@ public class ThrowableExplosiveBehaviour : ItemInstanceBehaviour
 
 	protected virtual void CheckCollision(Collision other)
 	{
-		if (PhotonNetwork.IsMasterClient && explodesOnImpact && primedEntry != null && primedEntry.on && !exploded && timeNotHeld > timeNotHeldBeforeImpactExplode)
+		// Removed PhotonNetwork.IsMasterClient check to allow local explosion instantiation on all clients
+		if (explodesOnImpact && primedEntry != null && primedEntry.on && !exploded && timeNotHeld > timeNotHeldBeforeImpactExplode)
 		{
 			SpawnExplosion();
 		}
@@ -195,22 +193,41 @@ public class ThrowableExplosiveBehaviour : ItemInstanceBehaviour
 		exploded = true;
 
 		OnExplode();
-
-		PhotonView pv = GetComponentInParent<PhotonView>();
-		if (pv != null)
-			PhotonNetwork.Destroy(pv.gameObject);
+		base.gameObject.SetActive(value: false);
+		Player componentInParent = GetComponentInParent<Player>();
+		if (componentInParent != null)
+		{
+			InventorySlot slot;
+			if (!componentInParent.TryGetInventory(out var o))
+			{
+				Debug.LogError("No inventory found");
+			}
+			else if (!o.TryGetSlot(componentInParent.data.selectedItemSlot, out slot))
+			{
+				Debug.LogError($"Slot not found with index: {componentInParent.data.selectedItemSlot}");
+			}
+			else
+			{
+				slot.ClearLocal();
+			}
+		}
+		else
+		{
+			MonoFunctions.instance.PhotonDestroy(base.transform.root.gameObject, 2f);
+		}
 	}
 
 	protected virtual void OnExplode()
 	{
 		if (explosionPrefab != null)
 		{
+			// Instantiate locally on ALL clients
 			GameObject spawned = Instantiate(explosionPrefab, base.transform.position, base.transform.rotation);
 			spawned.SetActive(true);
 		}
 		else
 		{
-			Debug.Log("GrenadeItemBehaviour: Explosion prefab is null.");
+			Debug.Log($"{this.GetType().Name}: Explosion prefab is null.");
 		}
 	}
 }

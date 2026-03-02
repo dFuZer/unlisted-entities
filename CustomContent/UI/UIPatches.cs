@@ -264,6 +264,28 @@ public class UI_FeedbackPatch
     {
         __instance.gameObject.AddComponent<UI_FeedbackExtension>();
     }
+
+    [HarmonyPatch("Revive"), HarmonyPostfix]
+    static void RevivePostfix(UI_Feedback __instance)
+    {
+        // When the player revives, UI_Feedback.ResetColors() is called, 
+        // but it only resets colors for graphics that were present when UI_Feedback.Start() ran.
+        // Our equipable slots are added later, so we need to manually reset them.
+        var itemsGameObjectTransform = __instance.gameObject.transform.Find("HelmetUIToggler/Pivot/Others/Hotbar/Items");
+        if (itemsGameObjectTransform != null)
+        {
+            var slots = itemsGameObjectTransform.GetComponentsInChildren<EquipableSlotUI>();
+            foreach (var slot in slots)
+            {
+                var proceduralImage = slot.GetComponent<ProceduralImage>();
+                if (proceduralImage != null)
+                {
+                    // Reset to original color: rgb(65, 161, 176)
+                    proceduralImage.color = new Color(65f / 255f, 161f / 255f, 176f / 255f, 1f);
+                }
+            }
+        }
+    }
 }
 
 /// <summary>

@@ -191,8 +191,13 @@ public class BatBehaviour : ItemInstanceBehaviour
 					QueryTriggerInteraction.Collide
 				);
 
-				foreach (Collider hit in hits)
-					ProcessHit(hit, forceDirection, holder);
+				foreach (Collider hitCollider in hits)
+				{
+					if (hitCollider.attachedRigidbody != null)
+					{
+						ProcessHit(hitCollider, forceDirection, holder);
+					}
+				}
 			}
 
 			elapsed += Time.fixedDeltaTime;

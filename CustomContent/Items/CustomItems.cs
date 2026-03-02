@@ -22,7 +22,7 @@ public static class CustomItems
 	public static GameObject? FroggyBootRightPrefab = null;
 	public static GameObject? FroggyBootLeftPrefab = null;
 	public static GameObject? AngelWingsPrefab = null;
-	public static GameObject? CursedNecklacePrefab = null;
+	public static GameObject? CursedNecklaceVisualPrefab = null;
 	public static GameObject? GlowingVestPrefab = null;
 	public static GameObject? SmallLightBeamPrefab = null;
 	public static Item? JumpingBootsItem = null;
@@ -30,7 +30,7 @@ public static class CustomItems
 	public static Item? AngelWingsItem = null;
 	public static Item? GlowingVest = null;
 
-	private static GameObject GetMonsterAffectingExplosionTemplate(float fall = 3f, float radius = 4f, float damage = 150f, float force = 4f)
+	private static GameObject GetMonsterAffectingExplosionTemplate(float fall = 3f, float radius = 8f, float innerRadius = 4f, float damage = 150f, float force = 4f)
 	{
 		Item? bombItem = Items.GetItemByPrefabComponent<BombItem>();
 		if (bombItem == null || bombItem.itemObject == null)
@@ -57,6 +57,7 @@ public static class CustomItems
 		var newAoe = explosionInstance.AddComponent<MonsterAffectingAOE>();
 		newAoe.fall = fall;
 		newAoe.radius = radius;
+		newAoe.innerRadius = innerRadius;
 		newAoe.damage = damage;
 		newAoe.force = force;
 
@@ -103,7 +104,7 @@ public static class CustomItems
 			RegisterSilverFulminate();
 			RegisterGlowingVest();
 			RegisterTranqGun();
-			RegisterMaterialTesters();
+			// RegisterMaterialTesters();
 		}
 
 		DbsContentApiPlugin.customItemsRegistrationCallbacks.Add(RegisterItems);
@@ -178,7 +179,7 @@ public static class CustomItems
 		proj.velocity = 20f;
 		proj.gravity = 8f;
 		proj.upVelocity = 1f;
-		proj.fall = 1f;
+		proj.fall = 2f;
 		proj.damage = 0f; // Tranq gun doesn't deal direct damage
 		proj.force = 1f;
 		proj.postHitBehavior = Projectile.PostHitBehaviour.Disable;
@@ -227,7 +228,7 @@ public static class CustomItems
 		var behaviour = prefab.AddComponent<GrenadeItemBehaviour>();
 		behaviour.explodesOnImpact = true;
 
-		behaviour.explosionPrefab = GetMonsterAffectingExplosionTemplate(fall: 1.5f, radius: 1f, damage: 10f, force: 2.5f);
+		behaviour.explosionPrefab = GetMonsterAffectingExplosionTemplate(fall: 1.5f, radius: 3.5f, innerRadius: 2f, damage: 10f, force: 2.5f);
 		AddGamefeel popitGamefeel = behaviour.explosionPrefab.GetComponent<AddGamefeel>();
 		if (popitGamefeel != null)
 		{
@@ -275,12 +276,12 @@ public static class CustomItems
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "SilverFulminateCristal.prefab");
 		var visualRoot = prefab.transform.Find("Item/LargeFulminatedMercuryCristal")!.gameObject;
-		GameMaterials.ApplyMaterial(visualRoot!, DescriptiveMaterial.WHITE_1, true);
+		GameMaterials.ApplyMaterial(visualRoot!, DescriptiveMaterial.WHITE_3, true);
 
 		var behaviour = prefab.AddComponent<GrenadeItemBehaviour>();
 		behaviour.explodesOnImpact = true;
 
-		behaviour.explosionPrefab = GetMonsterAffectingExplosionTemplate(fall: 20f, radius: 12f, damage: 300f, force: 15f);
+		behaviour.explosionPrefab = GetMonsterAffectingExplosionTemplate(fall: 20f, radius: 12f, innerRadius: 6f, damage: 300f, force: 15f);
 		AddGamefeel silverGamefeel = behaviour.explosionPrefab.GetComponent<AddGamefeel>();
 		if (silverGamefeel != null)
 		{
@@ -552,7 +553,7 @@ public static class CustomItems
 		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("TriggerRing")!.gameObject, GameMaterial.M_Balaclava, false);
 		var behaviour = prefab.AddComponent<GrenadeItemBehaviour>();
 
-		behaviour.explosionPrefab = GetMonsterAffectingExplosionTemplate();
+		behaviour.explosionPrefab = GetMonsterAffectingExplosionTemplate(fall: 20f, radius: 18f, damage: 150f, force: 15f);
 
 
 		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
@@ -582,7 +583,7 @@ public static class CustomItems
 
 		var behaviour = prefab.AddComponent<SemtexItemBehaviour>();
 
-		behaviour.explosionPrefab = GetMonsterAffectingExplosionTemplate();
+		behaviour.explosionPrefab = GetMonsterAffectingExplosionTemplate(fall: 2f, radius: 8f, innerRadius: 4f, damage: 150f, force: 4f);
 
 		behaviour.hasTickingSound = true;
 		behaviour.onStickSfx = _bundle!.LoadAsset<SFX_Instance>("SemtexStickSfx");
@@ -616,16 +617,16 @@ public static class CustomItems
 		var templateExplosion = GetMonsterAffectingExplosionTemplate();
 		var lightPointGameObject = templateExplosion.transform.Find("Point Light")!.gameObject;
 		// DescriptiveMaterial.WHITE_1, dark gray
-		grenadeRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Player_1), GameMaterials.GetMaterial(DescriptiveMaterial.WHITE_1), GameMaterials.GetMaterial(GameMaterial.M_Balaclava) };
+		grenadeRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Player_1), GameMaterials.GetMaterial(DescriptiveMaterial.GLOWING_WHITE_2), GameMaterials.GetMaterial(GameMaterial.M_Balaclava) };
 
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("InnerRods")!.gameObject, DescriptiveMaterial.WHITE_1, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("InnerRods")!.gameObject, DescriptiveMaterial.GLOWING_WHITE_2, false);
 
 		var partLRenderer = visualRoot.transform.Find("Part_L")!.gameObject.GetComponent<Renderer>();
 		var partRRenderer = visualRoot.transform.Find("Part_R")!.gameObject.GetComponent<Renderer>();
 		// for partL : darkgray, light, gray, flatgray
-		partLRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Balaclava), GameMaterials.GetMaterial(DescriptiveMaterial.WHITE_1), GameMaterials.GetMaterial(GameMaterial.M_Player_1), GameMaterials.GetMaterial(GameMaterial.M_Player) };
+		partLRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Balaclava), GameMaterials.GetMaterial(DescriptiveMaterial.GLOWING_WHITE_2), GameMaterials.GetMaterial(GameMaterial.M_Player_1), GameMaterials.GetMaterial(GameMaterial.M_Player) };
 		// for partR : darkgray, gray, flatgray, light
-		partRRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Balaclava), GameMaterials.GetMaterial(GameMaterial.M_Player_1), GameMaterials.GetMaterial(GameMaterial.M_Player), GameMaterials.GetMaterial(DescriptiveMaterial.WHITE_1) };
+		partRRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Balaclava), GameMaterials.GetMaterial(GameMaterial.M_Player_1), GameMaterials.GetMaterial(GameMaterial.M_Player), GameMaterials.GetMaterial(DescriptiveMaterial.GLOWING_WHITE_2) };
 
 		var explosionPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "ElectricExplosion.prefab");
 		var lightPoint = UnityEngine.Object.Instantiate(lightPointGameObject, explosionPrefab.transform);
@@ -685,29 +686,29 @@ public static class CustomItems
 
 	private static void RegisterCursedDoll()
 	{
-		CursedNecklacePrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "CursedNecklace.prefab");
-		GameMaterials.ApplyMaterial(CursedNecklacePrefab, GameMaterial.M_Child_2, true);
+		CursedNecklaceVisualPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "CursedNecklace.prefab");
+		GameMaterials.ApplyMaterial(CursedNecklaceVisualPrefab, GameMaterial.M_Child_2, true);
 
-		var visualRoot = CursedNecklacePrefab.transform.Find("CursedNecklace")!.gameObject;
+		var visualRoot = CursedNecklaceVisualPrefab.transform.Find("CursedNecklace")!.gameObject;
 		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Torus")!.gameObject, GameMaterial.M_Player, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Mesh_0")!.gameObject, GameMaterial.M_Child_5, false);
+		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Mesh_0")!.gameObject, DescriptiveMaterial.BROWN_1, false);
 
 		var dollRenderer = visualRoot.transform.Find("Mesh_0")!.gameObject.GetComponent<Renderer>();
-		dollRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Child_5) };
+		dollRenderer.materials = new Material[] { GameMaterials.GetMaterial(DescriptiveMaterial.BROWN_1) };
 		var necklaceRenderer = visualRoot.transform.Find("Torus")!.gameObject.GetComponent<Renderer>();
 		necklaceRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Player) };
 
-		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "DollItem.prefab");
-		GameMaterials.ApplyMaterial(prefab, GameMaterial.M_Child_5, true);
+		GameObject dollItemPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "DollItem.prefab");
+		GameMaterials.ApplyMaterial(dollItemPrefab, DescriptiveMaterial.BROWN_1, true);
 
 		AudioClip squink = _bundle!.LoadAsset<AudioClip>("Squink");
 		SFX_Instance[] impactSounds = Items.CreateSFXInstanceFromClip(squink);
 
-		prefab.AddComponent<DollEquipableBehaviour>();
+		dollItemPrefab.AddComponent<DollEquipableBehaviour>();
 
 		CursedDoll = Items.RegisterItem(
 			bundle: _bundle!,
-			prefab: prefab,
+			prefab: dollItemPrefab,
 			displayName: "Cursed Doll",
 			price: 80,
 			category: (ShopItemCategory)EquipablesCategory!,
@@ -766,7 +767,7 @@ public static class CustomItems
 		var materials = new Material[] {
 			GameMaterials.GetMaterial(GameMaterial.M_Balaclava),
 			GameMaterials.GetMaterial(GameMaterial.M_Flashlight_1_1),
-			GameMaterials.GetMaterial(DescriptiveMaterial.WHITE_1),
+			GameMaterials.GetMaterial(DescriptiveMaterial.GLOWING_WHITE_2),
 			GameMaterials.GetMaterial(DescriptiveMaterial.YELLOW_1),
 			GameMaterials.GetMaterial(GameMaterial.M_FredGull_2)
 		};

@@ -42,7 +42,8 @@ public class SemtexItemBehaviour : ThrowableExplosiveBehaviour
         relativePos = hitTransform.InverseTransformPoint(transform.position);
         relativeRot = Quaternion.Inverse(hitTransform.rotation) * transform.rotation;
 
-        onStickSfx.Play(transform.position);
+        if (onStickSfx != null)
+            onStickSfx.Play(transform.position);
     }
 
     protected override void Update()
