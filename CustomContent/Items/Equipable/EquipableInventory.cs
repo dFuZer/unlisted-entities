@@ -175,7 +175,15 @@ public class EquipableInventory : MonoBehaviourPun
     private void SpawnCursedDoll(int slot, Player player)
     {
         if (UnlistedEntities.CustomContent.CustomItems.CursedNecklaceVisualPrefab == null) return;
-        Transform? torso = player.refs.rigRoot.transform.Find("Rig/Armature/Hip/Torso");
+		Transform? torso;
+        if (player == Player.localPlayer)
+        {
+            torso = player.refs.rigRoot.transform.Find("Rig/Armature/Hip/Torso");
+        }
+        else
+        {
+            torso = player.refs.rigRoot.transform.Find("Rig/Armature/Torso");
+        }
 
         if (torso != null)
         {
@@ -208,57 +216,112 @@ public class EquipableInventory : MonoBehaviourPun
     /// you may have to update this function to match YOUR prefabs' armatures bone order.
     public static Transform[] getPlayerRigTransformsAsExpectedByDbExportedFbx(Player player)
     {
-        var playerBones = new List<Transform>
-        {
-            player.transform.Find("RigCreator/Rig/Armature/Hip"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Extra_1"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Leg_L"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Leg_L/Knee_L"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Leg_L/Knee_L/Foot_L"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Leg_R"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Leg_R/Knee_R"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Leg_R/Knee_R/Foot_R"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Index_1_L"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Index_1_L/Finger_Index_2_L"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Index_1_L/Finger_Index_2_L/Finger_Index_3_L"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Middle_1_L"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Middle_1_L/Finger_Middle_2_L"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Middle_1_L/Finger_Middle_2_L/Finger_Middle_3_L"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Pinky_1_L"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Pinky_1_L/Finger_Pinky_2_L"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Pinky_1_L/Finger_Pinky_2_L/Finger_Pinky_3_L"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Ring_1_L"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Ring_1_L/Finger_Ring_2_L"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Ring_1_L/Finger_Ring_2_L/Finger_Ring_3_L"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Thumb_L_1"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Thumb_L_1/Thumb_L_2"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Thumb_L_1/Thumb_L_2/Thumb_L_3"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Index_1_R"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Index_1_R/Finger_Index_2_R"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Index_1_R/Finger_Index_2_R/Finger_Index_3_R"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Middle_1_R"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Middle_1_R/Finger_Middle_2_R"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Middle_1_R/Finger_Middle_2_R/Finger_Middle_3_R"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Pinky_1_R"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Pinky_1_R/Finger_Pinky_2_R"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Pinky_1_R/Finger_Pinky_2_R/Finger_Pinky_3_R"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Ring_1_R"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Ring_1_R/Finger_Ring_2_R"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Ring_1_R/Finger_Ring_2_R/Finger_Ring_3_R"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Thumb_1_R"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Thumb_1_R/Thumb_2_R"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Thumb_1_R/Thumb_2_R/Thumb_3_R"),
-            player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Head"),
-        };
-
-        return playerBones.ToArray();
+		if (player == Player.localPlayer)
+		{
+			var playerBones = new List<Transform>
+			{
+				player.transform.Find("RigCreator/Rig/Armature/Hip"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Extra_1"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Leg_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Leg_L/Knee_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Leg_L/Knee_L/Foot_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Leg_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Leg_R/Knee_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Leg_R/Knee_R/Foot_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Index_1_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Index_1_L/Finger_Index_2_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Index_1_L/Finger_Index_2_L/Finger_Index_3_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Middle_1_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Middle_1_L/Finger_Middle_2_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Middle_1_L/Finger_Middle_2_L/Finger_Middle_3_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Pinky_1_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Pinky_1_L/Finger_Pinky_2_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Pinky_1_L/Finger_Pinky_2_L/Finger_Pinky_3_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Ring_1_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Ring_1_L/Finger_Ring_2_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Finger_Ring_1_L/Finger_Ring_2_L/Finger_Ring_3_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Thumb_L_1"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Thumb_L_1/Thumb_L_2"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_L/Elbow_L/Hand_L/Thumb_L_1/Thumb_L_2/Thumb_L_3"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Index_1_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Index_1_R/Finger_Index_2_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Index_1_R/Finger_Index_2_R/Finger_Index_3_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Middle_1_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Middle_1_R/Finger_Middle_2_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Middle_1_R/Finger_Middle_2_R/Finger_Middle_3_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Pinky_1_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Pinky_1_R/Finger_Pinky_2_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Pinky_1_R/Finger_Pinky_2_R/Finger_Pinky_3_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Ring_1_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Ring_1_R/Finger_Ring_2_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Finger_Ring_1_R/Finger_Ring_2_R/Finger_Ring_3_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Thumb_1_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Thumb_1_R/Thumb_2_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Arm_R/Elbow_R/Hand_R/Thumb_1_R/Thumb_2_R/Thumb_3_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hip/Torso/Head"),
+			};
+			return playerBones.ToArray();
+		}
+		else
+		{
+			var playerBones = new List<Transform>
+			{
+				player.transform.Find("RigCreator/Rig/Armature/Hip"),
+				player.transform.Find("RigCreator/Rig/Armature/Extra_1"),
+				player.transform.Find("RigCreator/Rig/Armature/Leg_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Knee_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Foot_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Leg_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Knee_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Foot_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Torso"),
+				player.transform.Find("RigCreator/Rig/Armature/Arm_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Elbow_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Hand_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Index_1_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Index_2_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Index_3_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Middle_1_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Middle_2_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Middle_3_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Pinky_1_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Pinky_2_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Pinky_3_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Ring_1_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Ring_2_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Ring_3_L"),
+				player.transform.Find("RigCreator/Rig/Armature/Thumb_L_1"),
+				player.transform.Find("RigCreator/Rig/Armature/Thumb_L_2"),
+				player.transform.Find("RigCreator/Rig/Armature/Thumb_L_3"),
+				player.transform.Find("RigCreator/Rig/Armature/Arm_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Elbow_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Hand_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Index_1_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Index_2_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Index_3_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Middle_1_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Middle_2_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Middle_3_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Pinky_1_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Pinky_2_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Pinky_3_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Ring_1_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Ring_2_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Finger_Ring_3_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Thumb_1_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Thumb_2_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Thumb_3_R"),
+				player.transform.Find("RigCreator/Rig/Armature/Head"),
+			};
+			return playerBones.ToArray();
+		}
     }
 
     private void SpawnGlowingVest(int slot, Player player)
@@ -310,7 +373,11 @@ public class EquipableInventory : MonoBehaviourPun
         // Spawn the 4 light beams
         {
             var characterModelHip = player.refs.rigRoot.transform.Find("Rig/Armature/Hip");
-            var characterModelTorso = player.refs.rigRoot.transform.Find("Rig/Armature/Hip/Torso");
+			Transform? characterModelTorso;
+			if (player == Player.localPlayer)
+            	characterModelTorso = player.refs.rigRoot.transform.Find("Rig/Armature/Hip/Torso");
+			else
+				characterModelTorso = player.refs.rigRoot.transform.Find("Rig/Armature/Torso");
             if (characterModelHip == null || characterModelTorso == null)
             {
                 DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find CharacterModel/Armature/Hip or CharacterModel/Armature/Hip/Torso.");
@@ -335,7 +402,6 @@ public class EquipableInventory : MonoBehaviourPun
             rightTorsoLightBeam.transform.localPosition = new UnityEngine.Vector3(-0.796f, 0.259f, 1.616f);
             rightTorsoLightBeam.transform.localRotation = UnityEngine.Quaternion.Euler(-10f, -20f, 0f);
         }
-
 
         spawnedVisuals[slot] = glowingVestInstance;
     }
@@ -368,11 +434,18 @@ public class EquipableInventory : MonoBehaviourPun
         if (UnlistedEntities.CustomContent.CustomItems.FroggyBootRightPrefab == null) return;
         if (UnlistedEntities.CustomContent.CustomItems.FroggyBootLeftPrefab == null) return;
 
-        // Path: Player/RigCreator/Rig/Armature/Hip/Leg_R/Knee_R/Foot_R/
-        // player.refs.rigRoot is "RigCreator"
-        Transform? footR = player.refs.rigRoot.transform.Find("Rig/Armature/Hip/Leg_R/Knee_R/Foot_R");
-        Transform? footL = player.refs.rigRoot.transform.Find("Rig/Armature/Hip/Leg_L/Knee_L/Foot_L");
-
+		Transform? footR;
+		Transform? footL;
+        if (player == Player.localPlayer)
+        {
+            footR = player.refs.rigRoot.transform.Find("Rig/Armature/Hip/Leg_R/Knee_R/Foot_R");
+			footL = player.refs.rigRoot.transform.Find("Rig/Armature/Hip/Leg_L/Knee_L/Foot_L");
+        }
+        else
+        {
+            footR = player.refs.rigRoot.transform.Find("Rig/Armature/Foot_R");
+			footL = player.refs.rigRoot.transform.Find("Rig/Armature/Foot_L");
+        }
 
         if (footR != null)
         {
