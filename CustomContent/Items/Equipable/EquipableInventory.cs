@@ -144,7 +144,15 @@ public class EquipableInventory : MonoBehaviourPun
     private GameObject SpawnAngelWings(int slot, Player player)
     {
         if (UnlistedEntities.CustomContent.CustomItems.AngelWingsPrefab == null) return null;
-        Transform? torso = player.refs.rigRoot.transform.Find("Rig/Armature/Hip/Torso");
+        Transform? torso;
+        if (player == Player.localPlayer)
+        {
+            torso = player.refs.rigRoot.transform.Find("Rig/Armature/Hip/Torso");
+        }
+        else
+        {
+            torso = player.refs.rigRoot.transform.Find("Rig/Armature/Torso");
+        }
 
         if (torso != null)
         {
