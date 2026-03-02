@@ -34,7 +34,7 @@ public class MonsterAffectingAOE : MonoBehaviour
 			if ((bool)collider.attachedRigidbody)
 			{
 				Player componentInParent = collider.GetComponentInParent<Player>();
-				if (!list.Contains(componentInParent) && (bool)componentInParent && (componentInParent.refs.view.IsMine || (PhotonNetwork.IsMasterClient && componentInParent.ai)))
+				if (!list.Contains(componentInParent) && componentInParent != null)
 				{
 					DbsContentApi.Modules.Logger.Log("MonsterAffectingAOE: player found");
 
