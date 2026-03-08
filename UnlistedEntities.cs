@@ -1,47 +1,81 @@
-using BepInEx;
+using System;
+using DbsContentApi;
 using HarmonyLib;
 
 namespace UnlistedEntities;
 
-[ContentWarningPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_VERSION, MyPluginInfo.VANILLA_COMPATIBLE)]
-[BepInDependency("db.contentapi", BepInDependency.DependencyFlags.HardDependency)]
-[BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
-public class UnlistedEntities : BaseUnityPlugin
+[ContentWarningPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_VERSION, false)]
+public class UnlistedEntities
 {
-    private static Harmony Harmony;
-    public static UnlistedEntities Instance { get; private set; } = null!;
+    private bool _isPatched;
 
-    private void Awake()
+    static UnlistedEntities()
     {
-        Instance = this;
-        DbsContentApi.Modules.Logger.Log("Unlisted entities Initializing... [POST UPDATE]");
-
-        // DbsContentApi.DbsContentApiPlugin.SetModdedMobsOnly(true);
-        // DbsContentApi.DbsContentApiPlugin.SetAllItemsFree(true);
-
-        Patch();
-
-        CustomContent.CustomContent.Init(Info);
-        DbsContentApi.Modules.Logger.Log("Unlisted Entities API Loaded successfully!");
+        Instance = new UnlistedEntities();
     }
 
-    internal static void Patch()
+    /// <summary>
+    ///     Constructor for the UnlistedEntities plugin.
+    /// </summary>
+    public UnlistedEntities()
     {
-        Harmony ??= new Harmony("db.unlistedentities");
+        CustomContent.CustomContent.Init();
+        DbsContentApi.Modules.Logger.Log($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
+    }
+
+    private Harmony? Harmony { get; set; }
+
+    /// <summary>
+    ///     Singleton instance of the UnlistedEntities plugin.
+    /// </summary>
+    public static UnlistedEntities Instance { get; }
+
+    private void PatchAll()
+    {
+        if (_isPatched)
+        {
+            DbsContentApi.Modules.Logger.LogWarning("Already patched!");
+            return;
+        }
 
         DbsContentApi.Modules.Logger.Log("Patching...");
 
-        Harmony.PatchAll();
+        Harmony ??= new Harmony(MyPluginInfo.PLUGIN_GUID);
 
-        DbsContentApi.Modules.Logger.Log("Finished patching!");
+        try
+        {
+            Harmony.PatchAll();
+            _isPatched = true;
+            DbsContentApi.Modules.Logger.Log("Patched!");
+        }
+        catch (Exception e)
+        {
+            DbsContentApi.Modules.Logger.LogError($"Failed to patch: {e}");
+        }
     }
 
-    internal static void Unpatch()
+    /// <summary>
+    ///     Unpatches all patches applied by the plugin.
+    /// </summary>
+    public void UnpatchAll()
     {
+        if (!_isPatched)
+        {
+            DbsContentApi.Modules.Logger.LogWarning("Already unpatched!");
+            return;
+        }
+
         DbsContentApi.Modules.Logger.Log("Unpatching...");
 
-        Harmony?.UnpatchSelf();
-
-        DbsContentApi.Modules.Logger.Log("Finished unpatching!");
+        try
+        {
+            Harmony?.UnpatchSelf();
+            _isPatched = false;
+            DbsContentApi.Modules.Logger.Log("Unpatched!");
+        }
+        catch (Exception e)
+        {
+            DbsContentApi.Modules.Logger.LogError($"Failed to unpatch: {e}");
+        }
     }
 }

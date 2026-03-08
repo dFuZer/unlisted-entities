@@ -2,6 +2,7 @@ using UnityEngine;
 using Logger = DbsContentApi.Modules.Logger;
 using ContentLoader = DbsContentApi.Modules.ContentLoader;
 using BepInEx;
+using System.Reflection;
 
 namespace UnlistedEntities.CustomContent;
 
@@ -17,13 +18,13 @@ public static class CustomContent
     /// Initializes all custom content using the mod's base directory for path resolution.
     /// </summary>
     /// <param name="pluginInfo">The plugin info for the main mod assembly.</param>
-    public static void Init(PluginInfo pluginInfo)
+    public static void Init()
     {
         try
         {
             Logger.Log("Loading custom content...");
 
-            AssetBundle bundle = ContentLoader.LoadAssetBundle(pluginInfo, BundleName);
+            AssetBundle bundle = ContentLoader.LoadAssetBundle(Assembly.GetExecutingAssembly().Location, BundleName);
 
             CustomItems.Setup(bundle);
             CustomMobs.Setup(bundle);
@@ -36,4 +37,3 @@ public static class CustomContent
         }
     }
 }
-
