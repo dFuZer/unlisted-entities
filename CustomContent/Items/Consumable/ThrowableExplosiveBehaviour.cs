@@ -107,8 +107,8 @@ public class ThrowableExplosiveBehaviour : ItemInstanceBehaviour
 		if (primed)
 			fuseEntry.m_lifeTimeLeft -= Time.deltaTime;
 
-		// Explode by time when in world (not held) - ALL clients run this
-		if (primed && fuseEntry.m_lifeTimeLeft <= 0f && !isHeld)
+		// Explode by time when in world (not held) - MasterClient handles this
+		if (PhotonNetwork.IsMasterClient && primed && fuseEntry.m_lifeTimeLeft <= 0f && !isHeld)
 			SpawnExplosion();
 	}
 
@@ -124,8 +124,7 @@ public class ThrowableExplosiveBehaviour : ItemInstanceBehaviour
 
 	protected virtual void CheckCollision(Collision other)
 	{
-		// Removed PhotonNetwork.IsMasterClient check to allow local explosion instantiation on all clients
-		if (explodesOnImpact && primedEntry != null && primedEntry.on && !exploded && timeNotHeld > timeNotHeldBeforeImpactExplode)
+		if (PhotonNetwork.IsMasterClient && explodesOnImpact && primedEntry != null && primedEntry.on && !exploded && timeNotHeld > timeNotHeldBeforeImpactExplode)
 		{
 			SpawnExplosion();
 		}
@@ -192,7 +191,12 @@ public class ThrowableExplosiveBehaviour : ItemInstanceBehaviour
 		if (exploded) return;
 		exploded = true;
 
-		OnExplode();
+		if (PhotonNetwork.IsMasterClient)
+		{
+			PhotonNetwork.Instantiate(explosionPrefab!.name, base.transform.position, base.transform.rotation, 0);
+			PhotonNetwork.Destroy(GetComponentInParent<PhotonView>().gameObject);
+		}
+
 		base.gameObject.SetActive(value: false);
 		Player componentInParent = GetComponentInParent<Player>();
 		if (componentInParent != null)
@@ -219,15 +223,6 @@ public class ThrowableExplosiveBehaviour : ItemInstanceBehaviour
 
 	protected virtual void OnExplode()
 	{
-		if (explosionPrefab != null)
-		{
-			// Instantiate locally on ALL clients
-			GameObject spawned = Instantiate(explosionPrefab, base.transform.position, base.transform.rotation);
-			spawned.SetActive(true);
-		}
-		else
-		{
-			Debug.Log($"{this.GetType().Name}: Explosion prefab is null.");
-		}
+
 	}
 }

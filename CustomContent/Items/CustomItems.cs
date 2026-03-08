@@ -3,6 +3,7 @@ using DbsContentApi.Modules;
 using System;
 using DbsContentApi;
 using System.Linq;
+using Photon.Pun;
 
 namespace UnlistedEntities.CustomContent;
 
@@ -17,8 +18,8 @@ public static class CustomItems
 	public static byte? ConsumablesCategory = null;
 	public static byte? EquipablesCategory = null;
 	public static byte? ExplosivesCategory = null;
-	public static byte? MaterialTestersCategory1 = null;
-	public static byte? MaterialTestersCategory2 = null;
+	// public static byte? MaterialTestersCategory1 = null;
+	// public static byte? MaterialTestersCategory2 = null;
 	public static GameObject? FroggyBootRightPrefab = null;
 	public static GameObject? FroggyBootLeftPrefab = null;
 	public static GameObject? AngelWingsPrefab = null;
@@ -61,6 +62,11 @@ public static class CustomItems
 		newAoe.damage = damage;
 		newAoe.force = force;
 
+		// Add PhotonView for network synchronization
+		var pv = explosionInstance.AddComponent<PhotonView>();
+		pv.Synchronization = ViewSynchronization.Off; // Visuals don't need continuous sync
+		pv.observableSearch = PhotonView.ObservableSearch.AutoFindAll;
+
 		return explosionInstance;
 	}
 
@@ -79,8 +85,8 @@ public static class CustomItems
 		ConsumablesCategory = Items.RegisterCustomCategory("Consumables");
 		EquipablesCategory = Items.RegisterCustomCategory("Equipables");
 		ExplosivesCategory = Items.RegisterCustomCategory("Explosives");
-		MaterialTestersCategory1 = Items.RegisterCustomCategory("Material Testers 1-8");
-		MaterialTestersCategory2 = Items.RegisterCustomCategory("Material Testers 9-16");
+		// MaterialTestersCategory1 = Items.RegisterCustomCategory("Material Testers 1-8");
+		// MaterialTestersCategory2 = Items.RegisterCustomCategory("Material Testers 9-16");
 
 		var oxygenRegenerationSfx = _bundle!.LoadAsset<SFX_Instance>("OxygenRegenSfx")!;
 
@@ -109,39 +115,39 @@ public static class CustomItems
 
 		DbsContentApiPlugin.customItemsRegistrationCallbacks.Add(RegisterItems);
 	}
-	private static void RegisterMaterialTesters()
-	{
-		var page = 17; // Change this to offset materials (e.g., page 2 starts from index 16)
-		var loadedMaterials = GameMaterials._materials.Keys.ToList();
+	// private static void RegisterMaterialTesters()
+	// {
+	// 	var page = 17; // Change this to offset materials (e.g., page 2 starts from index 16)
+	// 	var loadedMaterials = GameMaterials._materials.Keys.ToList();
 
-		for (int i = 0; i < 16; i++)
-		{
-			// Construct name: MaterialTester1.prefab to MaterialTester16.prefab
-			string prefabName = $"MaterialTester{i + 1}.prefab";
-			GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, prefabName);
+	// 	for (int i = 0; i < 16; i++)
+	// 	{
+	// 		// Construct name: MaterialTester1.prefab to MaterialTester16.prefab
+	// 		string prefabName = $"MaterialTester{i + 1}.prefab";
+	// 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, prefabName);
 
-			var materialIndex = (page - 1) * 16 + i;
+	// 		var materialIndex = (page - 1) * 16 + i;
 
-			if (materialIndex >= loadedMaterials.Count) break;
+	// 		if (materialIndex >= loadedMaterials.Count) break;
 
-			var ithMaterial = loadedMaterials[materialIndex];
-			GameMaterials.ApplyMaterial(prefab, ithMaterial, true);
+	// 		var ithMaterial = loadedMaterials[materialIndex];
+	// 		GameMaterials.ApplyMaterial(prefab, ithMaterial, true);
 
-			byte? category = (i < 8) ? MaterialTestersCategory1 : MaterialTestersCategory2;
+	// 		byte? category = (i < 8) ? MaterialTestersCategory1 : MaterialTestersCategory2;
 
-			Items.RegisterItem(
-				bundle: _bundle!,
-				prefab: prefab,
-				displayName: ithMaterial.ToString(),
-				price: 0,
-				category: (ShopItemCategory)category!,
-				iconName: "popit_icon",
-				impactSounds: new SFX_Instance[] { },
-				holdPos: new Vector3(0.3f, -0.3f, 0.7f),
-				holdRot: new Vector3(0, 0, 0)
-			);
-		}
-	}
+	// 		Items.RegisterItem(
+	// 			bundle: _bundle!,
+	// 			prefab: prefab,
+	// 			displayName: ithMaterial.ToString(),
+	// 			price: 0,
+	// 			category: (ShopItemCategory)category!,
+	// 			iconName: "popit_icon",
+	// 			impactSounds: new SFX_Instance[] { },
+	// 			holdPos: new Vector3(0.3f, -0.3f, 0.7f),
+	// 			holdRot: new Vector3(0, 0, 0)
+	// 		);
+	// 	}
+	// }
 	private static void RegisterTranqGun()
 	{
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "TranqGun2.prefab");
@@ -179,9 +185,9 @@ public static class CustomItems
 		proj.velocity = 20f;
 		proj.gravity = 8f;
 		proj.upVelocity = 1f;
-		proj.fall = 2f;
+		proj.fall = 0f;
 		proj.damage = 0f; // Tranq gun doesn't deal direct damage
-		proj.force = 1f;
+		proj.force = 0f;
 		proj.postHitBehavior = Projectile.PostHitBehaviour.Disable;
 		proj.layerType = HelperFunctions.LayerType.All;
 
@@ -256,6 +262,11 @@ public static class CustomItems
 			UnityEngine.Object.Destroy(explosionLight.gameObject);
 		}
 
+		behaviour.explosionPrefab.name = "Explosion_PopIt";
+
+
+		ContentLoader.RegisterPrefabInPhotonPool(behaviour.explosionPrefab);
+
 		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
 
 		Items.RegisterItem(
@@ -301,6 +312,10 @@ public static class CustomItems
 		spos.sfx = _bundle!.LoadAsset<SFX_Instance>("SilverFulminateExplosionSfx");
 		spos.sfxs = new SFX_Instance[] { };
 
+		behaviour.explosionPrefab.name = "Explosion_SilverFulminate";
+
+		ContentLoader.RegisterPrefabInPhotonPool(behaviour.explosionPrefab);
+
 		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
 
 		Items.RegisterItem(
@@ -334,7 +349,7 @@ public static class CustomItems
 			bundle: _bundle!,
 			prefab: prefab,
 			displayName: "Solid bat",
-			price: 500,
+			price: 600,
 			category: (ShopItemCategory)WeaponsCategory!,
 			iconName: "bat_icon",
 			impactSounds: impactSounds,
@@ -448,7 +463,7 @@ public static class CustomItems
 			bundle: _bundle!,
 			prefab: prefab,
 			displayName: "Band-aid box",
-			price: 30,
+			price: 20,
 			category: (ShopItemCategory)ConsumablesCategory!,
 			iconName: "bandaid_icon",
 			impactSounds: impactSounds,
@@ -474,7 +489,7 @@ public static class CustomItems
 			bundle: _bundle!,
 			prefab: prefab,
 			displayName: "Medkit",
-			price: 70,
+			price: 50,
 			category: (ShopItemCategory)ConsumablesCategory!,
 			iconName: "medkit_icon",
 			impactSounds: impactSounds,
@@ -500,7 +515,7 @@ public static class CustomItems
 			bundle: _bundle!,
 			prefab: prefab,
 			displayName: "Energy bar",
-			price: 35,
+			price: 25,
 			category: (ShopItemCategory)ConsumablesCategory!,
 			iconName: "energybar_icon",
 			impactSounds: impactSounds,
@@ -531,7 +546,7 @@ public static class CustomItems
 			bundle: _bundle!,
 			prefab: prefab,
 			displayName: "Invisibility spray",
-			price: 65,
+			price: 45,
 			category: (ShopItemCategory)ConsumablesCategory!,
 			iconName: "invisibilityspray_icon",
 			impactSounds: impactSounds,
@@ -553,8 +568,11 @@ public static class CustomItems
 		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("TriggerRing")!.gameObject, GameMaterial.M_Balaclava, false);
 		var behaviour = prefab.AddComponent<GrenadeItemBehaviour>();
 
-		behaviour.explosionPrefab = GetMonsterAffectingExplosionTemplate(fall: 20f, radius: 18f, damage: 150f, force: 15f);
+		behaviour.explosionPrefab = GetMonsterAffectingExplosionTemplate(fall: 20f, radius: 8f, damage: 150f, force: 15f);
 
+		behaviour.explosionPrefab.name = "Explosion_Grenade";
+
+		ContentLoader.RegisterPrefabInPhotonPool(behaviour.explosionPrefab);
 
 		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
 
@@ -562,7 +580,7 @@ public static class CustomItems
 			bundle: _bundle!,
 			prefab: prefab,
 			displayName: "Grenade",
-			price: 40,
+			price: 30,
 			category: (ShopItemCategory)ExplosivesCategory!,
 			iconName: "grenade_icon",
 			impactSounds: impactSounds,
@@ -594,13 +612,17 @@ public static class CustomItems
 		behaviour.minTickingPitch = 1f;
 		behaviour.tickingVolume = 0.35f;
 
+		behaviour.explosionPrefab.name = "Explosion_SemtexGrenade";
+
+		ContentLoader.RegisterPrefabInPhotonPool(behaviour.explosionPrefab);
+
 		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
 
 		Items.RegisterItem(
 			bundle: _bundle!,
 			prefab: prefab,
 			displayName: "Semtex grenade",
-			price: 55,
+			price: 50,
 			category: (ShopItemCategory)ExplosivesCategory!,
 			iconName: "semtex_icon",
 			impactSounds: impactSounds,
@@ -633,16 +655,24 @@ public static class CustomItems
 		lightPoint.GetComponent<Light>().color = Color.blue;
 		ElectricGrenadeExplosionAOE explosionAOE = explosionPrefab.AddComponent<ElectricGrenadeExplosionAOE>();
 
+		// Add PhotonView for network synchronization
+		var pv = explosionPrefab.AddComponent<PhotonView>();
+		pv.Synchronization = ViewSynchronization.Off;
+		pv.observableSearch = PhotonView.ObservableSearch.AutoFindAll;
+
 		var behaviour = prefab.AddComponent<ElectricGrenadeItemBehaviour>();
-		behaviour.electricExplosionPrefab = explosionPrefab;
 		behaviour.baseTickingPitch = 0.8f;
 		behaviour.tickingPitchMultiplier = 0.25f;
 		behaviour.maxTickingPitch = 8f;
 		behaviour.minTickingPitch = 1f;
 		behaviour.hasTickingSound = true;
-		behaviour.electricExplosionSfx = _bundle!.LoadAsset<SFX_Instance>("ElectricGrenadeExplosionSfx");
+		behaviour.explosionPrefab = explosionPrefab;
 		behaviour.tickingSoundClip = _bundle!.LoadAsset<AudioClip>("electric-grenade-tick");
 		behaviour.tickingVolume = 0.35f;
+
+		explosionPrefab.name = "Explosion_ElectricGrenade";
+
+		ContentLoader.RegisterPrefabInPhotonPool(explosionPrefab);
 
 		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
 
@@ -710,7 +740,7 @@ public static class CustomItems
 			bundle: _bundle!,
 			prefab: dollItemPrefab,
 			displayName: "Cursed Doll",
-			price: 80,
+			price: 120,
 			category: (ShopItemCategory)EquipablesCategory!,
 			iconName: "doll_icon",
 			impactSounds: impactSounds,
@@ -791,7 +821,7 @@ public static class CustomItems
 			bundle: _bundle!,
 			prefab: prefab,
 			displayName: "Bright vest",
-			price: 150,
+			price: 200,
 			category: (ShopItemCategory)EquipablesCategory!,
 			iconName: "glowing_vest_icon",
 			impactSounds: impactSounds,

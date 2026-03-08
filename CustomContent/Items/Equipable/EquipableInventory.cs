@@ -324,6 +324,16 @@ public class EquipableInventory : MonoBehaviourPun
         }
     }
 
+    private static bool HasAnyNullTransforms(Transform[] transforms)
+    {
+        if (transforms == null) return true;
+        for (int i = 0; i < transforms.Length; i++)
+        {
+            if (transforms[i] == null) return true;
+        }
+        return false;
+    }
+
     private void SpawnGlowingVest(int slot, Player player)
     {
         var playerBodyRenderer = player.gameObject.transform.Find("CharacterModel/BodyRenderer")?.GetComponent<SkinnedMeshRenderer>();
@@ -347,6 +357,12 @@ public class EquipableInventory : MonoBehaviourPun
         }
 
         var rearrangedBones = getPlayerRigTransformsAsExpectedByDbExportedFbx(player);
+        if (HasAnyNullTransforms(rearrangedBones))
+        {
+            // Rig not ready yet; do not register a visual so we retry next frame.
+            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Rig not ready yet; do not register a visual so we retry next frame.");
+            return;
+        }
 
         // 4. Instantiate and apply
         Transform characterModel = player.gameObject.transform.Find("CharacterModel");
@@ -372,32 +388,32 @@ public class EquipableInventory : MonoBehaviourPun
 
         // Spawn the 4 light beams
         {
-            var characterModelHip = player.refs.rigRoot.transform.Find("Rig/Armature/Hip");
-            Transform? characterModelTorso;
+            var rigCreatorHip = player.refs.rigRoot.transform.Find("Rig/Armature/Hip");
+            Transform? rigCreatorTorso;
             if (player == Player.localPlayer)
-                characterModelTorso = player.refs.rigRoot.transform.Find("Rig/Armature/Hip/Torso");
+                rigCreatorTorso = player.refs.rigRoot.transform.Find("Rig/Armature/Hip/Torso");
             else
-                characterModelTorso = player.refs.rigRoot.transform.Find("Rig/Armature/Torso");
-            if (characterModelHip == null || characterModelTorso == null)
+                rigCreatorTorso = player.refs.rigRoot.transform.Find("Rig/Armature/Torso");
+            if (rigCreatorHip == null || rigCreatorTorso == null)
             {
                 DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find CharacterModel/Armature/Hip or CharacterModel/Armature/Hip/Torso.");
                 return;
             }
             // two hip-attached beams and two torso-attached beams
-            var leftHipLightBeam = Instantiate(lightPrefab, characterModelHip);
+            var leftHipLightBeam = Instantiate(lightPrefab, rigCreatorHip);
             leftHipLightBeam.SetActive(true);
             leftHipLightBeam.transform.localPosition = new UnityEngine.Vector3(0.869f, 1.582f, 1.507f);
             leftHipLightBeam.transform.localRotation = UnityEngine.Quaternion.Euler(10f, 20f, 0f);
-            var rightHipLightBeam = Instantiate(lightPrefab, characterModelHip);
+            var rightHipLightBeam = Instantiate(lightPrefab, rigCreatorHip);
             rightHipLightBeam.SetActive(true);
             rightHipLightBeam.transform.localPosition = new UnityEngine.Vector3(-0.784f, 1.561f, 1.55f);
             rightHipLightBeam.transform.localRotation = UnityEngine.Quaternion.Euler(10f, -20f, 0f);
 
-            var leftTorsoLightBeam = Instantiate(lightPrefab, characterModelTorso);
+            var leftTorsoLightBeam = Instantiate(lightPrefab, rigCreatorTorso);
             leftTorsoLightBeam.SetActive(true);
             leftTorsoLightBeam.transform.localPosition = new UnityEngine.Vector3(0.659f, 0.259f, 1.64f);
             leftTorsoLightBeam.transform.localRotation = UnityEngine.Quaternion.Euler(-10f, 20f, 0f);
-            var rightTorsoLightBeam = Instantiate(lightPrefab, characterModelTorso);
+            var rightTorsoLightBeam = Instantiate(lightPrefab, rigCreatorTorso);
             rightTorsoLightBeam.SetActive(true);
             rightTorsoLightBeam.transform.localPosition = new UnityEngine.Vector3(-0.796f, 0.259f, 1.616f);
             rightTorsoLightBeam.transform.localRotation = UnityEngine.Quaternion.Euler(-10f, -20f, 0f);

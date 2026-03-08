@@ -11,8 +11,6 @@ public class ElectricGrenadeItemBehaviour : ThrowableExplosiveBehaviour
 	// Animator driving the grenade's visual state (primed/unprimed)
 	private Animator? grenadeAnimator;
 	private bool lastPrimedVisualState;
-	public GameObject? electricExplosionPrefab;
-	public SFX_Instance electricExplosionSfx;
 
 	private string primedStateName = "electric_grenade_prime";
 
@@ -69,27 +67,6 @@ public class ElectricGrenadeItemBehaviour : ThrowableExplosiveBehaviour
 		}
 
 		base.OnPrimaryClick(slotID);
-	}
-
-	protected override void OnExplode()
-	{
-		// Custom electric explosion behavior
-		DbsContentApi.Modules.Logger.Log("ElectricGrenadeItemBehaviour: Electric explosion triggered!");
-
-		// We can still spawn the base explosion if we want the visual/sound, 
-		// or we can do something entirely different.
-		// base.OnExplode();
-
-		electricExplosionSfx.Play(transform.position);
-		if (electricExplosionPrefab != null)
-			Instantiate(electricExplosionPrefab, transform.position, transform.rotation);
-
-		// Add custom electric effects here (e.g., stunning players, disabling electronics)
-		Collider[] colliders = Physics.OverlapSphere(transform.position, 10f);
-		foreach (var hit in colliders)
-		{
-			// Example: if (hit.TryGetComponent<Player>(out var p)) p.Stun();
-		}
 	}
 
 	/// <summary>

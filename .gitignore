@@ -8,3 +8,5 @@ update.bat
 Directory.Build.props
 unlisted-entities.sln
 decomp
+steam-build/build-steam-package.bat
+steam-build/build

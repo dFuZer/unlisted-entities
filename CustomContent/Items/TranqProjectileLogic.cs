@@ -41,13 +41,13 @@ public class TranqProjectileLogic : MonoBehaviour
                     bot.targetPlayer = null;
                     for (int i = 0; i < PlayerHandler.instance.players.Count; i++)
                     {
-                        bot.IgnoreTargetFor(PlayerHandler.instance.players[i], 10f);
+                        bot.IgnoreTargetFor(PlayerHandler.instance.players[i], 4f);
                     }
                 }
             }
 
             // Example: apply a custom effect or log the hit
-            // hitPlayer.CallTakeDamageAndAddForceAndFallWithFallof(0f, Vector3.zero, 0.5f, hit.point, 1f);
+            hitPlayer.CallTakeDamageAndAddForceAndFallWithFallof(0f, Vector3.zero, 1f, hit.point, 1f);
         }
     }
 }

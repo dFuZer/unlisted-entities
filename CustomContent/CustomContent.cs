@@ -1,7 +1,7 @@
-using BepInEx;
 using UnityEngine;
 using Logger = DbsContentApi.Modules.Logger;
 using ContentLoader = DbsContentApi.Modules.ContentLoader;
+using BepInEx;
 
 namespace UnlistedEntities.CustomContent;
 
@@ -14,7 +14,7 @@ public static class CustomContent
     private const string BundleName = "unlisted_entities_ab";
 
     /// <summary>
-    /// Initializes all custom content using the provided plugin info for path resolution.
+    /// Initializes all custom content using the mod's base directory for path resolution.
     /// </summary>
     /// <param name="pluginInfo">The plugin info for the main mod assembly.</param>
     public static void Init(PluginInfo pluginInfo)

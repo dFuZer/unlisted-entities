@@ -16,8 +16,8 @@ public class UnlistedEntities : BaseUnityPlugin
         Instance = this;
         DbsContentApi.Modules.Logger.Log("Unlisted entities Initializing... [POST UPDATE]");
 
-        DbsContentApi.DbsContentApiPlugin.SetModdedMobsOnly(true);
-        DbsContentApi.DbsContentApiPlugin.SetAllItemsFree(true);
+        // DbsContentApi.DbsContentApiPlugin.SetModdedMobsOnly(true);
+        // DbsContentApi.DbsContentApiPlugin.SetAllItemsFree(true);
 
         Patch();
 

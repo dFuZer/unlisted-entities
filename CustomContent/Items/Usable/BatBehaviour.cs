@@ -193,7 +193,10 @@ public class BatBehaviour : ItemInstanceBehaviour
 
 				foreach (Collider hitCollider in hits)
 				{
-					if (hitCollider.attachedRigidbody != null)
+
+					DbsContentApi.Modules.Logger.Log($"Hit collider: {hitCollider.gameObject.name}");
+					if (hitCollider.gameObject.name == "FlashlightTrigger" || hitCollider.gameObject.name == "FlareTrigger") continue;
+					if (hitCollider.gameObject.transform.parent?.TryGetComponent<Bodypart>(out var bodypart) ?? false)
 					{
 						ProcessHit(hitCollider, forceDirection, holder);
 					}
