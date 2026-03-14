@@ -3,6 +3,7 @@ using UnityEngine;
 public class TranqProjectileLogic : MonoBehaviour
 {
     private Projectile m_projectile;
+    private float ignoreTargetForTime = 10f;
 
     private void Awake()
     {
@@ -41,7 +42,7 @@ public class TranqProjectileLogic : MonoBehaviour
                     bot.targetPlayer = null;
                     for (int i = 0; i < PlayerHandler.instance.players.Count; i++)
                     {
-                        bot.IgnoreTargetFor(PlayerHandler.instance.players[i], 4f);
+                        bot.IgnoreTargetFor(PlayerHandler.instance.players[i], ignoreTargetForTime);
                     }
                 }
             }

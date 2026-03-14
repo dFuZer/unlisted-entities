@@ -62,7 +62,7 @@ public static class CustomMobs
             ragdoll = new RagdollConfig(),
             photonView = new PhotonViewConfig(),
             bot = new BotConfig { monsterName = TeapotFinal.name },
-            navMesh = new NavMeshAgentConfig { height = 1.5f, radius = 1.06f, speed = 3.5f },
+            navMesh = new NavMeshAgentConfig { height = 2f, radius = 1f, speed = 3.5f, wide = true },
             monsterAnimationValues = new MonsterAnimationValuesConfig { rightPunch = false, leftPunch = false },
             addMonsterSyncer = true,
             addAnimRefHandler = true,
@@ -136,7 +136,7 @@ public static class CustomMobs
             var psRenderer = teapotDropletSpillHit.GetComponent<ParticleSystem>()?.GetComponent<ParticleSystemRenderer>();
             if (psRenderer != null)
             {
-                psRenderer.material = GameMaterials.GetMaterial(GameMaterial.M_ShopGlass);
+                psRenderer.material = GameMaterials.GetMaterial(GameMaterial.M_Pool_7);
                 Logger.Log("Applied M_ShopGlass material to TeapotSpillHit particle system");
             }
             else
@@ -176,14 +176,14 @@ public static class CustomMobs
             }
             if (inner != null)
             {
-                GameMaterials.ApplyMaterial(inner.gameObject, DescriptiveMaterial.DARK_BLUE_CYAN);
+                GameMaterials.ApplyMaterial(inner.gameObject, GameMaterial.M_Pool_7);
                 Logger.Log("Applied M_Pool_7 material to TeapotDroplet Inner");
             }
 
             var teapotSpillhitParticleSystem = teapotDropletSpillHit!.GetComponent<ParticleSystemRenderer>();
             if (teapotSpillhitParticleSystem != null)
             {
-                teapotSpillhitParticleSystem.trailMaterial = GameMaterials.GetMaterial(DescriptiveMaterial.DARK_BLUE_CYAN);
+                teapotSpillhitParticleSystem.trailMaterial = GameMaterials.GetMaterial(GameMaterial.M_Pool_7);
             }
         };
     }

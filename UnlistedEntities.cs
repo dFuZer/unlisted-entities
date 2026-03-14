@@ -20,6 +20,8 @@ public class UnlistedEntities
     public UnlistedEntities()
     {
         CustomContent.CustomContent.Init();
+        // DbsContentApi.DbsContentApiPlugin.SetModdedMobsOnly(true);
+        // DbsContentApi.DbsContentApiPlugin.SetAllItemsFree(true);
         DbsContentApi.Modules.Logger.Log($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
     }
 

@@ -799,7 +799,7 @@ public static class CustomItems
 			GameMaterials.GetMaterial(GameMaterial.M_Flashlight_1_1),
 			GameMaterials.GetMaterial(DescriptiveMaterial.GLOWING_WHITE_2),
 			GameMaterials.GetMaterial(DescriptiveMaterial.YELLOW_1),
-			GameMaterials.GetMaterial(GameMaterial.M_FredGull_2)
+			GameMaterials.GetMaterial(GameMaterial.M_Pool_7)
 		};
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "VestItem.prefab");

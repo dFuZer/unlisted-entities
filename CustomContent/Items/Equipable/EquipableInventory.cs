@@ -2,6 +2,8 @@ using HarmonyLib;
 using Photon.Pun;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
+using DbsContentApi.Modules;
 
 /// <summary>
 /// Manages a player's equipable items inventory. Each player has a fixed number of equipable slots
@@ -9,10 +11,8 @@ using System.Collections.Generic;
 /// </summary>
 public class EquipableInventory : MonoBehaviourPun
 {
-    // Simple slot system: 0 = Boots, 1 = Charm (or generic)
     public byte[] equipableIDs = new byte[EquipableConfig.SLOT_COUNT];
-
-    private Dictionary<int, GameObject> spawnedVisuals = new Dictionary<int, GameObject>();
+    private Dictionary<int, List<GameObject>> spawnedVisuals = new Dictionary<int, List<GameObject>>();
     private Player? cachedPlayer;
 
     private void Awake()
@@ -21,6 +21,7 @@ public class EquipableInventory : MonoBehaviourPun
         for (int i = 0; i < equipableIDs.Length; i++)
         {
             equipableIDs[i] = EquipableConfig.EMPTY_SLOT_ID;
+            spawnedVisuals[i] = new List<GameObject>();
         }
     }
 
@@ -53,7 +54,7 @@ public class EquipableInventory : MonoBehaviourPun
         {
             if (equipableIDs[i] != EquipableConfig.EMPTY_SLOT_ID)
             {
-                if (!spawnedVisuals.TryGetValue(i, out GameObject visual) || visual == null)
+                if (!spawnedVisuals.TryGetValue(i, out List<GameObject> visuals) || visuals.Count == 0 || visuals.Exists(v => v == null))
                 {
                     needsUpdate = true;
                     break;
@@ -62,7 +63,7 @@ public class EquipableInventory : MonoBehaviourPun
             else
             {
                 // If slot is empty but we have a visual, we also need an update (cleanup)
-                if (spawnedVisuals.TryGetValue(i, out GameObject visual) && visual != null)
+                if (spawnedVisuals.TryGetValue(i, out List<GameObject> visuals) && visuals.Count > 0)
                 {
                     needsUpdate = true;
                     break;
@@ -86,9 +87,12 @@ public class EquipableInventory : MonoBehaviourPun
             // Cleanup visuals if player is gone
             foreach (var kvp in spawnedVisuals)
             {
-                if (kvp.Value != null) Destroy(kvp.Value);
+                foreach (var visual in kvp.Value)
+                {
+                    if (visual != null) Destroy(visual);
+                }
+                kvp.Value.Clear();
             }
-            spawnedVisuals.Clear();
             return;
         }
 
@@ -99,23 +103,30 @@ public class EquipableInventory : MonoBehaviourPun
             byte itemID = equipableIDs[i];
 
             // Handle cleanup of existing visual if it doesn't match or is null
-            if (spawnedVisuals.TryGetValue(i, out GameObject existing))
+            if (spawnedVisuals.TryGetValue(i, out List<GameObject> existingList))
             {
-                if (existing == null || itemID == EquipableConfig.EMPTY_SLOT_ID)
+                bool shouldCleanup = itemID == EquipableConfig.EMPTY_SLOT_ID || existingList.Exists(v => v == null);
+
+                // If we have visuals but the ID changed (and it's not empty), we should also cleanup to respawn
+                // However, the current logic only spawns if dictionary doesn't have the key or list is empty.
+                // Let's simplify: if it's empty or needs refresh, clear it.
+                if (shouldCleanup)
                 {
-                    if (existing != null) Destroy(existing);
-                    spawnedVisuals.Remove(i);
+                    foreach (var v in existingList)
+                    {
+                        if (v != null) Destroy(v);
+                    }
+                    existingList.Clear();
                 }
-                // If ID matches, we could check if it's still parented correctly, 
-                // but for now let's assume if it exists and is not null, it's fine.
-                // The watchdog handles the null case.
             }
 
             if (itemID == EquipableConfig.EMPTY_SLOT_ID) continue;
 
-            // Only spawn if we don't already have a valid visual for this slot
-            if (!spawnedVisuals.ContainsKey(i))
+            // Only spawn if we don't already have valid visuals for this slot
+            if (!spawnedVisuals.ContainsKey(i) || spawnedVisuals[i].Count == 0)
             {
+                if (!spawnedVisuals.ContainsKey(i)) spawnedVisuals[i] = new List<GameObject>();
+
                 // Spawn logic for specific items
                 if (UnlistedEntities.CustomContent.CustomItems.JumpingBootsItem != null &&
                     itemID == UnlistedEntities.CustomContent.CustomItems.JumpingBootsItem.id)
@@ -161,7 +172,7 @@ public class EquipableInventory : MonoBehaviourPun
 
             wings.transform.localRotation = UnityEngine.Quaternion.Euler(0f, 0f, 0f);
             wings.transform.localScale = new UnityEngine.Vector3(2.73f, 2.73f, 2.73f);
-            spawnedVisuals[slot] = wings;
+            spawnedVisuals[slot].Add(wings);
             var playerShader = player.gameObject.transform.Find("CharacterModel/BodyRenderer").GetComponent<Renderer>().material.shader;
             foreach (var renderer in wings.GetComponentsInChildren<Renderer>())
             {
@@ -192,7 +203,7 @@ public class EquipableInventory : MonoBehaviourPun
 
             necklace.transform.localRotation = UnityEngine.Quaternion.Euler(-83.044f, 0, 0);
             necklace.transform.localScale = new UnityEngine.Vector3(2.98f, 2.98f, 2.98f);
-            spawnedVisuals[slot] = necklace;
+            spawnedVisuals[slot].Add(necklace);
             var playerShader = player.gameObject.transform.Find("CharacterModel/BodyRenderer").GetComponent<Renderer>().material.shader;
             foreach (var renderer in necklace.GetComponentsInChildren<Renderer>())
             {
@@ -404,22 +415,28 @@ public class EquipableInventory : MonoBehaviourPun
             leftHipLightBeam.SetActive(true);
             leftHipLightBeam.transform.localPosition = new UnityEngine.Vector3(0.869f, 1.582f, 1.507f);
             leftHipLightBeam.transform.localRotation = UnityEngine.Quaternion.Euler(10f, 20f, 0f);
+            spawnedVisuals[slot].Add(leftHipLightBeam);
+
             var rightHipLightBeam = Instantiate(lightPrefab, rigCreatorHip);
             rightHipLightBeam.SetActive(true);
             rightHipLightBeam.transform.localPosition = new UnityEngine.Vector3(-0.784f, 1.561f, 1.55f);
             rightHipLightBeam.transform.localRotation = UnityEngine.Quaternion.Euler(10f, -20f, 0f);
+            spawnedVisuals[slot].Add(rightHipLightBeam);
 
             var leftTorsoLightBeam = Instantiate(lightPrefab, rigCreatorTorso);
             leftTorsoLightBeam.SetActive(true);
             leftTorsoLightBeam.transform.localPosition = new UnityEngine.Vector3(0.659f, 0.259f, 1.64f);
             leftTorsoLightBeam.transform.localRotation = UnityEngine.Quaternion.Euler(-10f, 20f, 0f);
+            spawnedVisuals[slot].Add(leftTorsoLightBeam);
+
             var rightTorsoLightBeam = Instantiate(lightPrefab, rigCreatorTorso);
             rightTorsoLightBeam.SetActive(true);
             rightTorsoLightBeam.transform.localPosition = new UnityEngine.Vector3(-0.796f, 0.259f, 1.616f);
             rightTorsoLightBeam.transform.localRotation = UnityEngine.Quaternion.Euler(-10f, -20f, 0f);
+            spawnedVisuals[slot].Add(rightTorsoLightBeam);
         }
 
-        spawnedVisuals[slot] = glowingVestInstance;
+        spawnedVisuals[slot].Add(glowingVestInstance);
     }
 
     private void VerifyBones(Transform[] originalCustomItemBones, Transform[] rearrangedCustomItemBones, Transform[] playerBones)
@@ -470,7 +487,7 @@ public class EquipableInventory : MonoBehaviourPun
             // 270 270 0
             boot.transform.localRotation = UnityEngine.Quaternion.Euler(-90, 0, -90);
             boot.transform.localScale = new UnityEngine.Vector3(2.398091f, 2.398091f, 2.398091f);
-            spawnedVisuals[slot] = boot;
+            spawnedVisuals[slot].Add(boot);
 
             boot.GetComponent<Renderer>().material.shader = player.gameObject.transform.Find("CharacterModel/BodyRenderer").GetComponent<Renderer>().material.shader;
             // HelperFunctions.SetChildRendererLayer(boot.transform, 29);
@@ -487,7 +504,7 @@ public class EquipableInventory : MonoBehaviourPun
             // 270 270 0
             boot.transform.localRotation = UnityEngine.Quaternion.Euler(-90, 0, -90);
             boot.transform.localScale = new UnityEngine.Vector3(2.398091f, 2.398091f, 2.398091f);
-            spawnedVisuals[slot] = boot;
+            spawnedVisuals[slot].Add(boot);
 
             boot.GetComponent<Renderer>().material.shader = player.gameObject.transform.Find("CharacterModel/BodyRenderer").GetComponent<Renderer>().material.shader;
             // HelperFunctions.SetChildRendererLayer(boot.transform, 29);
@@ -528,6 +545,59 @@ public class EquipableInventory : MonoBehaviourPun
     }
 
     /// <summary>
+    /// Clears all equipable slots when the player dies and drops them as items after a delay.
+    /// </summary>
+    public IEnumerator ClearAndDropOnDeathCoroutine()
+    {
+        DbsContentApi.Modules.Logger.Log("[EquipableInventory] Starting ClearAndDropOnDeathCoroutine for player.");
+        // Wait for the same 3 seconds as the vanilla DelayDropItems
+        yield return new WaitForSeconds(3f);
+
+        if (photonView.IsMine)
+        {
+            var player = GetPlayer();
+            if (player == null)
+            {
+                DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find player in ClearAndDropOnDeathCoroutine.");
+                yield break;
+            }
+
+            for (int i = 0; i < equipableIDs.Length; i++)
+            {
+                byte itemID = equipableIDs[i];
+                if (itemID != EquipableConfig.EMPTY_SLOT_ID)
+                {
+                    // Find the Item object for this ID
+                    Item? item = Items.GetItemByID(itemID);
+                    if (item != null)
+                    {
+                        // Drop the item at the player's position
+                        player.RequestCreatePickup(item, new ItemInstanceData(System.Guid.NewGuid()), player.Center(), UnityEngine.Quaternion.identity);
+                        DbsContentApi.Modules.Logger.Log($"[EquipableInventory] Dropping equipable item on death: {item.name}");
+                    }
+                    else
+                    {
+                        DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find Item component on equipable item.");
+                    }
+
+                    // Clear the slot
+                    SetEquipable(i, EquipableConfig.EMPTY_SLOT_ID);
+                    UpdateVisuals();
+                }
+                else
+                {
+                    DbsContentApi.Modules.Logger.Log("[EquipableInventory] No equipable item found in slot " + i);
+                }
+            }
+        }
+        else
+        {
+            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] View is not mine.");
+            yield break;
+        }
+    }
+
+    /// <summary>
     /// Clears all equipable slots when the player dies.
     /// </summary>
     public void ClearOnDeath()
@@ -543,9 +613,12 @@ public class EquipableInventory : MonoBehaviourPun
 
     private void OnDestroy()
     {
-        foreach (var visual in spawnedVisuals.Values)
+        foreach (var kvp in spawnedVisuals)
         {
-            if (visual != null) Destroy(visual);
+            foreach (var visual in kvp.Value)
+            {
+                if (visual != null) Destroy(visual);
+            }
         }
         spawnedVisuals.Clear();
     }
@@ -654,15 +727,40 @@ public class EquipableInventoryPatches
     /// <summary>
     /// Clears all equipable items when the player dies.
     /// </summary>
-    [HarmonyPatch(typeof(Player), "Die")]
-    [HarmonyPostfix]
-    static void OnPlayerDie(Player __instance)
+    [HarmonyPatch(typeof(Player), "DelayDropItems")]
+    [HarmonyPrefix]
+    static void OnPlayerDelayDropItems(Player __instance)
     {
         // Find the PlayerData for this player
         if (GlobalPlayerData.TryGetPlayerData(__instance.refs.view.Owner, out var data))
         {
             var inv = data.GetComponent<EquipableInventory>();
-            if (inv != null) inv.ClearOnDeath();
+            if (inv != null)
+            {
+                // We run this in parallel with the vanilla DelayDropItems
+                // Since DelayDropItems is called on all clients via RPC, 
+                // and ClearAndDropOnDeathCoroutine checks photonView.IsMine,
+                // the drop will only be initiated by the owner, which is correct.
+                DbsContentApi.Modules.Logger.Log("[EquipableInventory] Starting ClearAndDropOnDeathCoroutine for player.");
+                inv.StartCoroutine(inv.ClearAndDropOnDeathCoroutine());
+            }
+            else
+            {
+                DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find EquipableInventory component on player.");
+            }
         }
+        else
+        {
+            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find PlayerData component on player.");
+        }
+    }
+
+    /// <summary>
+    /// Clears all equipable items when the player dies.
+    /// </summary>
+    [HarmonyPatch(typeof(Player), "Die")]
+    [HarmonyPostfix]
+    static void OnPlayerDie(Player __instance)
+    {
     }
 }

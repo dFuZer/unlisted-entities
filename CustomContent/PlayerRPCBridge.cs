@@ -134,6 +134,22 @@ public class PlayerRPCBridge : MonoBehaviour
             isBoostActive = false;
         }
     }
+
+    [PunRPC]
+    public void RPC_DoBookEquipEffectWithoutSettingEmote(int playerViewId, Vector3 pos, Quaternion rotation)
+    {
+        Player player = PlayerHandler.instance.TryGetPlayerFromViewID(playerViewId);
+        Object obj = Resources.Load("BoookDissolve");
+        if (obj == null)
+        {
+            Debug.LogError("Couldnt load BoookDissolve");
+        }
+        else
+        {
+            GameObject effect = (GameObject)Object.Instantiate(obj, pos, rotation);
+            // If you need to do something with the player and the effect, do it here
+        }
+    }
 }
 
 [HarmonyPatch]

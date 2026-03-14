@@ -61,12 +61,18 @@ public abstract class EquipableItemBehaviour : ItemInstanceBehaviour
         OnEquipped(availableSlot);
 
         // Play visual effect
-        Player.localPlayer.refs.emotes.DoBookEquipEffect(
-            Player.localPlayer.refs.view.ViewID,
-            itemInstance.item.id,
-            base.transform.position,
-            base.transform.rotation
-        );
+        // Player.localPlayer.refs.emotes.DoBookEquipEffect(
+        //     Player.localPlayer.refs.view.ViewID,
+        //     itemInstance.item.id,
+        //     base.transform.position,
+        //     base.transform.rotation
+        // );
+
+        // Play visual effect
+        if (player != null)
+        {
+            player.gameObject.GetComponent<PlayerRPCBridge>()?.view.RPC("RPC_DoBookEquipEffectWithoutSettingEmote", RpcTarget.All, player.refs.view.ViewID, base.transform.position, base.transform.rotation);
+        }
 
 
         // Consume the item from inventory
