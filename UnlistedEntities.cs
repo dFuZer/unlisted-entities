@@ -21,7 +21,9 @@ public class UnlistedEntities
     {
         CustomContent.CustomContent.Init();
         // DbsContentApi.DbsContentApiPlugin.SetModdedMobsOnly(true);
-        // DbsContentApi.DbsContentApiPlugin.SetAllItemsFree(true);
+        DbsContentApi.DbsContentApiPlugin.SetAllItemsFree(true);
+		// Regsiters input
+		new CustomContent.DropEquipableInput();
         DbsContentApi.Modules.Logger.Log($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
     }
 
