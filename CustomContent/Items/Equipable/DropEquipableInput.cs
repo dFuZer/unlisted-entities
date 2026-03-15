@@ -7,7 +7,7 @@ namespace UnlistedEntities.CustomContent
     {
         protected override KeyCode GetDefaultKey() => KeyCode.G;
         public string GetDisplayName() => "Drop Equipable Item";
-        public SettingCategory GetSettingCategory() => (SettingCategory)0;
+        public SettingCategory GetSettingCategory() => (SettingCategory)2;
         protected override void OnKeyDown(Player player)
         {
             DbsContentApi.Modules.Logger.Log("[DropEquipableInput] OnKeyDown triggered.");
