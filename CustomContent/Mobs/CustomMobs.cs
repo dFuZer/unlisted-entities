@@ -14,6 +14,7 @@ public static class CustomMobs
 {
     public static GameObject? MainCharacter { get; private set; }
     public static GameObject? TeapotFinal { get; private set; }
+    public static GameObject? SurfaceNavmeshPrefab { get; private set; }
 
     /// <summary>
     /// Configures all custom monsters using the loaded AssetBundle.
@@ -36,7 +37,20 @@ public static class CustomMobs
 
         RegisterTeapot(bundle);
 
+        InitializeSurfaceNavmesh(bundle);
+
         Logger.Log("Custom mobs setup completed");
+    }
+
+
+    private static void InitializeSurfaceNavmesh(AssetBundle bundle)
+    {
+        Logger.Log("Initializing surface navmesh");
+        SurfaceNavmeshPrefab = ContentLoader.LoadPrefabFromBundle(bundle, "Surface_Navmesh.prefab");
+        if (SurfaceNavmeshPrefab == null)
+        {
+            Logger.LogError("Failed to load SurfaceNavmesh.prefab from bundle");
+        }
     }
     private static void RegisterTeapot(AssetBundle bundle)
     {
