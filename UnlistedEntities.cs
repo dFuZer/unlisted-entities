@@ -8,7 +8,7 @@ namespace UnlistedEntities;
 public class UnlistedEntities
 {
     private bool _isPatched;
-    public static bool DEBUG_MODE = false;
+    public static bool DEBUG_MODE = true;
 
     static UnlistedEntities()
     {
@@ -21,8 +21,13 @@ public class UnlistedEntities
     public UnlistedEntities()
     {
         CustomContent.CustomContent.Init();
-        DbsContentApi.DbsContentApiPlugin.SetModdedMobsOnly(true);
-        DbsContentApi.DbsContentApiPlugin.SetAllItemsFree(true);
+        if (DEBUG_MODE)
+        {
+            DbsContentApi.DbsContentApiPlugin.SetModdedMobsOnly(true);
+            DbsContentApi.DbsContentApiPlugin.SetAllItemsFree(true);
+        }
+        // Regsiters input
+        new CustomContent.DropEquipableInput();
         DbsContentApi.Modules.Logger.Log($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
     }
 

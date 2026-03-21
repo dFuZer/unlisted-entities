@@ -123,6 +123,9 @@
         <Reference Include="Zorro.Core.Runtime">
             <HintPath>$(CWDir)\Content Warning_Data\Managed\Zorro.Core.Runtime.dll</HintPath>
         </Reference>
+        <Reference Include="Zorro.Settings.Runtime" Private="false">
+            <HintPath>$(CWDir)\Content Warning_Data\Managed\Zorro.Settings.Runtime.dll</HintPath>
+        </Reference>
         <Reference Include="Zorro.UI.Runtime">
             <HintPath>$(CWDir)\Content Warning_Data\Managed\Zorro.UI.Runtime.dll</HintPath>
         </Reference>
