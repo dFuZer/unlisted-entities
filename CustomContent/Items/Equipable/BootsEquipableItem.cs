@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Collections;
 using UnlistedEntities.CustomContent;
 using UnlistedEntities.CustomContent.ContentEvents;
+using DbsContentApi.Modules.Utility;
 using Photon.Voice.Unity.UtilityScripts;
 
 /// <summary>
@@ -11,28 +12,6 @@ using Photon.Voice.Unity.UtilityScripts;
 /// </summary>
 public class BootsEquipableItemBehaviour : EquipableItemBehaviour
 {
-	protected override void OnEquipped(int slotIndex)
-	{
-		base.OnEquipped(slotIndex);
-		var player = GetComponentInParent<Player>();
-		if (player != null && player.refs.view.IsMine)
-		{
-			var provider = player.gameObject.AddComponent<FroggyBootsContentProvider>();
-			provider.playerName = player.refs.view.Owner.NickName;
-			provider.actorNumber = player.refs.view.Owner.ActorNumber;
-		}
-	}
-
-	protected override void OnUnequipped(int slotIndex)
-	{
-		base.OnUnequipped(slotIndex);
-		var player = GetComponentInParent<Player>();
-		if (player != null)
-		{
-			var provider = player.gameObject.GetComponent<FroggyBootsContentProvider>();
-			if (provider != null) Destroy(provider);
-		}
-	}
 }
 
 /// <summary>

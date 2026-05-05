@@ -4,6 +4,8 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 using DbsContentApi.Modules;
+using DbsContentApi.Modules.Utility;
+using UnlistedEntities.CustomContent.ContentEvents;
 
 /// <summary>
 /// Manages a player's equipable items inventory. Each player has a fixed number of equipable slots
@@ -178,6 +180,18 @@ public class EquipableInventory : MonoBehaviourPun
             {
                 renderer.material.shader = playerShader;
             }
+
+            // Spawn content trigger cube
+            Transform hip = player.transform.Find("RigCreator/Rig/Armature/Hip");
+            if (hip != null)
+            {
+                GameObject trigger = ObjectHelper.CreateAttachedTriggerObject(UnlistedEntities.CustomContent.CustomItems.TemporaryContentTriggerPrefab!, hip);
+                var provider = trigger.AddComponent<AngelWingsContentProvider>();
+                provider.playerName = player.refs.view.Owner.NickName;
+                provider.actorNumber = player.refs.view.Owner.ActorNumber;
+                spawnedVisuals[slot].Add(trigger);
+            }
+
             return wings;
         }
         return null;
@@ -208,6 +222,17 @@ public class EquipableInventory : MonoBehaviourPun
             foreach (var renderer in necklace.GetComponentsInChildren<Renderer>())
             {
                 renderer.material.shader = playerShader;
+            }
+
+            // Spawn content trigger cube
+            Transform hip = player.transform.Find("RigCreator/Rig/Armature/Hip");
+            if (hip != null)
+            {
+                GameObject trigger = ObjectHelper.CreateAttachedTriggerObject(UnlistedEntities.CustomContent.CustomItems.TemporaryContentTriggerPrefab!, hip);
+                var provider = trigger.AddComponent<CursedDollContentProvider>();
+                provider.playerName = player.refs.view.Owner.NickName;
+                provider.actorNumber = player.refs.view.Owner.ActorNumber;
+                spawnedVisuals[slot].Add(trigger);
             }
         }
         else
@@ -434,6 +459,17 @@ public class EquipableInventory : MonoBehaviourPun
             rightTorsoLightBeam.transform.localPosition = new UnityEngine.Vector3(-0.796f, 0.259f, 1.616f);
             rightTorsoLightBeam.transform.localRotation = UnityEngine.Quaternion.Euler(-10f, -20f, 0f);
             spawnedVisuals[slot].Add(rightTorsoLightBeam);
+
+            // Spawn content trigger cube
+            Transform hip = player.transform.Find("RigCreator/Rig/Armature/Hip");
+            if (hip != null)
+            {
+                GameObject trigger = ObjectHelper.CreateAttachedTriggerObject(UnlistedEntities.CustomContent.CustomItems.TemporaryContentTriggerPrefab!, hip);
+                var provider = trigger.AddComponent<GlowingVestContentProvider>();
+                provider.playerName = player.refs.view.Owner.NickName;
+                provider.actorNumber = player.refs.view.Owner.ActorNumber;
+                spawnedVisuals[slot].Add(trigger);
+            }
         }
 
         spawnedVisuals[slot].Add(glowingVestInstance);
@@ -512,6 +548,17 @@ public class EquipableInventory : MonoBehaviourPun
         else
         {
             DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find Foot_R bone for Froggy Boot attachment.");
+        }
+
+        // Spawn content trigger cube
+        Transform hip = player.transform.Find("RigCreator/Rig/Armature/Hip");
+        if (hip != null)
+        {
+            GameObject trigger = ObjectHelper.CreateAttachedTriggerObject(UnlistedEntities.CustomContent.CustomItems.TemporaryContentTriggerPrefab!, hip);
+            var provider = trigger.AddComponent<FroggyBootsContentProvider>();
+            provider.playerName = player.refs.view.Owner.NickName;
+            provider.actorNumber = player.refs.view.Owner.ActorNumber;
+            spawnedVisuals[slot].Add(trigger);
         }
     }
 
