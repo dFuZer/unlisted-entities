@@ -111,6 +111,9 @@
         <Reference Include="UnityEngine.UI">
             <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.UI.dll</HintPath>
         </Reference>
+        <Reference Include="UnityEngine.IMGUIModule">
+            <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+        </Reference>
         <Reference Include="UnityEngine.UIModule">
             <HintPath>$(CWDir)\Content Warning_Data\Managed\UnityEngine.UIModule.dll</HintPath>
         </Reference>

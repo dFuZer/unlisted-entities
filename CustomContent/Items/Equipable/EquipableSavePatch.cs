@@ -32,7 +32,7 @@ namespace UnlistedEntities.CustomContent
                     }
                     else
                     {
-                        DbsContentApi.Modules.Logger.LogWarning($"[SaveLoad] Inventory Item in save not found in database! PersistentID: {savedItem.persistentID}");
+                        DbsContentApi.Modules.Logger.LogError($"[SaveLoad] Inventory Item in save not found in database! PersistentID: {savedItem.persistentID}");
                     }
                 }
             }
@@ -49,7 +49,7 @@ namespace UnlistedEntities.CustomContent
                     }
                     else
                     {
-                        DbsContentApi.Modules.Logger.LogWarning($"[SaveLoad] Surface Item in save not found in database! PersistentID: {savedItem.persistentID}");
+                        DbsContentApi.Modules.Logger.LogError($"[SaveLoad] Surface Item in save not found in database! PersistentID: {savedItem.persistentID}");
                     }
                 }
             }

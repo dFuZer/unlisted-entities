@@ -239,7 +239,7 @@ public class EquipableSlotUI : MonoBehaviour
 
                 if (!hasIcon)
                 {
-                    DbsContentApi.Modules.Logger.LogWarning($"[EquipableUI] Item '{item.displayName}' (ID: {equipableID}) has no icon sprite.");
+                    DbsContentApi.Modules.Logger.LogError($"[EquipableUI] Item '{item.displayName}' (ID: {equipableID}) has no icon sprite.");
                 }
             }
             else

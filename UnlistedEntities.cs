@@ -42,7 +42,7 @@ public class UnlistedEntities
     {
         if (_isPatched)
         {
-            DbsContentApi.Modules.Logger.LogWarning("Already patched!");
+            DbsContentApi.Modules.Logger.LogError("Already patched!");
             return;
         }
 
@@ -69,7 +69,7 @@ public class UnlistedEntities
     {
         if (!_isPatched)
         {
-            DbsContentApi.Modules.Logger.LogWarning("Already unpatched!");
+            DbsContentApi.Modules.Logger.LogError("Already unpatched!");
             return;
         }
 

@@ -1,6 +1,7 @@
 using HarmonyLib;
 using UnityEngine;
 using UnlistedEntities.CustomContent;
+using UnlistedEntities.CustomContent.ContentEvents;
 
 /// <summary>
 /// Equipable item that grants increased jump power when worn.
@@ -8,8 +9,28 @@ using UnlistedEntities.CustomContent;
 /// </summary>
 public class AngelWingsEquipableItemBehaviour : EquipableItemBehaviour
 {
-	// All equipable logic is handled by the base class
-	// Override virtual methods here if custom behavior is needed
+	protected override void OnEquipped(int slotIndex)
+	{
+		base.OnEquipped(slotIndex);
+		var player = GetComponentInParent<Player>();
+		if (player != null && player.refs.view.IsMine)
+		{
+			var provider = player.gameObject.AddComponent<AngelWingsContentProvider>();
+			provider.playerName = player.refs.view.Owner.NickName;
+			provider.actorNumber = player.refs.view.Owner.ActorNumber;
+		}
+	}
+
+	protected override void OnUnequipped(int slotIndex)
+	{
+		base.OnUnequipped(slotIndex);
+		var player = GetComponentInParent<Player>();
+		if (player != null)
+		{
+			var provider = player.gameObject.GetComponent<AngelWingsContentProvider>();
+			if (provider != null) Destroy(provider);
+		}
+	}
 }
 
 [HarmonyPatch(typeof(Player))]

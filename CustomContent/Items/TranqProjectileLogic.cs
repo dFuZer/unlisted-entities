@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnlistedEntities.CustomContent.ContentEvents;
+using DbsContentApi.Modules.Utility;
 
 public class TranqProjectileLogic : MonoBehaviour
 {
@@ -49,6 +51,24 @@ public class TranqProjectileLogic : MonoBehaviour
 
             // Example: apply a custom effect or log the hit
             hitPlayer.CallTakeDamageAndAddForceAndFallWithFallof(0f, Vector3.zero, 1f, hit.point, 1f);
+
+            // Spawn tranq gun hit content event
+            GameObject tranqTrigger = ObjectHelper.CreateTemporaryTriggerObject(20, UnlistedEntities.CustomContent.CustomItems.TemporaryContentTriggerPrefab!);
+            tranqTrigger.transform.position = hit.point;
+            if (hitPlayer.ai)
+            {
+                var provider = tranqTrigger.AddComponent<TranqGunEnemyContentProvider>();
+                if (hitPlayer.refs.view != null)
+                {
+                    provider.targetViewID = hitPlayer.refs.view.ViewID;
+                }
+            }
+            else if (hitPlayer.refs.view != null && hitPlayer.refs.view.Owner != null)
+            {
+                var provider = tranqTrigger.AddComponent<TranqGunAllyContentProvider>();
+                provider.playerName = hitPlayer.refs.view.Owner.NickName;
+                provider.actorNumber = hitPlayer.refs.view.Owner.ActorNumber;
+            }
         }
     }
 }

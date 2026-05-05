@@ -14,7 +14,7 @@ public class Attack_Teapot : MonoBehaviour
     public GameObject waterProjectilePrefab = null!;
 
     public float attackRange = 15f;
-    public float attackDuration = 3f;
+    public float attackDuration = 2f;
     public float fireInterval = 0.1f;
     public float projectileSpreadAngle = 4f;
 
@@ -86,11 +86,12 @@ public class Attack_Teapot : MonoBehaviour
         float elapsed = 0f;
         float fireTimer = 0f;
 
+        if (_view.IsMine) _bot.LookAt(targetPlayer.Center(), 10f);
+
         while (elapsed < attackDuration)
         {
             if (targetPlayer == null || _player == null || _player.NoControl() || _bot == null) break;
 
-            if (_view.IsMine) _bot.LookAt(targetPlayer.Center(), 10f);
 
             fireTimer += Time.deltaTime;
             if (fireTimer >= fireInterval)
@@ -100,6 +101,10 @@ public class Attack_Teapot : MonoBehaviour
                 if (canSeeTarget)
                 {
                     FireProjectileAtTarget(targetPlayer);
+                }
+                else
+                {
+                    break;
                 }
             }
 

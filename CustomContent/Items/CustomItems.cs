@@ -4,6 +4,7 @@ using System;
 using DbsContentApi;
 using System.Linq;
 using Photon.Pun;
+using UnlistedEntities.CustomContent.ContentEvents;
 
 namespace UnlistedEntities.CustomContent;
 
@@ -20,6 +21,7 @@ public static class CustomItems
 	public static byte? ExplosivesCategory = null;
 	// public static byte? MaterialTestersCategory1 = null;
 	// public static byte? MaterialTestersCategory2 = null;
+	public static GameObject? TemporaryContentTriggerPrefab = null;
 	public static GameObject? FroggyBootRightPrefab = null;
 	public static GameObject? FroggyBootLeftPrefab = null;
 	public static GameObject? AngelWingsPrefab = null;
@@ -85,6 +87,28 @@ public static class CustomItems
 		ConsumablesCategory = Items.RegisterCustomCategory("Consumables");
 		EquipablesCategory = Items.RegisterCustomCategory("Equipables");
 		ExplosivesCategory = Items.RegisterCustomCategory("Explosives");
+
+		TemporaryContentTriggerPrefab = ContentLoader.LoadPrefabFromBundle(bundle, "TemporaryContentProviderCube.prefab");
+
+		// Register content events — order is fixed and must not change (IDs are index-based)
+		DbsContentApi.Modules.ContentEvents.RegisterEvent(new PopitExplosionContentEvent());
+		DbsContentApi.Modules.ContentEvents.RegisterEvent(new GrenadeExplosionContentEvent());
+		DbsContentApi.Modules.ContentEvents.RegisterEvent(new SemtexExplosionContentEvent());
+		DbsContentApi.Modules.ContentEvents.RegisterEvent(new SilverFulminateExplosionContentEvent());
+		DbsContentApi.Modules.ContentEvents.RegisterEvent(new BatHitMonsterContentEvent());
+		DbsContentApi.Modules.ContentEvents.RegisterEvent(new SemtexStickMonsterContentEvent());
+		DbsContentApi.Modules.ContentEvents.RegisterEvent(new ElectricGrenadeMonsterContentEvent());
+		DbsContentApi.Modules.ContentEvents.RegisterEvent(new SilverFulminateMonsterContentEvent());
+		DbsContentApi.Modules.ContentEvents.RegisterEvent(new TranqGunEnemyContentEvent());
+		DbsContentApi.Modules.ContentEvents.RegisterEvent(new BatHitAllyContentEvent());
+		DbsContentApi.Modules.ContentEvents.RegisterEvent(new InvisiblePlayerContentEvent());
+		DbsContentApi.Modules.ContentEvents.RegisterEvent(new SemtexStickAllyContentEvent());
+		DbsContentApi.Modules.ContentEvents.RegisterEvent(new ElectricGrenadeAllyContentEvent());
+		DbsContentApi.Modules.ContentEvents.RegisterEvent(new GlowingVestContentEvent());
+		DbsContentApi.Modules.ContentEvents.RegisterEvent(new AngelWingsContentEvent());
+		DbsContentApi.Modules.ContentEvents.RegisterEvent(new CursedDollContentEvent());
+		DbsContentApi.Modules.ContentEvents.RegisterEvent(new FroggyBootsContentEvent());
+		DbsContentApi.Modules.ContentEvents.RegisterEvent(new TranqGunAllyContentEvent());
 		// MaterialTestersCategory1 = Items.RegisterCustomCategory("Material Testers 1-8");
 		// MaterialTestersCategory2 = Items.RegisterCustomCategory("Material Testers 9-16");
 
@@ -110,6 +134,8 @@ public static class CustomItems
 			RegisterSilverFulminate();
 			RegisterGlowingVest();
 			RegisterTranqGun();
+			GameMaterials.ApplyMaterial(TemporaryContentTriggerPrefab!, GameMaterial.M_Apple_2, true);
+
 			// RegisterMaterialTesters();
 		}
 

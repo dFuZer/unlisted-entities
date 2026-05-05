@@ -7,21 +7,21 @@ public class TeapotContentEvent : MonsterContentEvent
 {
 	public static string[] NORMAL_COMMENTS = new string[15]
 	{
-		"Is that a teapot?",
-		"A teapot??",
-		"wtf a teapot with legs lol",
-		"careful lmaoo its hot",
-		"I hate its little legs",
-		"use him to make tea lol",
-		"Love those videos, please make more, cheers !",
-		"is the teapot dangerous?",
-		"Teapot teapot teapot!",
-		"Hahaha its boiling hot!",
-		"teapot looks dangerous, careful",
-		"thx for the content thats crazy",
-		"??? why is there a teapot with legs?",
-		"Thanks for the video. The teapot was freaking me out",
-		"I'm scared of the teapot",
+		"Content_Teapot_0",
+		"Content_Teapot_1",
+		"Content_Teapot_2",
+		"Content_Teapot_3",
+		"Content_Teapot_4",
+		"Content_Teapot_5",
+		"Content_Teapot_6",
+		"Content_Teapot_7",
+		"Content_Teapot_8",
+		"Content_Teapot_9",
+		"Content_Teapot_10",
+		"Content_Teapot_11",
+		"Content_Teapot_12",
+		"Content_Teapot_13",
+		"Content_Teapot_14",
 	};
 
 	public override float GetContentValue()

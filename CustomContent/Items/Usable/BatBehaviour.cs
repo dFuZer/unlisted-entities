@@ -3,6 +3,8 @@ using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
 using Zorro.Core.Serizalization;
+using UnlistedEntities.CustomContent.ContentEvents;
+using DbsContentApi.Modules.Utility;
 
 public class BatBehaviour : ItemInstanceBehaviour
 {
@@ -229,6 +231,29 @@ public class BatBehaviour : ItemInstanceBehaviour
 
 		hitPlayersThisSwing.Add(hitPlayer);
 		OnHitTarget(hitPlayer, forceDirection);
+
+		// Spawn a temporary content trigger at the hit location
+		GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(20, UnlistedEntities.CustomContent.CustomItems.TemporaryContentTriggerPrefab!);
+		trigger.transform.position = other.ClosestPoint(transform.position);
+
+		if (hitPlayer.ai)
+		{
+			// It's a monster/AI
+			var provider = trigger.AddComponent<BatHitMonsterContentProvider>();
+			if (hitPlayer.refs.view != null)
+			{
+				provider.targetViewID = hitPlayer.refs.view.ViewID;
+			}
+			DbsContentApi.Modules.Logger.Log("Spawned trigger object with BatHitMonsterContentProvider");
+		}
+		else if (hitPlayer.refs.view != null && hitPlayer.refs.view.Owner != null)
+		{
+			// It's a player/ally
+			var provider = trigger.AddComponent<BatHitAllyContentProvider>();
+			provider.playerName = hitPlayer.refs.view.Owner.NickName;
+			provider.actorNumber = hitPlayer.refs.view.Owner.ActorNumber;
+			DbsContentApi.Modules.Logger.Log("Spawned trigger object with BatHitAllyContentProvider");
+		}
 	}
 
 	private void OnHitTarget(Player hitPlayer, Vector3 forceDirection)

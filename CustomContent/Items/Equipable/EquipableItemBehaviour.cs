@@ -97,7 +97,7 @@ public abstract class EquipableItemBehaviour : ItemInstanceBehaviour
         int slot = equipableInventory.GetSlotForItem(itemInstance.item.id);
         if (slot == -1)
         {
-            DbsContentApi.Modules.Logger.LogWarning("[EquipableItem] Tried to unequip but item was not found in equipable inventory.");
+            DbsContentApi.Modules.Logger.LogError("[EquipableItem] Tried to unequip but item was not found in equipable inventory.");
             return;
         }
 
@@ -132,6 +132,6 @@ public abstract class EquipableItemBehaviour : ItemInstanceBehaviour
     /// </summary>
     protected virtual void OnNoAvailableSlots()
     {
-        DbsContentApi.Modules.Logger.LogWarning("[EquipableItem] No available equipable slots.");
+        DbsContentApi.Modules.Logger.LogError("[EquipableItem] No available equipable slots.");
     }
 }

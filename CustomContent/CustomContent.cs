@@ -28,6 +28,7 @@ public static class CustomContent
 
             CustomItems.Setup(bundle);
             CustomMobs.Setup(bundle);
+            CustomCommentsBootstrap.Register();
 
             Logger.Log("Custom content successfully initialized.");
         }
