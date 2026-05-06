@@ -122,7 +122,7 @@ public static class CustomMobs
         {
             // visualRig = null means use the existing RigCreator + PlayerVisual configuration on the prefab
             visualRig = null,
-            budget = new BudgetConfig { budgetCost = 1, rarity = 1f },
+            budget = new BudgetConfig { budgetCost = 3, rarity = 0.5f },
             controller = new ControllerConfig(),
             player = new PlayerConfig(),
             ragdoll = new RagdollConfig(),
