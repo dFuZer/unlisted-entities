@@ -235,7 +235,7 @@ public class ThrowableExplosiveBehaviour : ItemInstanceBehaviour
 			return false;
 		}
 
-		GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(20, CustomItems.TemporaryContentTriggerPrefab);
+		GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(50, CustomItems.TemporaryContentTriggerPrefab);
 		if (trigger == null)
 		{
 			DbsContentApi.Modules.Logger.LogError("ThrowableExplosiveBehaviour.TrySpawnExplosionContentProvider: CreateTemporaryTriggerObject returned null.");

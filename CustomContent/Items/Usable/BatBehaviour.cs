@@ -233,7 +233,7 @@ public class BatBehaviour : ItemInstanceBehaviour
 		OnHitTarget(hitPlayer, forceDirection);
 
 		// Spawn a temporary content trigger at the hit location
-		GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(20, UnlistedEntities.CustomContent.CustomItems.TemporaryContentTriggerPrefab!);
+		GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(50, UnlistedEntities.CustomContent.CustomItems.TemporaryContentTriggerPrefab!);
 		trigger.transform.position = other.ClosestPoint(transform.position);
 
 		if (hitPlayer.ai)

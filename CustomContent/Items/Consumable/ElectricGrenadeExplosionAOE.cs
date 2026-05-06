@@ -54,7 +54,7 @@ public class ElectricGrenadeExplosionAOE : MonoBehaviour
 						}
 						else
 						{
-							GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(20, CustomItems.TemporaryContentTriggerPrefab);
+							GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(50, CustomItems.TemporaryContentTriggerPrefab);
 							if (trigger == null)
 							{
 								DbsContentApi.Modules.Logger.LogError("ElectricGrenadeExplosionAOE: CreateTemporaryTriggerObject returned null.");

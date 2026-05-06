@@ -53,7 +53,7 @@ public class TranqProjectileLogic : MonoBehaviour
             hitPlayer.CallTakeDamageAndAddForceAndFallWithFallof(0f, Vector3.zero, 1f, hit.point, 1f);
 
             // Spawn tranq gun hit content event
-            GameObject tranqTrigger = ObjectHelper.CreateTemporaryTriggerObject(20, UnlistedEntities.CustomContent.CustomItems.TemporaryContentTriggerPrefab!);
+            GameObject tranqTrigger = ObjectHelper.CreateTemporaryTriggerObject(50, UnlistedEntities.CustomContent.CustomItems.TemporaryContentTriggerPrefab!);
             tranqTrigger.transform.position = hit.point;
             if (hitPlayer.ai)
             {

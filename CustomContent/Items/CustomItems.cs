@@ -362,7 +362,7 @@ public static class CustomItems
 					return;
 				}
 
-				GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(20, TemporaryContentTriggerPrefab);
+				GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(50, TemporaryContentTriggerPrefab);
 				if (trigger == null)
 				{
 					DbsContentApi.Modules.Logger.LogError("SilverFulminate onMonsterHit: CreateTemporaryTriggerObject returned null.");
