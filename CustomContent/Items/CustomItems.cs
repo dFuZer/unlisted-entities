@@ -4,6 +4,7 @@ using System;
 using DbsContentApi;
 using System.Linq;
 using Photon.Pun;
+using DbsContentApi.Modules.Utility;
 using UnlistedEntities.CustomContent.ContentEvents;
 
 namespace UnlistedEntities.CustomContent;
@@ -251,13 +252,11 @@ public static class CustomItems
 	}
 	private static void RegisterPopit()
 	{
-		// Build shaM_Jester_4 explosion prefab once for all grenades/semtex that use base GrenadeItemBehaviour
-
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "Popit.prefab");
 		var visualRoot = prefab.transform.Find("Item/PopIt")!.gameObject;
 		GameMaterials.ApplyMaterial(visualRoot!, DescriptiveMaterial.WHITE_1, true);
 
-		var behaviour = prefab.AddComponent<GrenadeItemBehaviour>();
+		var behaviour = prefab.AddComponent<PopitItemBehaviour>();
 		behaviour.explodesOnImpact = true;
 
 		behaviour.explosionPrefab = GetMonsterAffectingExplosionTemplate(fall: 1.5f, radius: 3.5f, innerRadius: 2f, damage: 10f, force: 2.5f);
@@ -309,13 +308,11 @@ public static class CustomItems
 
 	private static void RegisterSilverFulminate()
 	{
-		// Build shaM_Jester_4 explosion prefab once for all grenades/semtex that use base GrenadeItemBehaviour
-
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "SilverFulminateCristal.prefab");
 		var visualRoot = prefab.transform.Find("Item/LargeFulminatedMercuryCristal")!.gameObject;
 		GameMaterials.ApplyMaterial(visualRoot!, DescriptiveMaterial.WHITE_3, true);
 
-		var behaviour = prefab.AddComponent<GrenadeItemBehaviour>();
+		var behaviour = prefab.AddComponent<SilverFulminateItemBehaviour>();
 		behaviour.explodesOnImpact = true;
 
 		behaviour.explosionPrefab = GetMonsterAffectingExplosionTemplate(fall: 20f, radius: 12f, innerRadius: 6f, damage: 300f, force: 15f);
@@ -339,6 +336,43 @@ public static class CustomItems
 		spos.sfxs = new SFX_Instance[] { };
 
 		behaviour.explosionPrefab.name = "Explosion_SilverFulminate";
+
+		var silverAoe = behaviour.explosionPrefab.GetComponent<MonsterAffectingAOE>();
+		if (silverAoe == null)
+		{
+			DbsContentApi.Modules.Logger.LogError("CustomItems.RegisterSilverFulminate: MonsterAffectingAOE missing on explosion prefab; monster-hit content callbacks will not run.");
+		}
+		else if (TemporaryContentTriggerPrefab == null)
+		{
+			DbsContentApi.Modules.Logger.LogError("CustomItems.RegisterSilverFulminate: TemporaryContentTriggerPrefab is null; skipping SilverFulminateMonsterContentProvider monster-hit wiring.");
+		}
+		else
+		{
+			silverAoe.onMonsterHit = (monster, pos) =>
+			{
+				if (TemporaryContentTriggerPrefab == null)
+				{
+					DbsContentApi.Modules.Logger.LogError("SilverFulminate onMonsterHit: TemporaryContentTriggerPrefab became null; cannot spawn SilverFulminateMonsterContentProvider.");
+					return;
+				}
+
+				if (monster?.refs?.view == null)
+				{
+					DbsContentApi.Modules.Logger.LogError("SilverFulminate onMonsterHit: monster Player has null refs/view; SilverFulminateMonsterContentProvider not spawned.");
+					return;
+				}
+
+				GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(20, TemporaryContentTriggerPrefab);
+				if (trigger == null)
+				{
+					DbsContentApi.Modules.Logger.LogError("SilverFulminate onMonsterHit: CreateTemporaryTriggerObject returned null.");
+					return;
+				}
+
+				trigger.transform.position = pos;
+				SilverFulminateMonsterContentProvider provider = trigger.AddComponent<SilverFulminateMonsterContentProvider>();
+			};
+		}
 
 		ContentLoader.RegisterPrefabInPhotonPool(behaviour.explosionPrefab);
 
@@ -582,8 +616,6 @@ public static class CustomItems
 
 	private static void RegisterGrenade()
 	{
-		// Build shaM_Jester_4 explosion prefab once for all grenades/semtex that use base GrenadeItemBehaviour
-
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "Grenade.prefab");
 		var visualRoot = prefab.transform.Find("Item/grenade")!.gameObject;
 		var grenadeTransform = visualRoot.transform.Find("Grenade")!.gameObject;

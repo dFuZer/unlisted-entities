@@ -78,14 +78,14 @@ public static class CustomCommentsBootstrap
         // Semtex Stick Ally Comments
         CustomCommentRegistry.Register("Content_SemtexStickAlly_0", new CustomComment("en", "HE IS GONNA BE SO MAD"));
         CustomCommentRegistry.Register("Content_SemtexStickAlly_1", new CustomComment("en", "they became a walking bomb !!"));
-        CustomCommentRegistry.Register("Content_SemtexStickAlly_2", new CustomComment("en", "that teammate is NOT okay with this"));
+        CustomCommentRegistry.Register("Content_SemtexStickAlly_2", new CustomComment("en", "your friend is NOT okay with this"));
         CustomCommentRegistry.Register("Content_SemtexStickAlly_3", new CustomComment("en", "the griefer arc has begun lol"));
 
         // Semtex Explosion Comments
         CustomCommentRegistry.Register("Content_SemtexExplosion_0", new CustomComment("en", "BOOM"));
         CustomCommentRegistry.Register("Content_SemtexExplosion_1", new CustomComment("en", "KABOOM"));
-        CustomCommentRegistry.Register("Content_SemtexExplosion_2", new CustomComment("en", "the delayed explosion got me"));
-        CustomCommentRegistry.Register("Content_SemtexExplosion_3", new CustomComment("en", "is everyone ok ???"));
+        CustomCommentRegistry.Register("Content_SemtexExplosion_2", new CustomComment("en", "sticky grenades are crazy, is this call of duty"));
+        CustomCommentRegistry.Register("Content_SemtexExplosion_3", new CustomComment("en", "is everyone ok ??? The explosion was really loud"));
 
         // Electric Grenade Monster Comments
         CustomCommentRegistry.Register("Content_ElectricGrenadeMonster_0", new CustomComment("en", "ZAP IT !!"));
@@ -112,10 +112,10 @@ public static class CustomCommentsBootstrap
         CustomCommentRegistry.Register("Content_SilverFulminateMonster_3", new CustomComment("en", "ONE SHOT. GONE. DONE."));
 
         // Glowing Vest Comments
-        CustomCommentRegistry.Register("Content_GlowingVest_0", new CustomComment("en", "theyre glowing lol"));
+        CustomCommentRegistry.Register("Content_GlowingVest_0", new CustomComment("en", "The vest must be so practical when underground"));
         CustomCommentRegistry.Register("Content_GlowingVest_1", new CustomComment("en", "very sneaky with the neon outfit lool"));
-        CustomCommentRegistry.Register("Content_GlowingVest_2", new CustomComment("en", "they look like a walking flashlight"));
-        CustomCommentRegistry.Register("Content_GlowingVest_3", new CustomComment("en", "that vest is NOT helping with hiding lol"));
+        CustomCommentRegistry.Register("Content_GlowingVest_2", new CustomComment("en", "theyre a walking flashlight"));
+        CustomCommentRegistry.Register("Content_GlowingVest_3", new CustomComment("en", "that vest is NOT gonna help with hiding lol"));
 
         // Angel Wings Comments
         CustomCommentRegistry.Register("Content_AngelWings_0", new CustomComment("en", "they have wings?? thats so cool"));
@@ -145,6 +145,6 @@ public static class CustomCommentsBootstrap
         CustomCommentRegistry.Register("Content_TranqGunAlly_0", new CustomComment("en", "that'll make him calm down"));
         CustomCommentRegistry.Register("Content_TranqGunAlly_1", new CustomComment("en", "GRIEFED"));
         CustomCommentRegistry.Register("Content_TranqGunAlly_2", new CustomComment("en", "they just got tranqed by their own teammate lmaooo"));
-        CustomCommentRegistry.Register("Content_TranqGunAlly_3", new CustomComment("en", "why'd you give him an anesthetic"));
+        CustomCommentRegistry.Register("Content_TranqGunAlly_3", new CustomComment("en", "why'd you give your friend an anesthetic"));
     }
 }

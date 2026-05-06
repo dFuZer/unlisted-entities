@@ -240,18 +240,12 @@ public class BatBehaviour : ItemInstanceBehaviour
 		{
 			// It's a monster/AI
 			var provider = trigger.AddComponent<BatHitMonsterContentProvider>();
-			if (hitPlayer.refs.view != null)
-			{
-				provider.targetViewID = hitPlayer.refs.view.ViewID;
-			}
 			DbsContentApi.Modules.Logger.Log("Spawned trigger object with BatHitMonsterContentProvider");
 		}
 		else if (hitPlayer.refs.view != null && hitPlayer.refs.view.Owner != null)
 		{
 			// It's a player/ally
 			var provider = trigger.AddComponent<BatHitAllyContentProvider>();
-			provider.playerName = hitPlayer.refs.view.Owner.NickName;
-			provider.actorNumber = hitPlayer.refs.view.Owner.ActorNumber;
 			DbsContentApi.Modules.Logger.Log("Spawned trigger object with BatHitAllyContentProvider");
 		}
 	}

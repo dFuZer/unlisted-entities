@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
+using DbsContentApi.Modules.Utility;
+using UnlistedEntities.CustomContent;
+using UnlistedEntities.CustomContent.ContentEvents;
 
 public class ElectricGrenadeExplosionAOE : MonoBehaviour
 {
@@ -26,6 +29,12 @@ public class ElectricGrenadeExplosionAOE : MonoBehaviour
 				Player componentInParent = collider.GetComponentInParent<Player>();
 				if ((bool)componentInParent && !list.Contains(componentInParent))
 				{
+					if (componentInParent.refs?.view == null)
+					{
+						DbsContentApi.Modules.Logger.LogError("ElectricGrenadeExplosionAOE: overlapped Player has null refs or PhotonView; skipping damage and electric grenade content for this overlap.");
+						continue;
+					}
+
 					DbsContentApi.Modules.Logger.Log("ElectricGrenadeExplosionAOE: player found");
 					list.Add(componentInParent);
 					float value = Vector3.Distance(base.transform.position, collider.transform.position);
@@ -38,6 +47,36 @@ public class ElectricGrenadeExplosionAOE : MonoBehaviour
 					if (componentInParent.refs.view.IsMine || (PhotonNetwork.IsMasterClient && componentInParent.ai))
 					{
 						componentInParent.CallTakeDamageAndAddForceAndFall(damage * num * aiDmgMultiplier, vector, fall * num * aiFallMultiplier);
+
+						if (CustomItems.TemporaryContentTriggerPrefab == null)
+						{
+							DbsContentApi.Modules.Logger.LogError("ElectricGrenadeExplosionAOE: TemporaryContentTriggerPrefab is null; electric grenade content provider not spawned.");
+						}
+						else
+						{
+							GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(20, CustomItems.TemporaryContentTriggerPrefab);
+							if (trigger == null)
+							{
+								DbsContentApi.Modules.Logger.LogError("ElectricGrenadeExplosionAOE: CreateTemporaryTriggerObject returned null.");
+							}
+							else
+							{
+								trigger.transform.position = transform.position;
+								if (componentInParent.ai)
+								{
+									var provider = trigger.AddComponent<ElectricGrenadeMonsterContentProvider>();
+								}
+								else if (componentInParent.refs.view.Owner != null)
+								{
+									var provider = trigger.AddComponent<ElectricGrenadeAllyContentProvider>();
+								}
+								else
+								{
+									DbsContentApi.Modules.Logger.LogError("ElectricGrenadeExplosionAOE: hit human Player has no PhotonView.Owner; ElectricGrenadeAllyContentProvider not configured.");
+									Object.Destroy(trigger);
+								}
+							}
+						}
 					}
 
 					if (componentInParent.TryGetInventory(out var inv))

@@ -1,10 +1,8 @@
-using Zorro.Core;
-
 namespace UnlistedEntities.CustomContent.ContentEvents;
 
-public class SilverFulminateMonsterContentEvent : MonsterContentEvent
+public class SilverFulminateMonsterContentEvent : SimpleContentEvent
 {
-	public static string[] COMMENTS = new string[]
+	public static readonly string[] COMMENTS =
 	{
 		"Content_SilverFulminateMonster_0",
 		"Content_SilverFulminateMonster_1",
@@ -12,13 +10,9 @@ public class SilverFulminateMonsterContentEvent : MonsterContentEvent
 		"Content_SilverFulminateMonster_3",
 	};
 
-	public override float GetContentValue() => 110f;
+	protected override string[] Comments => COMMENTS;
 
-	public override ushort GetID() => DbsContentApi.Modules.ContentEvents.GetEventID(GetType().Name);
+	protected override float Value => 110f;
 
-	public override string GetName() => "SilverFulminateMonster";
-
-	public override string[] GetAllComments() => COMMENTS;
-
-	public override Comment GenerateComment() => new Comment(COMMENTS.GetRandom());
+	protected override string DisplayName => "SilverFulminateMonster";
 }

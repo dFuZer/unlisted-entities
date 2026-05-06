@@ -1,10 +1,8 @@
-using Zorro.Core;
-
 namespace UnlistedEntities.CustomContent.ContentEvents;
 
-public class SemtexStickMonsterContentEvent : MonsterContentEvent
+public class SemtexStickMonsterContentEvent : SimpleContentEvent
 {
-	public static string[] COMMENTS = new string[]
+	public static readonly string[] COMMENTS =
 	{
 		"Content_SemtexStickMonster_0",
 		"Content_SemtexStickMonster_1",
@@ -12,13 +10,9 @@ public class SemtexStickMonsterContentEvent : MonsterContentEvent
 		"Content_SemtexStickMonster_3",
 	};
 
-	public override float GetContentValue() => 80f;
+	protected override string[] Comments => COMMENTS;
 
-	public override ushort GetID() => DbsContentApi.Modules.ContentEvents.GetEventID(GetType().Name);
+	protected override float Value => 80f;
 
-	public override string GetName() => "SemtexStickMonster";
-
-	public override string[] GetAllComments() => COMMENTS;
-
-	public override Comment GenerateComment() => new Comment(COMMENTS.GetRandom());
+	protected override string DisplayName => "SemtexStickMonster";
 }

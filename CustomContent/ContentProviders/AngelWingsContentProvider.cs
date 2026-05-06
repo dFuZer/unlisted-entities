@@ -15,7 +15,7 @@ public class AngelWingsContentProvider : ContentProvider
 	public override void GetContent(List<ContentEventFrame> contentEvents, float seenAmount, Camera camera, float time)
 	{
 		contentEvents.Add(new ContentEventFrame(
-			new AngelWingsContentEvent(playerName, actorNumber, transform.position),
+			new AngelWingsContentEvent(),
 			seenAmount, time));
 	}
 }

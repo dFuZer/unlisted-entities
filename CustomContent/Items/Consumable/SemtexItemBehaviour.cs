@@ -1,5 +1,8 @@
 using System;
 using UnityEngine;
+using DbsContentApi.Modules.Utility;
+using UnlistedEntities.CustomContent;
+using UnlistedEntities.CustomContent.ContentEvents;
 
 public class SemtexItemBehaviour : ThrowableExplosiveBehaviour
 {
@@ -44,6 +47,46 @@ public class SemtexItemBehaviour : ThrowableExplosiveBehaviour
 
         if (onStickSfx != null)
             onStickSfx.Play(transform.position);
+
+        if (!isSimulatedByMe)
+            return;
+
+        Player hitPlayer = hitTransform.GetComponentInParent<Player>();
+        if (hitPlayer == null)
+            return;
+
+        if (CustomItems.TemporaryContentTriggerPrefab == null)
+        {
+            DbsContentApi.Modules.Logger.LogError("SemtexItemBehaviour.Stick: TemporaryContentTriggerPrefab is null; cannot spawn Semtex stick content provider.");
+            return;
+        }
+
+        GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(20, CustomItems.TemporaryContentTriggerPrefab);
+        if (trigger == null)
+        {
+            DbsContentApi.Modules.Logger.LogError("SemtexItemBehaviour.Stick: CreateTemporaryTriggerObject returned null.");
+            return;
+        }
+
+        trigger.transform.position = transform.position;
+        if (hitPlayer.ai)
+        {
+            SemtexStickMonsterContentProvider provider = trigger.AddComponent<SemtexStickMonsterContentProvider>();
+        }
+        else if (hitPlayer.refs.view?.Owner != null)
+        {
+            SemtexStickAllyContentProvider provider = trigger.AddComponent<SemtexStickAllyContentProvider>();
+        }
+        else
+        {
+            DbsContentApi.Modules.Logger.LogError("SemtexItemBehaviour.Stick: stuck to human Player but PhotonView.Owner is missing; ally stick content provider not configured.");
+            UnityEngine.Object.Destroy(trigger);
+        }
+    }
+
+    protected override void OnExplode()
+    {
+        TrySpawnExplosionContentProvider<SemtexExplosionContentProvider>();
     }
 
     protected override void Update()

@@ -1,12 +1,8 @@
-using System.Collections.Generic;
-using UnityEngine;
-using Zorro.Core;
-
 namespace UnlistedEntities.CustomContent.ContentEvents;
 
-public class ElectricGrenadeAllyContentEvent : PlayerBaseEvent
+public class ElectricGrenadeAllyContentEvent : SimpleContentEvent
 {
-	public static string[] COMMENTS = new string[]
+	public static readonly string[] COMMENTS =
 	{
 		"Content_ElectricGrenadeAlly_0",
 		"Content_ElectricGrenadeAlly_1",
@@ -14,22 +10,9 @@ public class ElectricGrenadeAllyContentEvent : PlayerBaseEvent
 		"Content_ElectricGrenadeAlly_3",
 	};
 
-	public ElectricGrenadeAllyContentEvent() { }
+	protected override string[] Comments => COMMENTS;
 
-	public ElectricGrenadeAllyContentEvent(string playerName, int actorNumber, Vector3 worldPosition)
-		: base(playerName, actorNumber, worldPosition) { }
+	protected override float Value => 45f;
 
-	public override float GetContentValue() => 45f;
-
-	public override ushort GetID() => DbsContentApi.Modules.ContentEvents.GetEventID(GetType().Name);
-
-	public override string GetName() => "ElectricGrenadeAlly";
-
-	public override string[] GetAllComments() => COMMENTS;
-
-	public override Comment GenerateComment()
-	{
-		List<string> list = new List<string>(COMMENTS);
-		return new Comment(list.GetRandom(), playerName);
-	}
+	protected override string DisplayName => "ElectricGrenadeAlly";
 }

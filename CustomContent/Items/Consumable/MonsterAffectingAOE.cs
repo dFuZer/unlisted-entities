@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
@@ -15,6 +16,11 @@ public class MonsterAffectingAOE : MonoBehaviour
 	public float radius = 8f;
 
 	public float innerRadius = 4f;
+
+	/// <summary>
+	/// Optional callback when an AI/monster player is affected (master client only).
+	/// </summary>
+	public Action<Player, Vector3>? onMonsterHit;
 
 	private void Start()
 	{
@@ -65,6 +71,9 @@ public class MonsterAffectingAOE : MonoBehaviour
 					DbsContentApi.Modules.Logger.Log("MonsterAffectingAOE: finalFall: " + finalFall);
 
 					componentInParent.CallTakeDamageAndAddForceAndFall(finalDamage, vector, finalFall);
+
+					if (componentInParent.ai && PhotonNetwork.IsMasterClient)
+						onMonsterHit?.Invoke(componentInParent, transform.position);
 				}
 			}
 		}

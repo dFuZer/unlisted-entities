@@ -1,12 +1,8 @@
-using System.Collections.Generic;
-using UnityEngine;
-using Zorro.Core;
-
 namespace UnlistedEntities.CustomContent.ContentEvents;
 
-public class InvisiblePlayerContentEvent : PlayerBaseEvent
+public class InvisiblePlayerContentEvent : SimpleContentEvent
 {
-	public static string[] COMMENTS = new string[]
+	public static readonly string[] COMMENTS =
 	{
 		"Content_InvisiblePlayer_0",
 		"Content_InvisiblePlayer_1",
@@ -14,22 +10,9 @@ public class InvisiblePlayerContentEvent : PlayerBaseEvent
 		"Content_InvisiblePlayer_3",
 	};
 
-	public InvisiblePlayerContentEvent() { }
+	protected override string[] Comments => COMMENTS;
 
-	public InvisiblePlayerContentEvent(string playerName, int actorNumber, Vector3 worldPosition)
-		: base(playerName, actorNumber, worldPosition) { }
+	protected override float Value => 50f;
 
-	public override float GetContentValue() => 50f;
-
-	public override ushort GetID() => DbsContentApi.Modules.ContentEvents.GetEventID(GetType().Name);
-
-	public override string GetName() => "InvisiblePlayer";
-
-	public override string[] GetAllComments() => COMMENTS;
-
-	public override Comment GenerateComment()
-	{
-		List<string> list = new List<string>(COMMENTS);
-		return new Comment(list.GetRandom(), playerName);
-	}
+	protected override string DisplayName => "InvisiblePlayer";
 }

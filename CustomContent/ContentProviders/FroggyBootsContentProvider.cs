@@ -15,7 +15,7 @@ public class FroggyBootsContentProvider : ContentProvider
 	public override void GetContent(List<ContentEventFrame> contentEvents, float seenAmount, Camera camera, float time)
 	{
 		contentEvents.Add(new ContentEventFrame(
-			new FroggyBootsContentEvent(playerName, actorNumber, transform.position),
+			new FroggyBootsContentEvent(),
 			seenAmount, time));
 	}
 }

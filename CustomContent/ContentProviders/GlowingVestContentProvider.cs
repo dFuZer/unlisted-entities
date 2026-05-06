@@ -15,7 +15,7 @@ public class GlowingVestContentProvider : ContentProvider
 	public override void GetContent(List<ContentEventFrame> contentEvents, float seenAmount, Camera camera, float time)
 	{
 		contentEvents.Add(new ContentEventFrame(
-			new GlowingVestContentEvent(playerName, actorNumber, transform.position),
+			new GlowingVestContentEvent(),
 			seenAmount, time));
 	}
 }

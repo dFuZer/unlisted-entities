@@ -2,6 +2,8 @@ using System;
 using Photon.Pun;
 using UnityEngine;
 using DbsContentApi.Modules;
+using DbsContentApi.Modules.Utility;
+using UnlistedEntities.CustomContent;
 
 /// <summary>
 /// Grenade with persisted state: primed (pin pulled) and fuse countdown.
@@ -194,6 +196,7 @@ public class ThrowableExplosiveBehaviour : ItemInstanceBehaviour
 		if (PhotonNetwork.IsMasterClient)
 		{
 			PhotonNetwork.Instantiate(explosionPrefab!.name, base.transform.position, base.transform.rotation, 0);
+			OnExplode();
 			PhotonNetwork.Destroy(GetComponentInParent<PhotonView>().gameObject);
 		}
 
@@ -221,8 +224,39 @@ public class ThrowableExplosiveBehaviour : ItemInstanceBehaviour
 		}
 	}
 
+	/// <summary>
+	/// Master client only — spawn explosion content polling trigger; override <see cref="OnExplode"/> to call this when needed.
+	/// </summary>
+	protected bool TrySpawnExplosionContentProvider<T>() where T : Component
+	{
+		if (CustomItems.TemporaryContentTriggerPrefab == null)
+		{
+			DbsContentApi.Modules.Logger.LogError("ThrowableExplosiveBehaviour.TrySpawnExplosionContentProvider: TemporaryContentTriggerPrefab is null.");
+			return false;
+		}
+
+		GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(20, CustomItems.TemporaryContentTriggerPrefab);
+		if (trigger == null)
+		{
+			DbsContentApi.Modules.Logger.LogError("ThrowableExplosiveBehaviour.TrySpawnExplosionContentProvider: CreateTemporaryTriggerObject returned null.");
+			return false;
+		}
+
+		trigger.transform.position = transform.position;
+		T? added = trigger.AddComponent<T>();
+		if (added == null)
+		{
+			DbsContentApi.Modules.Logger.LogError($"ThrowableExplosiveBehaviour.TrySpawnExplosionContentProvider: AddComponent<{typeof(T).Name}> failed.");
+			return false;
+		}
+
+		return true;
+	}
+
+	/// <summary>
+	/// Invoked on master client after the explosion prefab is instantiated. Override to emit explosion content providers.
+	/// </summary>
 	protected virtual void OnExplode()
 	{
-
 	}
 }

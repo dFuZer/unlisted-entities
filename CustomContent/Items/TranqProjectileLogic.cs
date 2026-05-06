@@ -58,16 +58,10 @@ public class TranqProjectileLogic : MonoBehaviour
             if (hitPlayer.ai)
             {
                 var provider = tranqTrigger.AddComponent<TranqGunEnemyContentProvider>();
-                if (hitPlayer.refs.view != null)
-                {
-                    provider.targetViewID = hitPlayer.refs.view.ViewID;
-                }
             }
             else if (hitPlayer.refs.view != null && hitPlayer.refs.view.Owner != null)
             {
                 var provider = tranqTrigger.AddComponent<TranqGunAllyContentProvider>();
-                provider.playerName = hitPlayer.refs.view.Owner.NickName;
-                provider.actorNumber = hitPlayer.refs.view.Owner.ActorNumber;
             }
         }
     }

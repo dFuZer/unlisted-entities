@@ -1,12 +1,8 @@
-using System.Collections.Generic;
-using UnityEngine;
-using Zorro.Core;
-
 namespace UnlistedEntities.CustomContent.ContentEvents;
 
-public class BatHitAllyContentEvent : PlayerBaseEvent
+public class BatHitAllyContentEvent : SimpleContentEvent
 {
-	public static string[] COMMENTS = new string[]
+	public static readonly string[] COMMENTS =
 	{
 		"Content_BatHitAlly_0",
 		"Content_BatHitAlly_1",
@@ -14,22 +10,9 @@ public class BatHitAllyContentEvent : PlayerBaseEvent
 		"Content_BatHitAlly_3",
 	};
 
-	public BatHitAllyContentEvent() { }
+	protected override string[] Comments => COMMENTS;
 
-	public BatHitAllyContentEvent(string playerName, int actorNumber, Vector3 worldPosition)
-		: base(playerName, actorNumber, worldPosition) { }
+	protected override float Value => 20f;
 
-	public override float GetContentValue() => 20f;
-
-	public override ushort GetID() => DbsContentApi.Modules.ContentEvents.GetEventID(GetType().Name);
-
-	public override string GetName() => "BatHitAlly";
-
-	public override string[] GetAllComments() => COMMENTS;
-
-	public override Comment GenerateComment()
-	{
-		List<string> list = new List<string>(COMMENTS);
-		return new Comment(list.GetRandom(), playerName);
-	}
+	protected override string DisplayName => "BatHitAlly";
 }

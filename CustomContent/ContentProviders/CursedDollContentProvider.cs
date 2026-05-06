@@ -9,13 +9,10 @@ namespace UnlistedEntities.CustomContent.ContentEvents;
 /// </summary>
 public class CursedDollContentProvider : ContentProvider
 {
-	public string playerName = string.Empty;
-	public int actorNumber;
-
 	public override void GetContent(List<ContentEventFrame> contentEvents, float seenAmount, Camera camera, float time)
 	{
 		contentEvents.Add(new ContentEventFrame(
-			new CursedDollContentEvent(playerName, actorNumber, transform.position),
+			new CursedDollContentEvent(),
 			seenAmount, time));
 	}
 }

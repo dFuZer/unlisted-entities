@@ -8,7 +8,7 @@ namespace UnlistedEntities;
 public class UnlistedEntities
 {
     private bool _isPatched;
-    public static bool DEBUG_MODE = true;
+    public static bool DEBUG_MODE = false;
 
     static UnlistedEntities()
     {

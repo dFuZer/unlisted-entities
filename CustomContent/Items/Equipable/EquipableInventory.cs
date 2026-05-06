@@ -230,8 +230,6 @@ public class EquipableInventory : MonoBehaviourPun
             {
                 GameObject trigger = ObjectHelper.CreateAttachedTriggerObject(UnlistedEntities.CustomContent.CustomItems.TemporaryContentTriggerPrefab!, hip);
                 var provider = trigger.AddComponent<CursedDollContentProvider>();
-                provider.playerName = player.refs.view.Owner.NickName;
-                provider.actorNumber = player.refs.view.Owner.ActorNumber;
                 spawnedVisuals[slot].Add(trigger);
             }
         }
