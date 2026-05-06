@@ -39,10 +39,11 @@ namespace UnlistedEntities.CustomContent
                     if (item != null)
                     {
                         DbsContentApi.Modules.Logger.Log($"[DropEquipableInput] Dropping item: {item.name} from slot {i}.");
+                        var hip = player.GetRig(BodypartType.Hip);
                         player.RequestCreatePickup(
                             item,
                             new ItemInstanceData(System.Guid.NewGuid()),
-                            player.Center(),
+                            hip.position + hip.transform.rotation * Vector3.forward * 1f,
                             UnityEngine.Quaternion.identity
                         );
                         equipableInventory.SetEquipable(i, EquipableConfig.EMPTY_SLOT_ID);
