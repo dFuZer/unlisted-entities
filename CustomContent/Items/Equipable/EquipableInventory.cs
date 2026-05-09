@@ -175,11 +175,7 @@ public class EquipableInventory : MonoBehaviourPun
             wings.transform.localRotation = UnityEngine.Quaternion.Euler(0f, 0f, 0f);
             wings.transform.localScale = new UnityEngine.Vector3(2.73f, 2.73f, 2.73f);
             spawnedVisuals[slot].Add(wings);
-            var playerShader = player.gameObject.transform.Find("CharacterModel/BodyRenderer").GetComponent<Renderer>().material.shader;
-            foreach (var renderer in wings.GetComponentsInChildren<Renderer>())
-            {
-                renderer.material.shader = playerShader;
-            }
+            ObjectHelper.FixShadersForCurrentScene(wings);
 
             // Spawn content trigger cube
             Transform hip = player.transform.Find("RigCreator/Rig/Armature/Hip");
@@ -218,11 +214,7 @@ public class EquipableInventory : MonoBehaviourPun
             necklace.transform.localRotation = UnityEngine.Quaternion.Euler(-83.044f, 0, 0);
             necklace.transform.localScale = new UnityEngine.Vector3(2.98f, 2.98f, 2.98f);
             spawnedVisuals[slot].Add(necklace);
-            var playerShader = player.gameObject.transform.Find("CharacterModel/BodyRenderer").GetComponent<Renderer>().material.shader;
-            foreach (var renderer in necklace.GetComponentsInChildren<Renderer>())
-            {
-                renderer.material.shader = playerShader;
-            }
+            ObjectHelper.FixShadersForCurrentScene(necklace);
 
             // Spawn content trigger cube
             Transform hip = player.transform.Find("RigCreator/Rig/Armature/Hip");
@@ -413,12 +405,7 @@ public class EquipableInventory : MonoBehaviourPun
         instanceSMR.rootBone = playerBodyRenderer.rootBone;
 
 
-        var renderer = glowingVestInstance.GetComponentInChildren<Renderer>(true);
-        for (int i = 0; i < renderer.materials.Length; i++)
-        {
-            if (i == 2) continue; // Skip the flashlight material
-            renderer.materials[i].shader = playerBodyRenderer.material.shader;
-        }
+        ObjectHelper.FixShadersForCurrentScene(glowingVestInstance);
 
         // Spawn the 4 light beams
         {
@@ -523,7 +510,7 @@ public class EquipableInventory : MonoBehaviourPun
             boot.transform.localScale = new UnityEngine.Vector3(2.398091f, 2.398091f, 2.398091f);
             spawnedVisuals[slot].Add(boot);
 
-            boot.GetComponent<Renderer>().material.shader = player.gameObject.transform.Find("CharacterModel/BodyRenderer").GetComponent<Renderer>().material.shader;
+            ObjectHelper.FixShadersForCurrentScene(boot);
             // HelperFunctions.SetChildRendererLayer(boot.transform, 29);
         }
         else
@@ -540,7 +527,7 @@ public class EquipableInventory : MonoBehaviourPun
             boot.transform.localScale = new UnityEngine.Vector3(2.398091f, 2.398091f, 2.398091f);
             spawnedVisuals[slot].Add(boot);
 
-            boot.GetComponent<Renderer>().material.shader = player.gameObject.transform.Find("CharacterModel/BodyRenderer").GetComponent<Renderer>().material.shader;
+            ObjectHelper.FixShadersForCurrentScene(boot);
             // HelperFunctions.SetChildRendererLayer(boot.transform, 29);
         }
         else
