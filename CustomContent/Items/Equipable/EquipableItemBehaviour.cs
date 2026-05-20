@@ -37,7 +37,7 @@ public abstract class EquipableItemBehaviour : ItemInstanceBehaviour
         var equipableInventory = inventory.gameObject.GetComponent<EquipableInventory>();
         if (equipableInventory == null)
         {
-            DbsContentApi.Modules.Logger.LogError("[EquipableItem] EquipableInventory component not found.");
+            Logger.LogError("[EquipableItem] EquipableInventory component not found.");
             return;
         }
 
@@ -90,14 +90,14 @@ public abstract class EquipableItemBehaviour : ItemInstanceBehaviour
         var equipableInventory = inventory.gameObject.GetComponent<EquipableInventory>();
         if (equipableInventory == null)
         {
-            DbsContentApi.Modules.Logger.LogError("[EquipableItem] EquipableInventory component not found.");
+            Logger.LogError("[EquipableItem] EquipableInventory component not found.");
             return;
         }
 
         int slot = equipableInventory.GetSlotForItem(itemInstance.item.id);
         if (slot == -1)
         {
-            DbsContentApi.Modules.Logger.LogError("[EquipableItem] Tried to unequip but item was not found in equipable inventory.");
+            Logger.LogError("[EquipableItem] Tried to unequip but item was not found in equipable inventory.");
             return;
         }
 
@@ -132,6 +132,6 @@ public abstract class EquipableItemBehaviour : ItemInstanceBehaviour
     /// </summary>
     protected virtual void OnNoAvailableSlots()
     {
-        DbsContentApi.Modules.Logger.LogError("[EquipableItem] No available equipable slots.");
+        Logger.LogError("[EquipableItem] No available equipable slots.");
     }
 }

@@ -1,8 +1,6 @@
 using UnityEngine;
 using Photon.Pun;
 using System.Collections;
-using System.Linq;
-using Logger = DbsContentApi.Modules.Logger;
 using DbsContentApi;
 
 namespace UnlistedEntities.CustomContent;
@@ -45,9 +43,8 @@ public class TeapotSpawnerBehaviour : ItemInstanceBehaviour
     {
         if (player == null) return;
 
-        // Find the registered teapot prefab in the global list to avoid depending on CustomMobs.cs
-        GameObject? teapotPrefab = DbsContentApiPlugin.customMonsters.FirstOrDefault(m => m.name == TeapotPrefabName);
-        if (teapotPrefab == null) return;
+        if (!Mobs.TryGetRegisteredPrefab(TeapotPrefabName, out GameObject? teapotPrefab) || teapotPrefab == null)
+            return;
 
         Vector3 spawnPosition = player.Center() + player.transform.forward * 3f;
         spawnPosition.y = player.Center().y;

@@ -3,8 +3,7 @@ using Photon.Pun;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
-using DbsContentApi.Modules;
-using DbsContentApi.Modules.Utility;
+using DbsContentApi;
 using UnlistedEntities.CustomContent.ContentEvents;
 
 /// <summary>
@@ -181,7 +180,7 @@ public class EquipableInventory : MonoBehaviourPun
             Transform hip = player.transform.Find("RigCreator/Rig/Armature/Hip");
             if (hip != null)
             {
-                GameObject trigger = ObjectHelper.CreateAttachedTriggerObject(UnlistedEntities.CustomContent.CustomItems.TemporaryContentTriggerPrefab!, hip);
+                GameObject trigger = ObjectHelper.CreateAttachedTriggerObject(DbsContentApiPlugin.TemporaryContentTriggerPrefab!, hip);
                 var provider = trigger.AddComponent<AngelWingsContentProvider>();
                 provider.playerName = player.refs.view.Owner.NickName;
                 provider.actorNumber = player.refs.view.Owner.ActorNumber;
@@ -220,14 +219,14 @@ public class EquipableInventory : MonoBehaviourPun
             Transform hip = player.transform.Find("RigCreator/Rig/Armature/Hip");
             if (hip != null)
             {
-                GameObject trigger = ObjectHelper.CreateAttachedTriggerObject(UnlistedEntities.CustomContent.CustomItems.TemporaryContentTriggerPrefab!, hip);
+                GameObject trigger = ObjectHelper.CreateAttachedTriggerObject(DbsContentApiPlugin.TemporaryContentTriggerPrefab!, hip);
                 var provider = trigger.AddComponent<CursedDollContentProvider>();
                 spawnedVisuals[slot].Add(trigger);
             }
         }
         else
         {
-            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find Torso bone for necklace attachment.");
+            Logger.LogError("[EquipableInventory] Could not find Torso bone for necklace attachment.");
         }
     }
 
@@ -367,18 +366,18 @@ public class EquipableInventory : MonoBehaviourPun
         var lightPrefab = UnlistedEntities.CustomContent.CustomItems.SmallLightBeamPrefab;
         if (playerBodyRenderer == null)
         {
-            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] playerBodyRenderer missing for SpawnGlowingVest.");
+            Logger.LogError("[EquipableInventory] playerBodyRenderer missing for SpawnGlowingVest.");
             return;
         }
         if (lightPrefab == null)
         {
-            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] lightPrefab missing for SpawnGlowingVest.");
+            Logger.LogError("[EquipableInventory] lightPrefab missing for SpawnGlowingVest.");
             return;
         }
 
         if (prefab == null)
         {
-            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] prefab missing for SpawnGlowingVest.");
+            Logger.LogError("[EquipableInventory] prefab missing for SpawnGlowingVest.");
             return;
         }
 
@@ -386,7 +385,7 @@ public class EquipableInventory : MonoBehaviourPun
         if (HasAnyNullTransforms(rearrangedBones))
         {
             // Rig not ready yet; do not register a visual so we retry next frame.
-            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Rig not ready yet; do not register a visual so we retry next frame.");
+            Logger.LogError("[EquipableInventory] Rig not ready yet; do not register a visual so we retry next frame.");
             return;
         }
 
@@ -417,7 +416,7 @@ public class EquipableInventory : MonoBehaviourPun
                 rigCreatorTorso = player.refs.rigRoot.transform.Find("Rig/Armature/Torso");
             if (rigCreatorHip == null || rigCreatorTorso == null)
             {
-                DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find CharacterModel/Armature/Hip or CharacterModel/Armature/Hip/Torso.");
+                Logger.LogError("[EquipableInventory] Could not find CharacterModel/Armature/Hip or CharacterModel/Armature/Hip/Torso.");
                 return;
             }
             // two hip-attached beams and two torso-attached beams
@@ -449,7 +448,7 @@ public class EquipableInventory : MonoBehaviourPun
             Transform hip = player.transform.Find("RigCreator/Rig/Armature/Hip");
             if (hip != null)
             {
-                GameObject trigger = ObjectHelper.CreateAttachedTriggerObject(UnlistedEntities.CustomContent.CustomItems.TemporaryContentTriggerPrefab!, hip);
+                GameObject trigger = ObjectHelper.CreateAttachedTriggerObject(DbsContentApiPlugin.TemporaryContentTriggerPrefab!, hip);
                 var provider = trigger.AddComponent<GlowingVestContentProvider>();
                 provider.playerName = player.refs.view.Owner.NickName;
                 provider.actorNumber = player.refs.view.Owner.ActorNumber;
@@ -465,21 +464,21 @@ public class EquipableInventory : MonoBehaviourPun
         var hasError = false;
         if (rearrangedCustomItemBones.Length != playerBones.Length)
         {
-            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Custom item bones length does not match player bones length.");
-            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Custom item bones length: " + rearrangedCustomItemBones.Length + " Player bones length: " + playerBones.Length);
+            Logger.LogError("[EquipableInventory] Custom item bones length does not match player bones length.");
+            Logger.LogError("[EquipableInventory] Custom item bones length: " + rearrangedCustomItemBones.Length + " Player bones length: " + playerBones.Length);
             hasError = true;
         }
         for (int i = 0; i < originalCustomItemBones.Length; i++)
         {
-            DbsContentApi.Modules.Logger.Log("[EquipableInventory] Custom item bone " + i + " name: " + originalCustomItemBones[i].name);
+            Logger.Log("[EquipableInventory] Custom item bone " + i + " name: " + originalCustomItemBones[i].name);
         }
         for (int i = 0; i < playerBones.Length; i++)
         {
-            DbsContentApi.Modules.Logger.Log("[EquipableInventory] Player bone " + i + " name: " + playerBones[i].name);
+            Logger.Log("[EquipableInventory] Player bone " + i + " name: " + playerBones[i].name);
         }
         if (hasError)
         {
-            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Custom item bones do not match player bones.");
+            Logger.LogError("[EquipableInventory] Custom item bones do not match player bones.");
         }
     }
 
@@ -515,7 +514,7 @@ public class EquipableInventory : MonoBehaviourPun
         }
         else
         {
-            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find Foot_R bone for Froggy Boot attachment.");
+            Logger.LogError("[EquipableInventory] Could not find Foot_R bone for Froggy Boot attachment.");
         }
 
         if (footL != null)
@@ -532,14 +531,14 @@ public class EquipableInventory : MonoBehaviourPun
         }
         else
         {
-            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find Foot_R bone for Froggy Boot attachment.");
+            Logger.LogError("[EquipableInventory] Could not find Foot_R bone for Froggy Boot attachment.");
         }
 
         // Spawn content trigger cube
         Transform hip = player.transform.Find("RigCreator/Rig/Armature/Hip");
         if (hip != null)
         {
-            GameObject trigger = ObjectHelper.CreateAttachedTriggerObject(UnlistedEntities.CustomContent.CustomItems.TemporaryContentTriggerPrefab!, hip);
+            GameObject trigger = ObjectHelper.CreateAttachedTriggerObject(DbsContentApiPlugin.TemporaryContentTriggerPrefab!, hip);
             var provider = trigger.AddComponent<FroggyBootsContentProvider>();
             provider.playerName = player.refs.view.Owner.NickName;
             provider.actorNumber = player.refs.view.Owner.ActorNumber;
@@ -581,7 +580,7 @@ public class EquipableInventory : MonoBehaviourPun
     /// </summary>
     public IEnumerator ClearAndDropOnDeathCoroutine()
     {
-        DbsContentApi.Modules.Logger.Log("[EquipableInventory] Starting ClearAndDropOnDeathCoroutine for player.");
+        Logger.Log("[EquipableInventory] Starting ClearAndDropOnDeathCoroutine for player.");
         // Wait for the same 3 seconds as the vanilla DelayDropItems
         yield return new WaitForSeconds(3f);
 
@@ -590,7 +589,7 @@ public class EquipableInventory : MonoBehaviourPun
             var player = GetPlayer();
             if (player == null)
             {
-                DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find player in ClearAndDropOnDeathCoroutine.");
+                Logger.LogError("[EquipableInventory] Could not find player in ClearAndDropOnDeathCoroutine.");
                 yield break;
             }
 
@@ -605,11 +604,11 @@ public class EquipableInventory : MonoBehaviourPun
                     {
                         // Drop the item at the player's position
                         player.RequestCreatePickup(item, new ItemInstanceData(System.Guid.NewGuid()), player.Center(), UnityEngine.Quaternion.identity);
-                        DbsContentApi.Modules.Logger.Log($"[EquipableInventory] Dropping equipable item on death: {item.name}");
+                        Logger.Log($"[EquipableInventory] Dropping equipable item on death: {item.name}");
                     }
                     else
                     {
-                        DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find Item component on equipable item.");
+                        Logger.LogError("[EquipableInventory] Could not find Item component on equipable item.");
                     }
 
                     // Clear the slot
@@ -618,13 +617,13 @@ public class EquipableInventory : MonoBehaviourPun
                 }
                 else
                 {
-                    DbsContentApi.Modules.Logger.Log("[EquipableInventory] No equipable item found in slot " + i);
+                    Logger.Log("[EquipableInventory] No equipable item found in slot " + i);
                 }
             }
         }
         else
         {
-            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] View is not mine.");
+            Logger.LogError("[EquipableInventory] View is not mine.");
             yield break;
         }
     }
@@ -709,14 +708,14 @@ public class EquipableInventory : MonoBehaviourPun
     {
         if (!player.TryGetInventory(out var inventory))
         {
-            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find Inventory component on player.");
+            Logger.LogError("[EquipableInventory] Could not find Inventory component on player.");
             return false;
         }
 
         var equipables = inventory.gameObject.GetComponent<EquipableInventory>();
         if (equipables == null)
         {
-            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find EquipableInventory component on player.");
+            Logger.LogError("[EquipableInventory] Could not find EquipableInventory component on player.");
             return false;
         }
 
@@ -728,7 +727,7 @@ public class EquipableInventory : MonoBehaviourPun
         var extendedData = PlayerCache.GetCache(player);
         if (extendedData == null)
         {
-            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find ExtendedData component on player.");
+            Logger.LogError("[EquipableInventory] Could not find ExtendedData component on player.");
             return false;
         }
 
@@ -773,17 +772,17 @@ public class EquipableInventoryPatches
                 // Since DelayDropItems is called on all clients via RPC, 
                 // and ClearAndDropOnDeathCoroutine checks photonView.IsMine,
                 // the drop will only be initiated by the owner, which is correct.
-                DbsContentApi.Modules.Logger.Log("[EquipableInventory] Starting ClearAndDropOnDeathCoroutine for player.");
+                Logger.Log("[EquipableInventory] Starting ClearAndDropOnDeathCoroutine for player.");
                 inv.StartCoroutine(inv.ClearAndDropOnDeathCoroutine());
             }
             else
             {
-                DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find EquipableInventory component on player.");
+                Logger.LogError("[EquipableInventory] Could not find EquipableInventory component on player.");
             }
         }
         else
         {
-            DbsContentApi.Modules.Logger.LogError("[EquipableInventory] Could not find PlayerData component on player.");
+            Logger.LogError("[EquipableInventory] Could not find PlayerData component on player.");
         }
     }
 

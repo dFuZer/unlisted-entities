@@ -3,7 +3,6 @@ using UnityEngine;
 using System.Collections;
 using UnlistedEntities.CustomContent;
 using UnlistedEntities.CustomContent.ContentEvents;
-using DbsContentApi.Modules.Utility;
 using Photon.Voice.Unity.UtilityScripts;
 
 /// <summary>

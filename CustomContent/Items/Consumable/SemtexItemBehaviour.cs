@@ -1,6 +1,6 @@
 using System;
 using UnityEngine;
-using DbsContentApi.Modules.Utility;
+using DbsContentApi;
 using UnlistedEntities.CustomContent;
 using UnlistedEntities.CustomContent.ContentEvents;
 
@@ -55,16 +55,16 @@ public class SemtexItemBehaviour : ThrowableExplosiveBehaviour
         if (hitPlayer == null)
             return;
 
-        if (CustomItems.TemporaryContentTriggerPrefab == null)
+        if (DbsContentApiPlugin.TemporaryContentTriggerPrefab == null)
         {
-            DbsContentApi.Modules.Logger.LogError("SemtexItemBehaviour.Stick: TemporaryContentTriggerPrefab is null; cannot spawn Semtex stick content provider.");
+            Logger.LogError("SemtexItemBehaviour.Stick: TemporaryContentTriggerPrefab is null; cannot spawn Semtex stick content provider.");
             return;
         }
 
-        GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(50, CustomItems.TemporaryContentTriggerPrefab);
+        GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(50, DbsContentApiPlugin.TemporaryContentTriggerPrefab);
         if (trigger == null)
         {
-            DbsContentApi.Modules.Logger.LogError("SemtexItemBehaviour.Stick: CreateTemporaryTriggerObject returned null.");
+            Logger.LogError("SemtexItemBehaviour.Stick: CreateTemporaryTriggerObject returned null.");
             return;
         }
 
@@ -79,7 +79,7 @@ public class SemtexItemBehaviour : ThrowableExplosiveBehaviour
         }
         else
         {
-            DbsContentApi.Modules.Logger.LogError("SemtexItemBehaviour.Stick: stuck to human Player but PhotonView.Owner is missing; ally stick content provider not configured.");
+            Logger.LogError("SemtexItemBehaviour.Stick: stuck to human Player but PhotonView.Owner is missing; ally stick content provider not configured.");
             UnityEngine.Object.Destroy(trigger);
         }
     }

@@ -3,7 +3,6 @@ using HarmonyLib;
 using UnityEngine;
 using UnlistedEntities.CustomContent;
 using UnlistedEntities.CustomContent.ContentEvents;
-using DbsContentApi.Modules.Utility;
 
 /// <summary>
 /// Equipable item that grants increased jump power when worn.

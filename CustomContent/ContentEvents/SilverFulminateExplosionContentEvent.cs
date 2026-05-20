@@ -15,7 +15,7 @@ public class SilverFulminateExplosionContentEvent : ContentEvent
 
 	public override float GetContentValue() => 75f;
 
-	public override ushort GetID() => DbsContentApi.Modules.ContentEvents.GetEventID(GetType().Name);
+	public override ushort GetID() => DbsContentApi.ContentEvents.GetEventID(GetType().Name);
 
 	public override string GetName() => "SilverFulminateExplosion";
 

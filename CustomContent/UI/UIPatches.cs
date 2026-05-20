@@ -71,7 +71,7 @@ public class UserInterfacePatch
         var itemsGameObjectTransform = ui.gameObject.transform.Find("HelmetUIToggler/Pivot/Others/Hotbar/Items");
         if (itemsGameObjectTransform == null)
         {
-            DbsContentApi.Modules.Logger.LogError("[EquipableUI] Failed to initialize: Hotbar GameObject not found in UI hierarchy.");
+            Logger.LogError("[EquipableUI] Failed to initialize: Hotbar GameObject not found in UI hierarchy.");
             return;
         }
 
@@ -89,14 +89,14 @@ public class UserInterfacePatch
         var slot1 = itemsGameObjectTransform.Find("HotbarSlot");
         if (slot1 == null)
         {
-            DbsContentApi.Modules.Logger.LogError("[EquipableUI] Failed to initialize: HotbarSlot template not found.");
+            Logger.LogError("[EquipableUI] Failed to initialize: HotbarSlot template not found.");
             return;
         }
         for (int i = EquipableConfig.SLOT_COUNT - 1; i >= 0; i--)
         {
             if (itemsGameObjectTransform.Find($"EquipableSlot{i + 1}") != null)
             {
-                DbsContentApi.Modules.Logger.LogError($"[EquipableUI] EquipableSlot{i + 1} already exists, skipping creation.");
+                Logger.LogError($"[EquipableUI] EquipableSlot{i + 1} already exists, skipping creation.");
                 continue;
             }
 
@@ -133,7 +133,7 @@ public class UserInterfacePatch
             var headerTmp = clone.transform.Find("Header")?.GetComponent<TextMeshProUGUI>();
             if (headerTmp == null)
             {
-                DbsContentApi.Modules.Logger.LogError($"[EquipableUI] Header TextMeshProUGUI not found for slot {i + 1}.");
+                Logger.LogError($"[EquipableUI] Header TextMeshProUGUI not found for slot {i + 1}.");
                 continue;
             }
 
@@ -142,7 +142,7 @@ public class UserInterfacePatch
             hotbarUIExtension.slots[i] = equipableSlotUI;
         }
 
-        DbsContentApi.Modules.Logger.Log($"[EquipableUI] Initialized {EquipableConfig.SLOT_COUNT} equipable slots successfully.");
+        Logger.Log($"[EquipableUI] Initialized {EquipableConfig.SLOT_COUNT} equipable slots successfully.");
     }
 }
 
@@ -239,14 +239,14 @@ public class EquipableSlotUI : MonoBehaviour
 
                 if (!hasIcon)
                 {
-                    DbsContentApi.Modules.Logger.LogError($"[EquipableUI] Item '{item.displayName}' (ID: {equipableID}) has no icon sprite.");
+                    Logger.LogError($"[EquipableUI] Item '{item.displayName}' (ID: {equipableID}) has no icon sprite.");
                 }
             }
             else
             {
                 // Item not found in database, use unknown icon
                 m_icon.sprite = m_unknownIcon;
-                DbsContentApi.Modules.Logger.LogError($"[EquipableUI] Item with ID {equipableID} not found in ItemDatabase.");
+                Logger.LogError($"[EquipableUI] Item with ID {equipableID} not found in ItemDatabase.");
             }
         }
     }

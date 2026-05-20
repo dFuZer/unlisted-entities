@@ -1,7 +1,6 @@
 using System;
 using Photon.Pun;
 using UnityEngine;
-using DbsContentApi.Modules;
 
 /// <summary>
 /// Electric Grenade with specific visual sync logic.

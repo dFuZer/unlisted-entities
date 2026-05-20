@@ -1,6 +1,4 @@
 using UnityEngine;
-using Logger = DbsContentApi.Modules.Logger;
-using ContentLoader = DbsContentApi.Modules.ContentLoader;
 using BepInEx;
 using System.Reflection;
 

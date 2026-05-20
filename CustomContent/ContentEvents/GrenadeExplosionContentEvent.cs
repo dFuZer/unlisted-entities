@@ -15,7 +15,7 @@ public class GrenadeExplosionContentEvent : ContentEvent
 
 	public override float GetContentValue() => 55f;
 
-	public override ushort GetID() => DbsContentApi.Modules.ContentEvents.GetEventID(GetType().Name);
+	public override ushort GetID() => DbsContentApi.ContentEvents.GetEventID(GetType().Name);
 
 	public override string GetName() => "GrenadeExplosion";
 

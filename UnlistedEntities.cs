@@ -28,7 +28,7 @@ public class UnlistedEntities
         }
         // Regsiters input
         new CustomContent.DropEquipableInput();
-        DbsContentApi.Modules.Logger.Log($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
+        Logger.Log($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
     }
 
     private Harmony? Harmony { get; set; }
@@ -42,11 +42,11 @@ public class UnlistedEntities
     {
         if (_isPatched)
         {
-            DbsContentApi.Modules.Logger.LogError("Already patched!");
+            Logger.LogError("Already patched!");
             return;
         }
 
-        DbsContentApi.Modules.Logger.Log("Patching...");
+        Logger.Log("Patching...");
 
         Harmony ??= new Harmony(MyPluginInfo.PLUGIN_GUID);
 
@@ -54,11 +54,11 @@ public class UnlistedEntities
         {
             Harmony.PatchAll();
             _isPatched = true;
-            DbsContentApi.Modules.Logger.Log("Patched!");
+            Logger.Log("Patched!");
         }
         catch (Exception e)
         {
-            DbsContentApi.Modules.Logger.LogError($"Failed to patch: {e}");
+            Logger.LogError($"Failed to patch: {e}");
         }
     }
 
@@ -69,21 +69,21 @@ public class UnlistedEntities
     {
         if (!_isPatched)
         {
-            DbsContentApi.Modules.Logger.LogError("Already unpatched!");
+            Logger.LogError("Already unpatched!");
             return;
         }
 
-        DbsContentApi.Modules.Logger.Log("Unpatching...");
+        Logger.Log("Unpatching...");
 
         try
         {
             Harmony?.UnpatchSelf();
             _isPatched = false;
-            DbsContentApi.Modules.Logger.Log("Unpatched!");
+            Logger.Log("Unpatched!");
         }
         catch (Exception e)
         {
-            DbsContentApi.Modules.Logger.LogError($"Failed to unpatch: {e}");
+            Logger.LogError($"Failed to unpatch: {e}");
         }
     }
 }

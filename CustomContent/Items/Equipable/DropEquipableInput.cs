@@ -1,4 +1,3 @@
-using DbsContentApi.Modules;
 using Zorro.Settings;
 using UnityEngine;
 namespace UnlistedEntities.CustomContent
@@ -10,35 +9,35 @@ namespace UnlistedEntities.CustomContent
         public SettingCategory GetSettingCategory() => (SettingCategory)2;
         protected override void OnKeyDown(Player player)
         {
-            DbsContentApi.Modules.Logger.Log("[DropEquipableInput] OnKeyDown triggered.");
+            Logger.Log("[DropEquipableInput] OnKeyDown triggered.");
 
             if (!GlobalPlayerData.TryGetPlayerData(player.refs.view.Owner, out var globalData))
             {
-                DbsContentApi.Modules.Logger.LogError("[DropEquipableInput] Could not find GlobalPlayerData for player.");
+                Logger.LogError("[DropEquipableInput] Could not find GlobalPlayerData for player.");
                 return;
             }
-            DbsContentApi.Modules.Logger.Log("[DropEquipableInput] Found GlobalPlayerData.");
+            Logger.Log("[DropEquipableInput] Found GlobalPlayerData.");
 
             var equipableInventory = globalData.GetComponent<EquipableInventory>();
             if (equipableInventory == null)
             {
-                DbsContentApi.Modules.Logger.LogError("[DropEquipableInput] Could not find EquipableInventory on GlobalPlayerData.");
+                Logger.LogError("[DropEquipableInput] Could not find EquipableInventory on GlobalPlayerData.");
                 return;
             }
-            DbsContentApi.Modules.Logger.Log("[DropEquipableInput] Found EquipableInventory.");
+            Logger.Log("[DropEquipableInput] Found EquipableInventory.");
 
             // Drop the first occupied slot
             for (int i = 0; i < EquipableConfig.SLOT_COUNT; i++)
             {
                 byte itemID = equipableInventory.equipableIDs[i];
-                DbsContentApi.Modules.Logger.Log($"[DropEquipableInput] Slot {i} has itemID: {itemID} (EMPTY = {EquipableConfig.EMPTY_SLOT_ID})");
+                Logger.Log($"[DropEquipableInput] Slot {i} has itemID: {itemID} (EMPTY = {EquipableConfig.EMPTY_SLOT_ID})");
 
                 if (itemID != EquipableConfig.EMPTY_SLOT_ID)
                 {
                     Item? item = Items.GetItemByID(itemID);
                     if (item != null)
                     {
-                        DbsContentApi.Modules.Logger.Log($"[DropEquipableInput] Dropping item: {item.name} from slot {i}.");
+                        Logger.Log($"[DropEquipableInput] Dropping item: {item.name} from slot {i}.");
                         var hip = player.GetRig(BodypartType.Hip);
                         player.RequestCreatePickup(
                             item,
@@ -47,16 +46,16 @@ namespace UnlistedEntities.CustomContent
                             UnityEngine.Quaternion.identity
                         );
                         equipableInventory.SetEquipable(i, EquipableConfig.EMPTY_SLOT_ID);
-                        DbsContentApi.Modules.Logger.Log($"[DropEquipableInput] Successfully dropped item: {item.name} from slot {i}.");
+                        Logger.Log($"[DropEquipableInput] Successfully dropped item: {item.name} from slot {i}.");
                     }
                     else
                     {
-                        DbsContentApi.Modules.Logger.LogError($"[DropEquipableInput] Could not find Item for itemID: {itemID}.");
+                        Logger.LogError($"[DropEquipableInput] Could not find Item for itemID: {itemID}.");
                     }
                     break;
                 }
             }
-            DbsContentApi.Modules.Logger.Log("[DropEquipableInput] OnKeyDown finished — no occupied slots found.");
+            Logger.Log("[DropEquipableInput] OnKeyDown finished — no occupied slots found.");
         }
         protected override void OnKeyUp(Player player) { }
         protected override void OnHeld(Player player) { }

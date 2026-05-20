@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
-using DbsContentApi.Modules.Utility;
+using DbsContentApi;
 using UnlistedEntities.CustomContent;
 using UnlistedEntities.CustomContent.ContentEvents;
 
@@ -19,7 +19,7 @@ public class ElectricGrenadeExplosionAOE : MonoBehaviour
 
 	private void Start()
 	{
-		DbsContentApi.Modules.Logger.Log("ElectricGrenadeExplosionAOE: start");
+		Logger.Log("ElectricGrenadeExplosionAOE: start");
 		List<Player> list = new List<Player>();
 		Collider[] array = Physics.OverlapSphere(base.transform.position, radius);
 		foreach (Collider collider in array)
@@ -31,11 +31,11 @@ public class ElectricGrenadeExplosionAOE : MonoBehaviour
 				{
 					if (componentInParent.refs?.view == null)
 					{
-						DbsContentApi.Modules.Logger.LogError("ElectricGrenadeExplosionAOE: overlapped Player has null refs or PhotonView; skipping damage and electric grenade content for this overlap.");
+						Logger.LogError("ElectricGrenadeExplosionAOE: overlapped Player has null refs or PhotonView; skipping damage and electric grenade content for this overlap.");
 						continue;
 					}
 
-					DbsContentApi.Modules.Logger.Log("ElectricGrenadeExplosionAOE: player found");
+					Logger.Log("ElectricGrenadeExplosionAOE: player found");
 					list.Add(componentInParent);
 					float value = Vector3.Distance(base.transform.position, collider.transform.position);
 					float num = Mathf.InverseLerp(radius, innerRadius, value);
@@ -48,16 +48,16 @@ public class ElectricGrenadeExplosionAOE : MonoBehaviour
 					{
 						componentInParent.CallTakeDamageAndAddForceAndFall(damage * num * aiDmgMultiplier, vector, fall * num * aiFallMultiplier);
 
-						if (CustomItems.TemporaryContentTriggerPrefab == null)
+						if (DbsContentApiPlugin.TemporaryContentTriggerPrefab == null)
 						{
-							DbsContentApi.Modules.Logger.LogError("ElectricGrenadeExplosionAOE: TemporaryContentTriggerPrefab is null; electric grenade content provider not spawned.");
+							Logger.LogError("ElectricGrenadeExplosionAOE: TemporaryContentTriggerPrefab is null; electric grenade content provider not spawned.");
 						}
 						else
 						{
-							GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(50, CustomItems.TemporaryContentTriggerPrefab);
+							GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(50, DbsContentApiPlugin.TemporaryContentTriggerPrefab);
 							if (trigger == null)
 							{
-								DbsContentApi.Modules.Logger.LogError("ElectricGrenadeExplosionAOE: CreateTemporaryTriggerObject returned null.");
+								Logger.LogError("ElectricGrenadeExplosionAOE: CreateTemporaryTriggerObject returned null.");
 							}
 							else
 							{
@@ -72,7 +72,7 @@ public class ElectricGrenadeExplosionAOE : MonoBehaviour
 								}
 								else
 								{
-									DbsContentApi.Modules.Logger.LogError("ElectricGrenadeExplosionAOE: hit human Player has no PhotonView.Owner; ElectricGrenadeAllyContentProvider not configured.");
+									Logger.LogError("ElectricGrenadeExplosionAOE: hit human Player has no PhotonView.Owner; ElectricGrenadeAllyContentProvider not configured.");
 									Object.Destroy(trigger);
 								}
 							}

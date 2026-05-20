@@ -1,8 +1,7 @@
 using System;
 using Photon.Pun;
 using UnityEngine;
-using DbsContentApi.Modules;
-using DbsContentApi.Modules.Utility;
+using DbsContentApi;
 using UnlistedEntities.CustomContent;
 
 /// <summary>
@@ -157,7 +156,7 @@ public class ThrowableExplosiveBehaviour : ItemInstanceBehaviour
 
 	protected virtual void OnPrimaryClick(int slotID)
 	{
-		DbsContentApi.Modules.Logger.Log($"GrenadeItemBehaviour: Grenade thrown by {Player.localPlayer.gameObject.name}.");
+		Logger.Log($"GrenadeItemBehaviour: Grenade thrown by {Player.localPlayer.gameObject.name}.");
 		Action callbackOnThrowFrame = () =>
 		{
 			if (player != null && player.refs != null && player.refs.items != null && player.data != null && primedEntry != null && stashAbleEntry != null && fuseEntry != null)
@@ -168,11 +167,11 @@ public class ThrowableExplosiveBehaviour : ItemInstanceBehaviour
 					primedEntry.on = true;
 					fuseEntry.m_lifeTimeLeft = fuseTime;
 					fuseEntry.m_maxLifeTime = fuseTime;
-					DbsContentApi.Modules.Logger.Log("GrenadeItemBehaviour: Grenade primed.");
+					Logger.Log("GrenadeItemBehaviour: Grenade primed.");
 				}
 				else
 				{
-					DbsContentApi.Modules.Logger.Log("GrenadeItemBehaviour: Grenade re-thrown (already primed).");
+					Logger.Log("GrenadeItemBehaviour: Grenade re-thrown (already primed).");
 				}
 
 				stashAbleEntry.isStashAble = false;
@@ -229,16 +228,16 @@ public class ThrowableExplosiveBehaviour : ItemInstanceBehaviour
 	/// </summary>
 	protected bool TrySpawnExplosionContentProvider<T>() where T : Component
 	{
-		if (CustomItems.TemporaryContentTriggerPrefab == null)
+		if (DbsContentApiPlugin.TemporaryContentTriggerPrefab == null)
 		{
-			DbsContentApi.Modules.Logger.LogError("ThrowableExplosiveBehaviour.TrySpawnExplosionContentProvider: TemporaryContentTriggerPrefab is null.");
+			Logger.LogError("ThrowableExplosiveBehaviour.TrySpawnExplosionContentProvider: TemporaryContentTriggerPrefab is null.");
 			return false;
 		}
 
-		GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(50, CustomItems.TemporaryContentTriggerPrefab);
+		GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(50, DbsContentApiPlugin.TemporaryContentTriggerPrefab);
 		if (trigger == null)
 		{
-			DbsContentApi.Modules.Logger.LogError("ThrowableExplosiveBehaviour.TrySpawnExplosionContentProvider: CreateTemporaryTriggerObject returned null.");
+			Logger.LogError("ThrowableExplosiveBehaviour.TrySpawnExplosionContentProvider: CreateTemporaryTriggerObject returned null.");
 			return false;
 		}
 
@@ -246,7 +245,7 @@ public class ThrowableExplosiveBehaviour : ItemInstanceBehaviour
 		T? added = trigger.AddComponent<T>();
 		if (added == null)
 		{
-			DbsContentApi.Modules.Logger.LogError($"ThrowableExplosiveBehaviour.TrySpawnExplosionContentProvider: AddComponent<{typeof(T).Name}> failed.");
+			Logger.LogError($"ThrowableExplosiveBehaviour.TrySpawnExplosionContentProvider: AddComponent<{typeof(T).Name}> failed.");
 			return false;
 		}
 

@@ -15,7 +15,7 @@ public abstract class SimpleContentEvent : ContentEvent
 	public sealed override float GetContentValue() => Value;
 
 	public sealed override ushort GetID() =>
-		DbsContentApi.Modules.ContentEvents.GetEventID(GetType().Name);
+		DbsContentApi.ContentEvents.GetEventID(GetType().Name);
 
 	public sealed override string GetName() => DisplayName;
 

@@ -2,7 +2,6 @@ using HarmonyLib;
 using UnityEngine;
 using UnlistedEntities.CustomContent;
 using UnlistedEntities.CustomContent.ContentEvents;
-using DbsContentApi.Modules.Utility;
 
 /// <summary>
 /// Equipable item that grants increased jump power when worn.
@@ -35,7 +34,7 @@ public static class AngelWingsVelocityPatch
 	[HarmonyPostfix]
 	public static void Postfix(PlayerController __instance)
 	{
-		// DbsContentApi.Modules.Logger.Log($"FixedUpdate called for {__instance.name}");
+		// Logger.Log($"FixedUpdate called for {__instance.name}");
 		Player player = __instance.GetComponent<Player>();
 		if (player == null) return;
 
@@ -63,12 +62,12 @@ public static class AngelWingsVelocityPatch
 		// foreach (var rig in ragdoll.rigList)
 		// {
 		// 	Vector3 velocity = rig.velocity;
-		// 	DbsContentApi.Modules.Logger.Log($"Velocity for {rig.name} is {velocity}");
+		// 	Logger.Log($"Velocity for {rig.name} is {velocity}");
 		// 	// gravityDirection is usually Vector3.down, so we check velocity in that direction
 		// 	// If velocity.y is negative (downwards), we cap it.
 		// 	if (velocity.y < -MAX_DOWNWARDS_VELOCITY)
 		// 	{
-		// 		DbsContentApi.Modules.Logger.Log($"Capping downwards velocity for {rig.name} to {MAX_DOWNWARDS_VELOCITY}");
+		// 		Logger.Log($"Capping downwards velocity for {rig.name} to {MAX_DOWNWARDS_VELOCITY}");
 		// 		velocity.y = -MAX_DOWNWARDS_VELOCITY;
 		// 		rig.velocity = velocity;
 		// 	}
@@ -119,7 +118,7 @@ public class AngelWingsVisualAnimationHandler : MonoBehaviour
 
 	public void SetFlying(bool flying)
 	{
-		DbsContentApi.Modules.Logger.Log($"-------------- Setting flying to {flying}");
+		Logger.Log($"-------------- Setting flying to {flying}");
 		this.flying = flying;
 		animator.SetBool("Flying", value: flying);
 	}

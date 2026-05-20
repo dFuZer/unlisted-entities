@@ -15,7 +15,7 @@ public class PopitExplosionContentEvent : ContentEvent
 
 	public override float GetContentValue() => 5f;
 
-	public override ushort GetID() => DbsContentApi.Modules.ContentEvents.GetEventID(GetType().Name);
+	public override ushort GetID() => DbsContentApi.ContentEvents.GetEventID(GetType().Name);
 
 	public override string GetName() => "PopitExplosion";
 

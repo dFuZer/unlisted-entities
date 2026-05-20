@@ -19,7 +19,7 @@ public class TemporaryPlayerBoostItemBehaviour : ItemInstanceBehaviour
 			PlayerRPCBridge bridge = Player.localPlayer.gameObject.GetComponent<PlayerRPCBridge>();
 			if (bridge == null)
 			{
-				DbsContentApi.Modules.Logger.LogError($"TemporaryPlayerBoostItemBehaviour: Could not find PlayerRPCBridge on {Player.localPlayer.gameObject.name}.");
+				Logger.LogError($"TemporaryPlayerBoostItemBehaviour: Could not find PlayerRPCBridge on {Player.localPlayer.gameObject.name}.");
 				return;
 			}
 			if (bridge.isBoostActive)

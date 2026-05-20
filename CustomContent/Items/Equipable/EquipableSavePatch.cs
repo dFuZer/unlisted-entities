@@ -23,16 +23,16 @@ namespace UnlistedEntities.CustomContent
             var inventoryItems = currentSave.SerializedSave.InventoryItems;
             if (inventoryItems != null)
             {
-                DbsContentApi.Modules.Logger.Log($"[SaveLoad] Found {inventoryItems.Length} inventory items in save.");
+                Logger.Log($"[SaveLoad] Found {inventoryItems.Length} inventory items in save.");
                 foreach (var savedItem in inventoryItems)
                 {
                     if (ItemDatabase.TryGetItemFromPersistentID(savedItem.GetPersistentID(), out var item))
                     {
-                        DbsContentApi.Modules.Logger.Log($"[SaveLoad] Inventory Item: {item.displayName} (ID: {item.id}, PersistentID: {savedItem.persistentID})");
+                        Logger.Log($"[SaveLoad] Inventory Item: {item.displayName} (ID: {item.id}, PersistentID: {savedItem.persistentID})");
                     }
                     else
                     {
-                        DbsContentApi.Modules.Logger.LogError($"[SaveLoad] Inventory Item in save not found in database! PersistentID: {savedItem.persistentID}");
+                        Logger.LogError($"[SaveLoad] Inventory Item in save not found in database! PersistentID: {savedItem.persistentID}");
                     }
                 }
             }
@@ -40,16 +40,16 @@ namespace UnlistedEntities.CustomContent
             var surfaceItems = currentSave.SerializedSave.SurfaceItems;
             if (surfaceItems != null)
             {
-                DbsContentApi.Modules.Logger.Log($"[SaveLoad] Found {surfaceItems.Length} surface items in save.");
+                Logger.Log($"[SaveLoad] Found {surfaceItems.Length} surface items in save.");
                 foreach (var savedItem in surfaceItems)
                 {
                     if (ItemDatabase.TryGetItemFromPersistentID(savedItem.GetPersistentID(), out var item))
                     {
-                        DbsContentApi.Modules.Logger.Log($"[SaveLoad] Surface Item: {item.displayName} (ID: {item.id}, PersistentID: {savedItem.persistentID}) at {savedItem.posX}, {savedItem.posY}, {savedItem.posZ}");
+                        Logger.Log($"[SaveLoad] Surface Item: {item.displayName} (ID: {item.id}, PersistentID: {savedItem.persistentID}) at {savedItem.posX}, {savedItem.posY}, {savedItem.posZ}");
                     }
                     else
                     {
-                        DbsContentApi.Modules.Logger.LogError($"[SaveLoad] Surface Item in save not found in database! PersistentID: {savedItem.persistentID}");
+                        Logger.LogError($"[SaveLoad] Surface Item in save not found in database! PersistentID: {savedItem.persistentID}");
                     }
                 }
             }
@@ -77,7 +77,7 @@ namespace UnlistedEntities.CustomContent
                             Item? item = GetItemForEquipable(itemID);
                             if (item != null)
                             {
-                                DbsContentApi.Modules.Logger.Log($"[EquipableSavePatch] Adding item to save from equipable inventory: {item.persistentID}, {item.PersistentID})");
+                                Logger.Log($"[EquipableSavePatch] Adding item to save from equipable inventory: {item.persistentID}, {item.PersistentID})");
                                 combinedItems.Add(new SavedInventoryItem(item));
                                 addedCount++;
                             }
@@ -88,7 +88,7 @@ namespace UnlistedEntities.CustomContent
 
             if (addedCount > 0)
             {
-                DbsContentApi.Modules.Logger.Log($"[EquipableSavePatch] Added {addedCount} equipped items to the save data.");
+                Logger.Log($"[EquipableSavePatch] Added {addedCount} equipped items to the save data.");
                 __result = combinedItems.ToArray();
             }
 
@@ -97,7 +97,7 @@ namespace UnlistedEntities.CustomContent
                     // show the final list of inventory items we are saving
                     foreach (var item in __result)
                     {
-                        DbsContentApi.Modules.Logger.Log($"[EquipableSavePatch] Saving item to save: {item.persistentID}, {item.GetPersistentID()})");
+                        Logger.Log($"[EquipableSavePatch] Saving item to save: {item.persistentID}, {item.GetPersistentID()})");
                     }
                 }
             }

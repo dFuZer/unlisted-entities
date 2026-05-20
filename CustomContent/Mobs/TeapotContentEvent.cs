@@ -31,7 +31,7 @@ public class TeapotContentEvent : MonsterContentEvent
 
 	public override ushort GetID()
 	{
-		return DbsContentApi.Modules.ContentEvents.GetEventID(GetType().Name);
+		return DbsContentApi.ContentEvents.GetEventID(GetType().Name);
 	}
 
 	public override string GetName()

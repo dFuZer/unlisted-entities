@@ -2,7 +2,6 @@ using UnityEngine;
 using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
-using DbsContentApi.Modules;
 using HarmonyLib;
 
 public class PlayerRPCBridge : MonoBehaviour
@@ -19,7 +18,7 @@ public class PlayerRPCBridge : MonoBehaviour
         view = GetComponent<PhotonView>();
         if (view == null)
         {
-            DbsContentApi.Modules.Logger.LogError($"PlayerRPCBridge: Could not find PhotonView on {gameObject.name}.");
+            Logger.LogError($"PlayerRPCBridge: Could not find PhotonView on {gameObject.name}.");
         }
     }
 
@@ -56,7 +55,7 @@ public class PlayerRPCBridge : MonoBehaviour
                     }
                     else
                     {
-                        DbsContentApi.Modules.Logger.Log($"Bot {bot.name} is not mine, but I am the host. This is unexpected.");
+                        Logger.Log($"Bot {bot.name} is not mine, but I am the host. This is unexpected.");
                     }
                 }
             }
@@ -64,7 +63,7 @@ public class PlayerRPCBridge : MonoBehaviour
             GameMaterials._materials.TryGetValue(GameMaterial.M_ShopGlass, out Material glassMaterial);
             if (glassMaterial == null)
             {
-                DbsContentApi.Modules.Logger.LogError($"PlayerRPCBridge: Could not find glass material.");
+                Logger.LogError($"PlayerRPCBridge: Could not find glass material.");
                 yield break;
             }
             var bodyRenderer = playerObject.transform.Find("CharacterModel/BodyRenderer").GetComponent<Renderer>();

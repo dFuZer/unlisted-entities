@@ -1,10 +1,6 @@
 using UnityEngine;
-using DbsContentApi.Modules;
-using System;
 using DbsContentApi;
-using System.Linq;
 using Photon.Pun;
-using DbsContentApi.Modules.Utility;
 using UnlistedEntities.CustomContent.ContentEvents;
 
 namespace UnlistedEntities.CustomContent;
@@ -16,13 +12,11 @@ namespace UnlistedEntities.CustomContent;
 public static class CustomItems
 {
 	private static AssetBundle? _bundle;
-	public static byte? WeaponsCategory = null;
-	public static byte? ConsumablesCategory = null;
-	public static byte? EquipablesCategory = null;
-	public static byte? ExplosivesCategory = null;
-	// public static byte? MaterialTestersCategory1 = null;
-	// public static byte? MaterialTestersCategory2 = null;
-	public static GameObject? TemporaryContentTriggerPrefab = null;
+	public static ShopItemCategory WeaponsCategory;
+	public static ShopItemCategory ConsumablesCategory;
+	public static ShopItemCategory EquipablesCategory;
+	public static ShopItemCategory ExplosivesCategory;
+
 	public static GameObject? FroggyBootRightPrefab = null;
 	public static GameObject? FroggyBootLeftPrefab = null;
 	public static GameObject? AngelWingsPrefab = null;
@@ -39,14 +33,14 @@ public static class CustomItems
 		Item? bombItem = Items.GetItemByPrefabComponent<BombItem>();
 		if (bombItem == null || bombItem.itemObject == null)
 		{
-			DbsContentApi.Modules.Logger.Log("CustomItems: Could not find BombItem to copy explosion from!");
+			Logger.Log("CustomItems: Could not find BombItem to copy explosion from!");
 			return null!;
 		}
 
 		BombItem? bombItemBehaviour = bombItem.itemObject.GetComponent<BombItem>();
 		if (bombItemBehaviour == null || bombItemBehaviour.explosion == null)
 		{
-			DbsContentApi.Modules.Logger.Log("CustomItems: BombItem has no explosion prefab!");
+			Logger.Log("CustomItems: BombItem has no explosion prefab!");
 			return null!;
 		}
 
@@ -81,41 +75,34 @@ public static class CustomItems
 	{
 		_bundle = bundle;
 
-		// Queue registration for when the API is ready
-		string[] allAssets = bundle.GetAllAssetNames();
-
 		WeaponsCategory = Items.RegisterCustomCategory("Weapons");
 		ConsumablesCategory = Items.RegisterCustomCategory("Consumables");
 		EquipablesCategory = Items.RegisterCustomCategory("Equipables");
 		ExplosivesCategory = Items.RegisterCustomCategory("Explosives");
 
-		TemporaryContentTriggerPrefab = ContentLoader.LoadPrefabFromBundle(bundle, "TemporaryContentProviderCube.prefab");
-
 		// Register content events — order is fixed and must not change (IDs are index-based)
-		DbsContentApi.Modules.ContentEvents.RegisterEvent(new PopitExplosionContentEvent());
-		DbsContentApi.Modules.ContentEvents.RegisterEvent(new GrenadeExplosionContentEvent());
-		DbsContentApi.Modules.ContentEvents.RegisterEvent(new SemtexExplosionContentEvent());
-		DbsContentApi.Modules.ContentEvents.RegisterEvent(new SilverFulminateExplosionContentEvent());
-		DbsContentApi.Modules.ContentEvents.RegisterEvent(new BatHitMonsterContentEvent());
-		DbsContentApi.Modules.ContentEvents.RegisterEvent(new SemtexStickMonsterContentEvent());
-		DbsContentApi.Modules.ContentEvents.RegisterEvent(new ElectricGrenadeMonsterContentEvent());
-		DbsContentApi.Modules.ContentEvents.RegisterEvent(new SilverFulminateMonsterContentEvent());
-		DbsContentApi.Modules.ContentEvents.RegisterEvent(new TranqGunEnemyContentEvent());
-		DbsContentApi.Modules.ContentEvents.RegisterEvent(new BatHitAllyContentEvent());
-		DbsContentApi.Modules.ContentEvents.RegisterEvent(new InvisiblePlayerContentEvent());
-		DbsContentApi.Modules.ContentEvents.RegisterEvent(new SemtexStickAllyContentEvent());
-		DbsContentApi.Modules.ContentEvents.RegisterEvent(new ElectricGrenadeAllyContentEvent());
-		DbsContentApi.Modules.ContentEvents.RegisterEvent(new GlowingVestContentEvent());
-		DbsContentApi.Modules.ContentEvents.RegisterEvent(new AngelWingsContentEvent());
-		DbsContentApi.Modules.ContentEvents.RegisterEvent(new CursedDollContentEvent());
-		DbsContentApi.Modules.ContentEvents.RegisterEvent(new FroggyBootsContentEvent());
-		DbsContentApi.Modules.ContentEvents.RegisterEvent(new TranqGunAllyContentEvent());
-		// MaterialTestersCategory1 = Items.RegisterCustomCategory("Material Testers 1-8");
-		// MaterialTestersCategory2 = Items.RegisterCustomCategory("Material Testers 9-16");
+		DbsContentApi.ContentEvents.RegisterEvent(new PopitExplosionContentEvent());
+		DbsContentApi.ContentEvents.RegisterEvent(new GrenadeExplosionContentEvent());
+		DbsContentApi.ContentEvents.RegisterEvent(new SemtexExplosionContentEvent());
+		DbsContentApi.ContentEvents.RegisterEvent(new SilverFulminateExplosionContentEvent());
+		DbsContentApi.ContentEvents.RegisterEvent(new BatHitMonsterContentEvent());
+		DbsContentApi.ContentEvents.RegisterEvent(new SemtexStickMonsterContentEvent());
+		DbsContentApi.ContentEvents.RegisterEvent(new ElectricGrenadeMonsterContentEvent());
+		DbsContentApi.ContentEvents.RegisterEvent(new SilverFulminateMonsterContentEvent());
+		DbsContentApi.ContentEvents.RegisterEvent(new TranqGunEnemyContentEvent());
+		DbsContentApi.ContentEvents.RegisterEvent(new BatHitAllyContentEvent());
+		DbsContentApi.ContentEvents.RegisterEvent(new InvisiblePlayerContentEvent());
+		DbsContentApi.ContentEvents.RegisterEvent(new SemtexStickAllyContentEvent());
+		DbsContentApi.ContentEvents.RegisterEvent(new ElectricGrenadeAllyContentEvent());
+		DbsContentApi.ContentEvents.RegisterEvent(new GlowingVestContentEvent());
+		DbsContentApi.ContentEvents.RegisterEvent(new AngelWingsContentEvent());
+		DbsContentApi.ContentEvents.RegisterEvent(new CursedDollContentEvent());
+		DbsContentApi.ContentEvents.RegisterEvent(new FroggyBootsContentEvent());
+		DbsContentApi.ContentEvents.RegisterEvent(new TranqGunAllyContentEvent());
 
 		var oxygenRegenerationSfx = _bundle!.LoadAsset<SFX_Instance>("OxygenRegenSfx")!;
 
-		void RegisterItems()
+		Items.DeferRegistration(() =>
 		{
 			RegisterUnbreakableBat();
 			RegisterBreakableBat();
@@ -135,58 +122,20 @@ public static class CustomItems
 			RegisterSilverFulminate();
 			RegisterGlowingVest();
 			RegisterTranqGun();
-			GameMaterials.ApplyMaterial(TemporaryContentTriggerPrefab!, GameMaterial.M_Apple_2, true);
-
-			// RegisterMaterialTesters();
-		}
-
-		DbsContentApiPlugin.customItemsRegistrationCallbacks.Add(RegisterItems);
+		});
 	}
-	// private static void RegisterMaterialTesters()
-	// {
-	// 	var page = 17; // Change this to offset materials (e.g., page 2 starts from index 16)
-	// 	var loadedMaterials = GameMaterials._materials.Keys.ToList();
 
-	// 	for (int i = 0; i < 16; i++)
-	// 	{
-	// 		// Construct name: MaterialTester1.prefab to MaterialTester16.prefab
-	// 		string prefabName = $"MaterialTester{i + 1}.prefab";
-	// 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, prefabName);
-
-	// 		var materialIndex = (page - 1) * 16 + i;
-
-	// 		if (materialIndex >= loadedMaterials.Count) break;
-
-	// 		var ithMaterial = loadedMaterials[materialIndex];
-	// 		GameMaterials.ApplyMaterial(prefab, ithMaterial, true);
-
-	// 		byte? category = (i < 8) ? MaterialTestersCategory1 : MaterialTestersCategory2;
-
-	// 		Items.RegisterItem(
-	// 			bundle: _bundle!,
-	// 			prefab: prefab,
-	// 			displayName: ithMaterial.ToString(),
-	// 			price: 0,
-	// 			category: (ShopItemCategory)category!,
-	// 			iconName: "popit_icon",
-	// 			impactSounds: new SFX_Instance[] { },
-	// 			holdPos: new Vector3(0.3f, -0.3f, 0.7f),
-	// 			holdRot: new Vector3(0, 0, 0)
-	// 		);
-	// 	}
-	// }
 	private static void RegisterTranqGun()
 	{
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "TranqGun2.prefab");
-		var visualRoot = prefab.transform.Find("TranqGun")!.gameObject;
-		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Barrel")!.gameObject, GameMaterial.M_Metal);
-		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Lower")!.gameObject, GameMaterial.M_Player);
-		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Magazine")!.gameObject, GameMaterial.M_Balaclava);
-		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Rear_Sights")!.gameObject, GameMaterial.M_Metal);
-		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Red_Dot_Sight")!.gameObject, GameMaterial.M_Metal);
-		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Slide")!.gameObject, GameMaterial.M_Balaclava);
-		GameMaterials.ApplyMaterial(visualRoot.transform.Find("Trigger")!.gameObject, GameMaterial.M_Metal);
-
+		GameMaterials.Batch(prefab)
+			.At("TranqGun/Barrel", GameMaterial.M_Metal)
+			.At("TranqGun/Lower", GameMaterial.M_Player)
+			.At("TranqGun/Magazine", GameMaterial.M_Balaclava)
+			.At("TranqGun/Rear_Sights", GameMaterial.M_Metal)
+			.At("TranqGun/Red_Dot_Sight", GameMaterial.M_Metal)
+			.At("TranqGun/Slide", GameMaterial.M_Balaclava)
+			.At("TranqGun/Trigger", GameMaterial.M_Metal);
 		// Configure TranqGun behaviour
 		var behaviour = prefab.AddComponent<TranqGunItemBehaviour>();
 		behaviour.firePoint = prefab.transform.Find("FirePoint");
@@ -195,10 +144,10 @@ public static class CustomItems
 
 		// Load and configure projectile prefab
 		GameObject shotPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "TranqShot.prefab");
-		var shotPrefabVisualRoot = shotPrefab.transform.Find("wrapper")!.gameObject;
-		GameMaterials.ApplyMaterial(shotPrefabVisualRoot.transform.Find("glass")!.gameObject, GameMaterial.M_ShopGlass);
-		GameMaterials.ApplyMaterial(shotPrefabVisualRoot.transform.Find("liquid")!.gameObject, GameMaterial.M_Child_2);
-		GameMaterials.ApplyMaterial(shotPrefabVisualRoot.transform.Find("shell")!.gameObject, GameMaterial.M_Metal);
+		GameMaterials.Batch(shotPrefab)
+			.At("wrapper/glass", GameMaterial.M_ShopGlass)
+			.At("wrapper/liquid", GameMaterial.M_Child_2)
+			.At("wrapper/shell", GameMaterial.M_Metal);
 
 		SFX_PlayOneShot shotSfxComponent = shotPrefab.AddComponent<SFX_PlayOneShot>();
 		shotSfxComponent.playOnStart = true;
@@ -224,37 +173,37 @@ public static class CustomItems
 		var syringeHitSfx = _bundle!.LoadAsset<SFX_Instance>("SyringeHitSfx");
 		if (syringeHitSfx == null)
 		{
-			DbsContentApi.Modules.Logger.LogError("CustomItems: SyringeHitSfx not found!");
+			Logger.LogError("CustomItems: SyringeHitSfx not found!");
 		}
-		stickComponent.hitSFX = new SFX_Instance[] { syringeHitSfx };
+		else
+		{
+			stickComponent.hitSFX = new SFX_Instance[] { syringeHitSfx };
+		}
 
 		var remove = shotPrefab.AddComponent<RemoveAfterSeconds>();
 		remove.seconds = 10f;
 
 		behaviour.projectilePrefab = shotPrefab;
 
-		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
-
-		Items.RegisterItem(
-			bundle: _bundle!,
-			prefab: prefab,
-			displayName: "Tranquilizer gun",
-			price: 200,
-			category: (ShopItemCategory)WeaponsCategory!,
-			iconName: "tranqgun_icon",
-			impactSounds: impactSounds,
-			holdPos: new Vector3(0.3f, -0.3f, 0.7f),
-			holdRot: new Vector3(0, 0, 0),
-			useAlternativeHoldPos: true,
-			useAlternativeHoldRot: false,
-			alternativeHoldingPos: new Vector3(0.2f, -0.22f, 0.7f)
-		);
+		Items.RegisterItem(prefab, new ItemConfig
+		{
+			displayName = "Tranquilizer gun",
+			price = 200,
+			category = WeaponsCategory,
+			icon = GetSprite("tranqgun_icon"),
+			impactSoundTypes = new[] { ImpactSoundType.PlasticBounce1 },
+			holdPos = new Vector3(0.3f, -0.3f, 0.7f),
+			holdRot = new Vector3(0, 0, 0),
+			useAlternativeHoldPos = true,
+			useAlternativeHoldRot = false,
+			alternativeHoldPos = new Vector3(0.2f, -0.22f, 0.7f)
+		});
 	}
+
 	private static void RegisterPopit()
 	{
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "Popit.prefab");
-		var visualRoot = prefab.transform.Find("Item/PopIt")!.gameObject;
-		GameMaterials.ApplyMaterial(visualRoot!, DescriptiveMaterial.WHITE_1, true);
+		GameMaterials.Batch(prefab).At("Item/PopIt", DescriptiveMaterial.WHITE_1, deep: true);
 
 		var behaviour = prefab.AddComponent<PopitItemBehaviour>();
 		behaviour.explodesOnImpact = true;
@@ -283,34 +232,28 @@ public static class CustomItems
 		Transform explosionLight = behaviour.explosionPrefab.transform.Find("Point Light");
 		if (explosionLight != null)
 		{
-			// Use DestroyImmediate in Editor scripts, otherwise use Destroy
 			UnityEngine.Object.Destroy(explosionLight.gameObject);
 		}
 
 		behaviour.explosionPrefab.name = "Explosion_PopIt";
 
-
 		ContentLoader.RegisterPrefabInPhotonPool(behaviour.explosionPrefab);
 
-		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
-
-		Items.RegisterItem(
-			bundle: _bundle!,
-			prefab: prefab,
-			displayName: "Pop-it",
-			price: 7,
-			category: (ShopItemCategory)ExplosivesCategory!,
-			iconName: "popit_icon",
-			impactSounds: impactSounds,
-			holdPos: new Vector3(0.3f, -0.6f, 0.7f)
-		);
+		Items.RegisterItem(prefab, new ItemConfig
+		{
+			displayName = "Pop-it",
+			price = 7,
+			category = ExplosivesCategory,
+			icon = GetSprite("popit_icon"),
+			impactSoundTypes = new[] { ImpactSoundType.PlasticBounce1 },
+			holdPos = new Vector3(0.3f, -0.6f, 0.7f)
+		});
 	}
 
 	private static void RegisterSilverFulminate()
 	{
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "SilverFulminateCristal.prefab");
-		var visualRoot = prefab.transform.Find("Item/LargeFulminatedMercuryCristal")!.gameObject;
-		GameMaterials.ApplyMaterial(visualRoot!, DescriptiveMaterial.WHITE_3, true);
+		GameMaterials.Batch(prefab).At("Item/LargeFulminatedMercuryCristal", DescriptiveMaterial.WHITE_3, deep: true);
 
 		var behaviour = prefab.AddComponent<SilverFulminateItemBehaviour>();
 		behaviour.explodesOnImpact = true;
@@ -340,60 +283,57 @@ public static class CustomItems
 		var silverAoe = behaviour.explosionPrefab.GetComponent<MonsterAffectingAOE>();
 		if (silverAoe == null)
 		{
-			DbsContentApi.Modules.Logger.LogError("CustomItems.RegisterSilverFulminate: MonsterAffectingAOE missing on explosion prefab; monster-hit content callbacks will not run.");
+			Logger.LogError("CustomItems.RegisterSilverFulminate: MonsterAffectingAOE missing on explosion prefab; monster-hit content callbacks will not run.");
 		}
-		else if (TemporaryContentTriggerPrefab == null)
+		else if (DbsContentApiPlugin.TemporaryContentTriggerPrefab == null)
 		{
-			DbsContentApi.Modules.Logger.LogError("CustomItems.RegisterSilverFulminate: TemporaryContentTriggerPrefab is null; skipping SilverFulminateMonsterContentProvider monster-hit wiring.");
+			Logger.LogError("CustomItems.RegisterSilverFulminate: TemporaryContentTriggerPrefab is null; skipping SilverFulminateMonsterContentProvider monster-hit wiring.");
 		}
 		else
 		{
 			silverAoe.onMonsterHit = (monster, pos) =>
 			{
-				if (TemporaryContentTriggerPrefab == null)
+				if (DbsContentApiPlugin.TemporaryContentTriggerPrefab == null)
 				{
-					DbsContentApi.Modules.Logger.LogError("SilverFulminate onMonsterHit: TemporaryContentTriggerPrefab became null; cannot spawn SilverFulminateMonsterContentProvider.");
+					Logger.LogError("SilverFulminate onMonsterHit: TemporaryContentTriggerPrefab became null; cannot spawn SilverFulminateMonsterContentProvider.");
 					return;
 				}
 
 				if (monster?.refs?.view == null)
 				{
-					DbsContentApi.Modules.Logger.LogError("SilverFulminate onMonsterHit: monster Player has null refs/view; SilverFulminateMonsterContentProvider not spawned.");
+					Logger.LogError("SilverFulminate onMonsterHit: monster Player has null refs/view; SilverFulminateMonsterContentProvider not spawned.");
 					return;
 				}
 
-				GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(50, TemporaryContentTriggerPrefab);
+				GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(50, DbsContentApiPlugin.TemporaryContentTriggerPrefab);
 				if (trigger == null)
 				{
-					DbsContentApi.Modules.Logger.LogError("SilverFulminate onMonsterHit: CreateTemporaryTriggerObject returned null.");
+					Logger.LogError("SilverFulminate onMonsterHit: CreateTemporaryTriggerObject returned null.");
 					return;
 				}
 
 				trigger.transform.position = pos;
-				SilverFulminateMonsterContentProvider provider = trigger.AddComponent<SilverFulminateMonsterContentProvider>();
+				trigger.AddComponent<SilverFulminateMonsterContentProvider>();
 			};
 		}
 
 		ContentLoader.RegisterPrefabInPhotonPool(behaviour.explosionPrefab);
 
-		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
-
-		Items.RegisterItem(
-			bundle: _bundle!,
-			prefab: prefab,
-			displayName: "Silver fulminate crystal",
-			price: 150,
-			category: (ShopItemCategory)ExplosivesCategory!,
-			iconName: "fulminate_icon",
-			impactSounds: impactSounds,
-			holdPos: new Vector3(0.3f, -0.6f, 0.7f)
-		);
+		Items.RegisterItem(prefab, new ItemConfig
+		{
+			displayName = "Silver fulminate crystal",
+			price = 150,
+			category = ExplosivesCategory,
+			icon = GetSprite("fulminate_icon"),
+			impactSoundTypes = new[] { ImpactSoundType.PlasticBounce1 },
+			holdPos = new Vector3(0.3f, -0.6f, 0.7f)
+		});
 	}
 
 	private static void RegisterUnbreakableBat()
 	{
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "Unbreakable Bat.prefab");
-		GameMaterials.ApplyMaterial(prefab, GameMaterial.M_Balaclava);
+		GameMaterials.Batch(prefab).Root(GameMaterial.M_Balaclava);
 		BatBehaviour batBehaviour = prefab.AddComponent<BatBehaviour>();
 		batBehaviour.batHitSFX = _bundle!.LoadAsset<SFX_Instance>("SFX Bat Hit");
 		batBehaviour.isBreakable = false;
@@ -405,257 +345,215 @@ public static class CustomItems
 			sfx.settings.volume = 0.7f;
 		}
 
-		Items.RegisterItem(
-			bundle: _bundle!,
-			prefab: prefab,
-			displayName: "Solid bat",
-			price: 600,
-			category: (ShopItemCategory)WeaponsCategory!,
-			iconName: "bat_icon",
-			impactSounds: impactSounds,
-			holdPos: new Vector3(0.3f, -0.3f, 0.7f)
-		);
+		Items.RegisterItem(prefab, new ItemConfig
+		{
+			displayName = "Solid bat",
+			price = 600,
+			category = WeaponsCategory,
+			icon = GetSprite("bat_icon"),
+			impactSounds = impactSounds,
+			holdPos = new Vector3(0.3f, -0.3f, 0.7f)
+		});
 	}
 
 	private static void RegisterBreakableBat()
 	{
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "Breakable Bat.prefab");
-		GameMaterials.ApplyMaterial(prefab, DescriptiveMaterial.BROWN_1);
+		GameMaterials.Batch(prefab).Root(DescriptiveMaterial.BROWN_1);
 		BatBehaviour batBehaviour = prefab.AddComponent<BatBehaviour>();
-		batBehaviour.batHitSFX = _bundle.LoadAsset<SFX_Instance>("SFX Bat Hit");
+		batBehaviour.batHitSFX = _bundle!.LoadAsset<SFX_Instance>("SFX Bat Hit");
 		batBehaviour.isBreakable = true;
 
 		AudioClip batFallClip = _bundle!.LoadAsset<AudioClip>("bat_fall");
 		SFX_Instance[] impactSounds = Items.CreateSFXInstanceFromClip(batFallClip);
 
-		Items.RegisterItem(
-			bundle: _bundle!,
-			prefab: prefab,
-			displayName: "Fragile bat",
-			price: 40,
-			category: (ShopItemCategory)WeaponsCategory!,
-			iconName: "bat_icon",
-			impactSounds: impactSounds,
-			holdPos: new Vector3(0.3f, -0.3f, 0.7f)
-		);
+		Items.RegisterItem(prefab, new ItemConfig
+		{
+			displayName = "Fragile bat",
+			price = 40,
+			category = WeaponsCategory,
+			icon = GetSprite("bat_icon"),
+			impactSounds = impactSounds,
+			holdPos = new Vector3(0.3f, -0.3f, 0.7f)
+		});
 	}
 
 	private static void RegisterSmallO2Tank(SFX_Instance oxygenRegenerationSfx)
 	{
-		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.ContainerBounce1, ImpactSoundType.ContainerBounce2);
-		foreach (SFX_Instance sfx in impactSounds)
-		{
-			sfx.settings.pitch = 1.5f;
-			sfx.settings.volume = 0.3f;
-		}
-
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "SmallO2Tank.prefab");
-		GameObject visualRoot = prefab.transform.Find("Visual/o2tank")!.gameObject;
-		GameMaterials.ApplyMaterial(visualRoot!, GameMaterial.M_Balaclava, true);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Cap")!.gameObject, DescriptiveMaterial.RED_1, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Rims")!.gameObject, DescriptiveMaterial.GREY_SMALL_DARK_SPOTS, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Text")!.gameObject, DescriptiveMaterial.WHITE_1, false);
+		ApplyO2TankMaterials(prefab);
 		RegenStatItemBehaviour behaviour = prefab.AddComponent<RegenStatItemBehaviour>();
 		behaviour.regenPercentageAmount = 30;
 		behaviour.statType = StatTypeEnum.Oxygen;
 		behaviour.oxygenRegenerationSfx = oxygenRegenerationSfx;
 
-		Items.RegisterItem(
-			bundle: _bundle!,
-			prefab: prefab,
-			displayName: "Small O2 tank",
-			price: 30,
-			category: (ShopItemCategory)ConsumablesCategory!,
-			iconName: "o2tank_icon",
-			impactSounds: impactSounds,
-			holdPos: new Vector3(0.3f, -0.3f, 0.7f)
-		);
+		Items.RegisterItem(prefab, new ItemConfig
+		{
+			displayName = "Small O2 tank",
+			price = 30,
+			category = ConsumablesCategory,
+			icon = GetSprite("o2tank_icon"),
+			impactSoundTypes = new[] { ImpactSoundType.ContainerBounce1, ImpactSoundType.ContainerBounce2 },
+			holdPos = new Vector3(0.3f, -0.3f, 0.7f)
+		});
 	}
 
 	private static void RegisterLargeO2Tank(SFX_Instance oxygenRegenerationSfx)
 	{
-		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.ContainerBounce1, ImpactSoundType.ContainerBounce2);
-
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "LargeO2Tank.prefab");
-		GameObject visualRoot = prefab.transform.Find("Visual/o2tank")!.gameObject;
-		GameMaterials.ApplyMaterial(visualRoot!, GameMaterial.M_Balaclava, true);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Cap")!.gameObject, DescriptiveMaterial.RED_1, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Rims")!.gameObject, DescriptiveMaterial.GREY_SMALL_DARK_SPOTS, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Text")!.gameObject, DescriptiveMaterial.WHITE_1, false);
+		ApplyO2TankMaterials(prefab);
 
 		RegenStatItemBehaviour behaviour = prefab.AddComponent<RegenStatItemBehaviour>();
 		behaviour.regenPercentageAmount = 80;
 		behaviour.statType = StatTypeEnum.Oxygen;
 		behaviour.oxygenRegenerationSfx = oxygenRegenerationSfx;
 
-		Items.RegisterItem(
-			bundle: _bundle!,
-			prefab: prefab,
-			displayName: "Large O2 tank",
-			price: 80,
-			category: (ShopItemCategory)ConsumablesCategory!,
-			iconName: "o2tank_icon",
-			impactSounds: impactSounds,
-			holdPos: new Vector3(0.3f, -0.3f, 0.7f)
-		);
+		Items.RegisterItem(prefab, new ItemConfig
+		{
+			displayName = "Large O2 tank",
+			price = 80,
+			category = ConsumablesCategory,
+			icon = GetSprite("o2tank_icon"),
+			impactSoundTypes = new[] { ImpactSoundType.ContainerBounce1, ImpactSoundType.ContainerBounce2 },
+			holdPos = new Vector3(0.3f, -0.3f, 0.7f)
+		});
 	}
 
 	private static void RegisterBandAidBox()
 	{
-		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce3);
-
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "BandAidBox.prefab");
-		GameObject visualRoot = prefab.transform.Find("Item/bandaid")!.gameObject;
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Barcode")!.gameObject, GameMaterial.M_Balaclava, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Cross")!.gameObject, DescriptiveMaterial.RED_2, false);
-		Renderer boxRenderer = visualRoot!.transform.Find("Box")!.gameObject.GetComponent<Renderer>();
-		boxRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Milk2), GameMaterials.GetMaterial(DescriptiveMaterial.WHITE_1), GameMaterials.GetMaterial(DescriptiveMaterial.BLUE_1) };
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Gauze")!.gameObject, DescriptiveMaterial.WHITE_1, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("PlasterFront")!.gameObject, DescriptiveMaterial.BEIGE_1, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("TextBack")!.gameObject, GameMaterial.M_Balaclava, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("TextFront")!.gameObject, GameMaterial.M_Balaclava, false);
+		GameMaterials.Batch(prefab)
+			.At("Item/bandaid/Barcode", GameMaterial.M_Balaclava)
+			.At("Item/bandaid/Cross", DescriptiveMaterial.RED_2)
+			.At("Item/bandaid/Gauze", DescriptiveMaterial.WHITE_1)
+			.At("Item/bandaid/PlasterFront", DescriptiveMaterial.BEIGE_1)
+			.At("Item/bandaid/TextBack", GameMaterial.M_Balaclava)
+			.At("Item/bandaid/TextFront", GameMaterial.M_Balaclava)
+			.AtSlot("Item/bandaid/Box", 0, GameMaterial.M_Milk2)
+			.AtSlot("Item/bandaid/Box", 1, DescriptiveMaterial.WHITE_1)
+			.AtSlot("Item/bandaid/Box", 2, DescriptiveMaterial.BLUE_1);
 
 		RegenStatItemBehaviour behaviour = prefab.AddComponent<RegenStatItemBehaviour>();
 		behaviour.regenPercentageAmount = 40;
 		behaviour.statType = StatTypeEnum.Health;
 
-		Items.RegisterItem(
-			bundle: _bundle!,
-			prefab: prefab,
-			displayName: "Band-aid box",
-			price: 20,
-			category: (ShopItemCategory)ConsumablesCategory!,
-			iconName: "bandaid_icon",
-			impactSounds: impactSounds,
-			holdPos: new Vector3(0.3f, -0.3f, 0.7f)
-		);
+		Items.RegisterItem(prefab, new ItemConfig
+		{
+			displayName = "Band-aid box",
+			price = 20,
+			category = ConsumablesCategory,
+			icon = GetSprite("bandaid_icon"),
+			impactSoundTypes = new[] { ImpactSoundType.PlasticBounce3 },
+			holdPos = new Vector3(0.3f, -0.3f, 0.7f)
+		});
 	}
 
 	private static void RegisterMedkit()
 	{
-		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce3);
-
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "Medkit.prefab");
-		GameObject visualRoot = prefab.transform.Find("Visual/medkit")!.gameObject;
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Rim")!.gameObject, GameMaterial.M_Cap_1, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Case")!.gameObject, DescriptiveMaterial.RED_2, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Cross")!.gameObject, GameMaterial.M_Cap_1, false);
+		GameMaterials.Batch(prefab)
+			.At("Visual/medkit/Rim", GameMaterial.M_Cap_1)
+			.At("Visual/medkit/Case", DescriptiveMaterial.RED_2)
+			.At("Visual/medkit/Cross", GameMaterial.M_Cap_1);
 
 		RegenStatItemBehaviour behaviour = prefab.AddComponent<RegenStatItemBehaviour>();
 		behaviour.regenPercentageAmount = 100;
 		behaviour.statType = StatTypeEnum.Health;
 
-		Items.RegisterItem(
-			bundle: _bundle!,
-			prefab: prefab,
-			displayName: "Medkit",
-			price: 50,
-			category: (ShopItemCategory)ConsumablesCategory!,
-			iconName: "medkit_icon",
-			impactSounds: impactSounds,
-			holdPos: new Vector3(0.3f, -0.3f, 0.7f),
-			holdRot: new Vector3(0, 0, 0)
-		);
+		Items.RegisterItem(prefab, new ItemConfig
+		{
+			displayName = "Medkit",
+			price = 50,
+			category = ConsumablesCategory,
+			icon = GetSprite("medkit_icon"),
+			impactSoundTypes = new[] { ImpactSoundType.PlasticBounce3 },
+			holdPos = new Vector3(0.3f, -0.3f, 0.7f),
+			holdRot = new Vector3(0, 0, 0)
+		});
 	}
 
 	private static void RegisterEnergyBar()
 	{
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "EnergyBar.prefab");
-		GameObject visualRoot = prefab.transform.Find("Item/energybar")!.gameObject;
-		GameMaterials.ApplyMaterial(visualRoot!, GameMaterial.M_Balaclava, true);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Bar")!.gameObject, GameMaterial.M_Beanie_1, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Icon")!.gameObject, GameMaterial.M_Cap_1, false);
+		GameMaterials.Batch(prefab)
+			.At("Item/energybar", GameMaterial.M_Balaclava, deep: true)
+			.At("Item/energybar/Bar", GameMaterial.M_Beanie_1)
+			.At("Item/energybar/Icon", GameMaterial.M_Cap_1);
 		var behaviour = prefab.AddComponent<TemporaryPlayerBoostItemBehaviour>();
 		behaviour.playerCrunchSFX = _bundle!.LoadAsset<SFX_Instance>("CrunchSfx")!;
 
-
-		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.BombBounce2);
-
-		Items.RegisterItem(
-			bundle: _bundle!,
-			prefab: prefab,
-			displayName: "Energy bar",
-			price: 25,
-			category: (ShopItemCategory)ConsumablesCategory!,
-			iconName: "energybar_icon",
-			impactSounds: impactSounds,
-			holdPos: new Vector3(0.3f, -0.3f, 0.7f)
-		);
+		Items.RegisterItem(prefab, new ItemConfig
+		{
+			displayName = "Energy bar",
+			price = 25,
+			category = ConsumablesCategory,
+			icon = GetSprite("energybar_icon"),
+			impactSoundTypes = new[] { ImpactSoundType.BombBounce2 },
+			holdPos = new Vector3(0.3f, -0.3f, 0.7f)
+		});
 	}
 
 	private static void RegisterInvisibilitySpray()
 	{
 		var invisibilitySpraySfx = _bundle!.LoadAsset<SFX_Instance>("SpraySfx")!;
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "InvisibilitySpray.prefab");
-		GameObject visualRoot = prefab.transform.Find("Item/spraycan")!.gameObject;
-		GameMaterials.ApplyMaterial(prefab, GameMaterial.M_Balaclava, true);
-		GameObject cap = visualRoot!.transform.Find("Cap")!.gameObject;
-		Renderer capRenderer = cap.GetComponent<Renderer>();
-		capRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Cap_1), GameMaterials.GetMaterial(GameMaterial.M_Balaclava) };
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Icon")!.gameObject, DescriptiveMaterial.YELLOW_1, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("CanBridge")!.gameObject, GameMaterial.M_Balaclava, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("CapBridge")!.gameObject, GameMaterial.M_Cap_1, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Bulb")!.gameObject, GameMaterial.M_Cap_1, false);
+		GameMaterials.Batch(prefab)
+			.Root(GameMaterial.M_Balaclava, deep: true)
+			.Slots("Item/spraycan/Cap", GameMaterial.M_Cap_1, GameMaterial.M_Balaclava)
+			.At("Item/spraycan/Icon", DescriptiveMaterial.YELLOW_1)
+			.At("Item/spraycan/CanBridge", GameMaterial.M_Balaclava)
+			.At("Item/spraycan/CapBridge", GameMaterial.M_Cap_1)
+			.At("Item/spraycan/Bulb", GameMaterial.M_Cap_1);
 		var behaviour = prefab.AddComponent<TemporaryInvisibilityItemBehaviour>();
 		behaviour.invisibilitySpraySfx = invisibilitySpraySfx;
 
-
-		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce6);
-
-		Items.RegisterItem(
-			bundle: _bundle!,
-			prefab: prefab,
-			displayName: "Invisibility spray",
-			price: 45,
-			category: (ShopItemCategory)ConsumablesCategory!,
-			iconName: "invisibilityspray_icon",
-			impactSounds: impactSounds,
-			holdPos: new Vector3(0.3f, -0.3f, 0.7f)
-		);
+		Items.RegisterItem(prefab, new ItemConfig
+		{
+			displayName = "Invisibility spray",
+			price = 45,
+			category = ConsumablesCategory,
+			icon = GetSprite("invisibilityspray_icon"),
+			impactSoundTypes = new[] { ImpactSoundType.PlasticBounce6 },
+			holdPos = new Vector3(0.3f, -0.3f, 0.7f)
+		});
 	}
 
 	private static void RegisterGrenade()
 	{
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "Grenade.prefab");
-		var visualRoot = prefab.transform.Find("Item/grenade")!.gameObject;
-		var grenadeTransform = visualRoot.transform.Find("Grenade")!.gameObject;
-		Renderer grenadeRenderer = grenadeTransform.GetComponent<Renderer>();
-		grenadeRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Balaclava), GameMaterials.GetMaterial(GameMaterial.M_Child_2) };
-
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("SmallTriggerRing")!.gameObject, GameMaterial.M_Balaclava, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("TriggerRing")!.gameObject, GameMaterial.M_Balaclava, false);
+		GameMaterials.Batch(prefab)
+			.Slots("Item/grenade/Grenade", GameMaterial.M_Balaclava, GameMaterial.M_Child_2)
+			.At("Item/grenade/SmallTriggerRing", GameMaterial.M_Balaclava)
+			.At("Item/grenade/TriggerRing", GameMaterial.M_Balaclava);
 		var behaviour = prefab.AddComponent<GrenadeItemBehaviour>();
 
 		behaviour.explosionPrefab = GetMonsterAffectingExplosionTemplate(fall: 20f, radius: 8f, damage: 150f, force: 15f);
-
 		behaviour.explosionPrefab.name = "Explosion_Grenade";
 
 		ContentLoader.RegisterPrefabInPhotonPool(behaviour.explosionPrefab);
 
-		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
-
-		Items.RegisterItem(
-			bundle: _bundle!,
-			prefab: prefab,
-			displayName: "Grenade",
-			price: 30,
-			category: (ShopItemCategory)ExplosivesCategory!,
-			iconName: "grenade_icon",
-			impactSounds: impactSounds,
-			holdPos: new Vector3(0.3f, -0.6f, 0.7f)
-		);
+		Items.RegisterItem(prefab, new ItemConfig
+		{
+			displayName = "Grenade",
+			price = 30,
+			category = ExplosivesCategory,
+			icon = GetSprite("grenade_icon"),
+			impactSoundTypes = new[] { ImpactSoundType.PlasticBounce1 },
+			holdPos = new Vector3(0.3f, -0.6f, 0.7f)
+		});
 	}
 
 	private static void RegisterSemtexGrenade()
 	{
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "SemtexGrenade.prefab");
-		var visualRoot = prefab.transform.Find("Item/semtex")!.gameObject;
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Nails")!.gameObject, GameMaterial.M_Balaclava, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("SmallTriggerRing")!.gameObject, GameMaterial.M_Balaclava, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("TriggerRing")!.gameObject, GameMaterial.M_Balaclava, false);
-
-		var grenadeRenderer = visualRoot.transform.Find("Grenade")!.gameObject.GetComponent<Renderer>();
-		grenadeRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Child_2), GameMaterials.GetMaterial(GameMaterial.M_Jester_3), GameMaterials.GetMaterial(GameMaterial.M_Balaclava), GameMaterials.GetMaterial(DescriptiveMaterial.WHITE_1) };
+		GameMaterials.Batch(prefab)
+			.At("Item/semtex/Nails", GameMaterial.M_Balaclava)
+			.At("Item/semtex/SmallTriggerRing", GameMaterial.M_Balaclava)
+			.At("Item/semtex/TriggerRing", GameMaterial.M_Balaclava)
+			.AtSlot("Item/semtex/Grenade", 0, GameMaterial.M_Child_2)
+			.AtSlot("Item/semtex/Grenade", 1, GameMaterial.M_Jester_3)
+			.AtSlot("Item/semtex/Grenade", 2, GameMaterial.M_Balaclava)
+			.AtSlot("Item/semtex/Grenade", 3, DescriptiveMaterial.WHITE_1);
 
 		var behaviour = prefab.AddComponent<SemtexItemBehaviour>();
 
@@ -674,44 +572,29 @@ public static class CustomItems
 
 		ContentLoader.RegisterPrefabInPhotonPool(behaviour.explosionPrefab);
 
-		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
-
-		Items.RegisterItem(
-			bundle: _bundle!,
-			prefab: prefab,
-			displayName: "Semtex grenade",
-			price: 50,
-			category: (ShopItemCategory)ExplosivesCategory!,
-			iconName: "semtex_icon",
-			impactSounds: impactSounds,
-			holdPos: new Vector3(0.3f, -0.6f, 0.7f)
-		);
+		Items.RegisterItem(prefab, new ItemConfig
+		{
+			displayName = "Semtex grenade",
+			price = 50,
+			category = ExplosivesCategory,
+			icon = GetSprite("semtex_icon"),
+			impactSoundTypes = new[] { ImpactSoundType.PlasticBounce1 },
+			holdPos = new Vector3(0.3f, -0.6f, 0.7f)
+		});
 	}
 
 	private static void RegisterElectricGrenade()
 	{
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "ElectricGrenade.prefab");
-		var visualRoot = prefab.transform.Find("Item/electric-grenade")!.gameObject;
-		var grenadeRenderer = visualRoot.transform.Find("Grenade")!.gameObject.GetComponent<Renderer>();
+		ApplyElectricGrenadeMaterials(prefab);
 
 		var templateExplosion = GetMonsterAffectingExplosionTemplate();
 		var lightPointGameObject = templateExplosion.transform.Find("Point Light")!.gameObject;
-		// DescriptiveMaterial.WHITE_1, dark gray
-		grenadeRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Player_1), GameMaterials.GetMaterial(DescriptiveMaterial.GLOWING_WHITE_2), GameMaterials.GetMaterial(GameMaterial.M_Balaclava) };
-
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("InnerRods")!.gameObject, DescriptiveMaterial.GLOWING_WHITE_2, false);
-
-		var partLRenderer = visualRoot.transform.Find("Part_L")!.gameObject.GetComponent<Renderer>();
-		var partRRenderer = visualRoot.transform.Find("Part_R")!.gameObject.GetComponent<Renderer>();
-		// for partL : darkgray, light, gray, flatgray
-		partLRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Balaclava), GameMaterials.GetMaterial(DescriptiveMaterial.GLOWING_WHITE_2), GameMaterials.GetMaterial(GameMaterial.M_Player_1), GameMaterials.GetMaterial(GameMaterial.M_Player) };
-		// for partR : darkgray, gray, flatgray, light
-		partRRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Balaclava), GameMaterials.GetMaterial(GameMaterial.M_Player_1), GameMaterials.GetMaterial(GameMaterial.M_Player), GameMaterials.GetMaterial(DescriptiveMaterial.GLOWING_WHITE_2) };
 
 		var explosionPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "ElectricExplosion.prefab");
 		var lightPoint = UnityEngine.Object.Instantiate(lightPointGameObject, explosionPrefab.transform);
 		lightPoint.GetComponent<Light>().color = Color.blue;
-		ElectricGrenadeExplosionAOE explosionAOE = explosionPrefab.AddComponent<ElectricGrenadeExplosionAOE>();
+		explosionPrefab.AddComponent<ElectricGrenadeExplosionAOE>();
 
 		// Add PhotonView for network synchronization
 		var pv = explosionPrefab.AddComponent<PhotonView>();
@@ -732,111 +615,93 @@ public static class CustomItems
 
 		ContentLoader.RegisterPrefabInPhotonPool(explosionPrefab);
 
-		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
-
-		Items.RegisterItem(
-			bundle: _bundle!,
-			prefab: prefab,
-			displayName: "Electric grenade",
-			price: 90,
-			category: (ShopItemCategory)ExplosivesCategory!,
-			iconName: "electricgrenade_icon",
-			impactSounds: impactSounds,
-			holdPos: new Vector3(0.3f, -0.6f, 0.7f)
-		);
+		Items.RegisterItem(prefab, new ItemConfig
+		{
+			displayName = "Electric grenade",
+			price = 90,
+			category = ExplosivesCategory,
+			icon = GetSprite("electricgrenade_icon"),
+			impactSoundTypes = new[] { ImpactSoundType.PlasticBounce1 },
+			holdPos = new Vector3(0.3f, -0.6f, 0.7f)
+		});
 	}
 
 
 	private static void RegisterJumpingBoots()
 	{
 		FroggyBootRightPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "FroggyBootRight.prefab");
-		GameMaterials.ApplyMaterial(FroggyBootRightPrefab, GameMaterial.M_Child_2, true);
+		GameMaterials.Batch(FroggyBootRightPrefab).Root(GameMaterial.M_Child_2, deep: true);
 		FroggyBootLeftPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "FroggyBootLeft.prefab");
-		GameMaterials.ApplyMaterial(FroggyBootLeftPrefab, GameMaterial.M_Child_2, true);
+		GameMaterials.Batch(FroggyBootLeftPrefab).Root(GameMaterial.M_Child_2, deep: true);
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "BootsEquipable.prefab");
-		GameMaterials.ApplyMaterial(prefab, GameMaterial.M_Child_2);
+		GameMaterials.Batch(prefab).Root(GameMaterial.M_Child_2);
 		prefab.AddComponent<BootsEquipableItemBehaviour>();
 
-		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
-
-		JumpingBootsItem = Items.RegisterItem(
-			bundle: _bundle!,
-			prefab: prefab,
-			displayName: "Froggy boots",
-			price: 100,
-			category: (ShopItemCategory)EquipablesCategory!,
-			iconName: "froggyboots_icon",
-			impactSounds: impactSounds,
-			holdPos: new Vector3(0.3f, -0.3f, 0.4f)
-		);
+		JumpingBootsItem = Items.RegisterItem(prefab, new ItemConfig
+		{
+			displayName = "Froggy boots",
+			price = 100,
+			category = EquipablesCategory,
+			icon = GetSprite("froggyboots_icon"),
+			impactSoundTypes = new[] { ImpactSoundType.PlasticBounce1 },
+			holdPos = new Vector3(0.3f, -0.3f, 0.4f)
+		});
 	}
 
 	private static void RegisterCursedDoll()
 	{
 		CursedNecklaceVisualPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "CursedNecklace.prefab");
-		GameMaterials.ApplyMaterial(CursedNecklaceVisualPrefab, GameMaterial.M_Child_2, true);
-
-		var visualRoot = CursedNecklaceVisualPrefab.transform.Find("CursedNecklace")!.gameObject;
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Torus")!.gameObject, GameMaterial.M_Player, false);
-		GameMaterials.ApplyMaterial(visualRoot!.transform.Find("Mesh_0")!.gameObject, DescriptiveMaterial.BROWN_1, false);
-
-		var dollRenderer = visualRoot.transform.Find("Mesh_0")!.gameObject.GetComponent<Renderer>();
-		dollRenderer.materials = new Material[] { GameMaterials.GetMaterial(DescriptiveMaterial.BROWN_1) };
-		var necklaceRenderer = visualRoot.transform.Find("Torus")!.gameObject.GetComponent<Renderer>();
-		necklaceRenderer.materials = new Material[] { GameMaterials.GetMaterial(GameMaterial.M_Player) };
+		GameMaterials.Batch(CursedNecklaceVisualPrefab)
+			.Root(GameMaterial.M_Child_2, deep: true)
+			.Slots("CursedNecklace/Mesh_0", DescriptiveMaterial.BROWN_1)
+			.Slots("CursedNecklace/Torus", GameMaterial.M_Player);
 
 		GameObject dollItemPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "DollItem.prefab");
-		GameMaterials.ApplyMaterial(dollItemPrefab, DescriptiveMaterial.BROWN_1, true);
+		GameMaterials.Batch(dollItemPrefab).Root(DescriptiveMaterial.BROWN_1, deep: true);
 
 		AudioClip squink = _bundle!.LoadAsset<AudioClip>("Squink");
 		SFX_Instance[] impactSounds = Items.CreateSFXInstanceFromClip(squink);
 
 		dollItemPrefab.AddComponent<DollEquipableBehaviour>();
 
-		CursedDoll = Items.RegisterItem(
-			bundle: _bundle!,
-			prefab: dollItemPrefab,
-			displayName: "Cursed Doll",
-			price: 170,
-			category: (ShopItemCategory)EquipablesCategory!,
-			iconName: "doll_icon",
-			impactSounds: impactSounds,
-			holdPos: new Vector3(0.3f, -0.3f, 0.4f)
-		);
+		CursedDoll = Items.RegisterItem(dollItemPrefab, new ItemConfig
+		{
+			displayName = "Cursed Doll",
+			price = 170,
+			category = EquipablesCategory,
+			icon = GetSprite("doll_icon"),
+			impactSounds = impactSounds,
+			holdPos = new Vector3(0.3f, -0.3f, 0.4f)
+		});
 	}
 
 	private static void RegisterAngelWings()
 	{
 		AngelWingsPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "WingsVisual.prefab");
-		GameMaterials.ApplyMaterial(AngelWingsPrefab, DescriptiveMaterial.WHITE_1, true);
+		GameMaterials.Batch(AngelWingsPrefab).Root(DescriptiveMaterial.WHITE_1, deep: true);
 		AngelWingsPrefab.AddComponent<AngelWingsVisualAnimationHandler>();
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "WingsItem.prefab");
-		GameMaterials.ApplyMaterial(prefab, DescriptiveMaterial.WHITE_1);
+		GameMaterials.Batch(prefab).Root(DescriptiveMaterial.WHITE_1);
 		prefab.AddComponent<AngelWingsEquipableItemBehaviour>();
 
-		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
-
-		AngelWingsItem = Items.RegisterItem(
-			bundle: _bundle!,
-			prefab: prefab,
-			displayName: "Angel wings",
-			price: 100,
-			category: (ShopItemCategory)EquipablesCategory!,
-			iconName: "wings_icon",
-			impactSounds: impactSounds,
-			holdPos: new Vector3(0.3f, -0.3f, 0.4f)
-		);
+		AngelWingsItem = Items.RegisterItem(prefab, new ItemConfig
+		{
+			displayName = "Angel wings",
+			price = 100,
+			category = EquipablesCategory,
+			icon = GetSprite("wings_icon"),
+			impactSoundTypes = new[] { ImpactSoundType.PlasticBounce1 },
+			holdPos = new Vector3(0.3f, -0.3f, 0.4f)
+		});
 	}
 
 	private static void RegisterGlowingVest()
 	{
-		// SmallLightBeamPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "VestLightPrefab.prefab");
 		var randomLamp = Items.GetItemByPrefabComponent<Flashlight>();
 		if (randomLamp != null)
 		{
-			HierarchyUtility.LogHierarchy(randomLamp.itemObject);
 			var tempInstance = GameObject.Instantiate(randomLamp.itemObject);
 			var lightObject = tempInstance.transform.Find("Light")!.gameObject;
 			lightObject.transform.SetParent(null);
@@ -852,43 +717,65 @@ public static class CustomItems
 		}
 
 		GlowingVestPrefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "VestVisual.prefab");
-		var materials = new Material[] {
-			GameMaterials.GetMaterial(GameMaterial.M_Balaclava),
-			GameMaterials.GetMaterial(GameMaterial.M_Flashlight_1_1),
-			GameMaterials.GetMaterial(DescriptiveMaterial.GLOWING_WHITE_2),
-			GameMaterials.GetMaterial(DescriptiveMaterial.YELLOW_1),
-			GameMaterials.GetMaterial(GameMaterial.M_Pool_7)
-		};
 
 		GameObject prefab = ContentLoader.LoadPrefabFromBundle(_bundle!, "VestItem.prefab");
 
-		{
-			var visualRoot = prefab.transform.Find("Item/vest")!.gameObject;
-			var renderer = visualRoot.transform.Find("Vest")!.gameObject.GetComponent<Renderer>();
-			renderer.materials = materials;
-		}
-		{
-			var renderer = GlowingVestPrefab.transform.Find("Vest")!.gameObject.GetComponent<Renderer>();
-			renderer.materials = materials;
-		}
+		ApplyGlowingVestMaterials(prefab);
+		ApplyGlowingVestMaterials(GlowingVestPrefab);
 		prefab.AddComponent<GlowingVestEquipableItemBehaviour>();
 
-		SFX_Instance[] impactSounds = ImpactSoundScanner.GetImpactSounds(ImpactSoundType.PlasticBounce1);
-
-		GlowingVest = Items.RegisterItem(
-			bundle: _bundle!,
-			prefab: prefab,
-			displayName: "Bright vest",
-			price: 200,
-			category: (ShopItemCategory)EquipablesCategory!,
-			iconName: "glowing_vest_icon",
-			impactSounds: impactSounds,
-			holdPos: new Vector3(0.3f, -0.3f, 0.4f)
-		);
+		GlowingVest = Items.RegisterItem(prefab, new ItemConfig
+		{
+			displayName = "Bright vest",
+			price = 200,
+			category = EquipablesCategory,
+			icon = GetSprite("glowing_vest_icon"),
+			impactSoundTypes = new[] { ImpactSoundType.PlasticBounce1 },
+			holdPos = new Vector3(0.3f, -0.3f, 0.4f)
+		});
 	}
 
 	public static Sprite GetSprite(string iconName)
 	{
 		return _bundle!.LoadAsset<Sprite>(iconName);
+	}
+
+	private static void ApplyO2TankMaterials(GameObject prefab)
+	{
+		GameMaterials.Batch(prefab)
+			.At("Visual/o2tank", GameMaterial.M_Balaclava, deep: true)
+			.At("Visual/o2tank/Cap", DescriptiveMaterial.RED_1)
+			.At("Visual/o2tank/Rims", DescriptiveMaterial.GREY_SMALL_DARK_SPOTS)
+			.At("Visual/o2tank/Text", DescriptiveMaterial.WHITE_1);
+	}
+
+	private static void ApplyElectricGrenadeMaterials(GameObject prefab)
+	{
+		const string root = "Item/electric-grenade";
+		GameMaterials.Batch(prefab)
+			.AtSlot($"{root}/Grenade", 0, GameMaterial.M_Player_1)
+			.AtSlot($"{root}/Grenade", 1, DescriptiveMaterial.GLOWING_WHITE_2)
+			.AtSlot($"{root}/Grenade", 2, GameMaterial.M_Balaclava)
+			.At($"{root}/InnerRods", DescriptiveMaterial.GLOWING_WHITE_2)
+			.AtSlot($"{root}/Part_L", 0, GameMaterial.M_Balaclava)
+			.AtSlot($"{root}/Part_L", 1, DescriptiveMaterial.GLOWING_WHITE_2)
+			.AtSlot($"{root}/Part_L", 2, GameMaterial.M_Player_1)
+			.AtSlot($"{root}/Part_L", 3, GameMaterial.M_Player)
+			.AtSlot($"{root}/Part_R", 0, GameMaterial.M_Balaclava)
+			.AtSlot($"{root}/Part_R", 1, GameMaterial.M_Player_1)
+			.AtSlot($"{root}/Part_R", 2, GameMaterial.M_Player)
+			.AtSlot($"{root}/Part_R", 3, DescriptiveMaterial.GLOWING_WHITE_2);
+	}
+
+	private static void ApplyGlowingVestMaterials(GameObject prefab)
+	{
+		const string vestPath = "Item/vest/Vest";
+		string path = prefab.transform.Find(vestPath) != null ? vestPath : "Vest";
+		GameMaterials.Batch(prefab)
+			.AtSlot(path, 0, GameMaterial.M_Balaclava)
+			.AtSlot(path, 1, GameMaterial.M_Flashlight_1_1)
+			.AtSlot(path, 2, DescriptiveMaterial.GLOWING_WHITE_2)
+			.AtSlot(path, 3, DescriptiveMaterial.YELLOW_1)
+			.AtSlot(path, 4, GameMaterial.M_Pool_7);
 	}
 }

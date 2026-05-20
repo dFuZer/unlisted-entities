@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Zorro.Core.Serizalization;
 using UnlistedEntities.CustomContent.ContentEvents;
-using DbsContentApi.Modules.Utility;
+using DbsContentApi;
 
 public class BatBehaviour : ItemInstanceBehaviour
 {
@@ -196,7 +196,7 @@ public class BatBehaviour : ItemInstanceBehaviour
 				foreach (Collider hitCollider in hits)
 				{
 
-					DbsContentApi.Modules.Logger.Log($"Hit collider: {hitCollider.gameObject.name}");
+					Logger.Log($"Hit collider: {hitCollider.gameObject.name}");
 					if (hitCollider.gameObject.name == "FlashlightTrigger" || hitCollider.gameObject.name == "FlareTrigger") continue;
 					if (hitCollider.gameObject.transform.parent?.TryGetComponent<Bodypart>(out var bodypart) ?? false)
 					{
@@ -233,20 +233,20 @@ public class BatBehaviour : ItemInstanceBehaviour
 		OnHitTarget(hitPlayer, forceDirection);
 
 		// Spawn a temporary content trigger at the hit location
-		GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(50, UnlistedEntities.CustomContent.CustomItems.TemporaryContentTriggerPrefab!);
+		GameObject trigger = ObjectHelper.CreateTemporaryTriggerObject(50, DbsContentApiPlugin.TemporaryContentTriggerPrefab!);
 		trigger.transform.position = other.ClosestPoint(transform.position);
 
 		if (hitPlayer.ai)
 		{
 			// It's a monster/AI
 			var provider = trigger.AddComponent<BatHitMonsterContentProvider>();
-			DbsContentApi.Modules.Logger.Log("Spawned trigger object with BatHitMonsterContentProvider");
+			Logger.Log("Spawned trigger object with BatHitMonsterContentProvider");
 		}
 		else if (hitPlayer.refs.view != null && hitPlayer.refs.view.Owner != null)
 		{
 			// It's a player/ally
 			var provider = trigger.AddComponent<BatHitAllyContentProvider>();
-			DbsContentApi.Modules.Logger.Log("Spawned trigger object with BatHitAllyContentProvider");
+			Logger.Log("Spawned trigger object with BatHitAllyContentProvider");
 		}
 	}
 

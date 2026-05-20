@@ -3,7 +3,6 @@ using HarmonyLib;
 using UnityEngine;
 using UnlistedEntities.CustomContent;
 using UnlistedEntities.CustomContent.ContentEvents;
-using DbsContentApi.Modules.Utility;
 
 public class DollEquipableBehaviour : EquipableItemBehaviour
 {
@@ -34,7 +33,7 @@ public class DollEquipableBehaviour : EquipableItemBehaviour
         var props = new ExitGames.Client.Photon.Hashtable { { ROOM_PROP_KEY, newCount } };
         PhotonNetwork.CurrentRoom.SetCustomProperties(props);
 
-        DbsContentApi.Modules.Logger.Log($"Doll count updated to {newCount} (multiplier: {Mathf.Pow(MULTIPLIER_PER_DOLL, newCount):F2}x)");
+        Logger.Log($"Doll count updated to {newCount} (multiplier: {Mathf.Pow(MULTIPLIER_PER_DOLL, newCount):F2}x)");
     }
 
     protected override void OnEquipped(int slotIndex)
@@ -63,7 +62,7 @@ public static class RoundSpawnerPatch
         __instance.testBudget = Mathf.RoundToInt(__instance.testBudget * multiplier);
         __instance.testBiggestPurchase = Mathf.RoundToInt(__instance.testBiggestPurchase * multiplier);
 
-        DbsContentApi.Modules.Logger.Log($"Test budget boosted to {__instance.testBudget} (x{multiplier:F2})");
+        Logger.Log($"Test budget boosted to {__instance.testBudget} (x{multiplier:F2})");
     }
 
     [HarmonyPatch("GetMonstersToSpawn")]
@@ -76,6 +75,6 @@ public static class RoundSpawnerPatch
         budget = Mathf.RoundToInt(budget * multiplier);
         biggestPurchase = Mathf.RoundToInt(biggestPurchase * multiplier);
 
-        DbsContentApi.Modules.Logger.Log($"Budget boosted — budget: {budget}, biggestPurchase: {biggestPurchase} (x{multiplier:F2})");
+        Logger.Log($"Budget boosted — budget: {budget}, biggestPurchase: {biggestPurchase} (x{multiplier:F2})");
     }
 }

@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using Zorro.Core.Serizalization;
 using System.Runtime.CompilerServices;
-using DbsContentApi.Modules;
 using UnityEngine.UI;
 
 public enum StatTypeEnum
@@ -32,7 +31,7 @@ public class RegenStatItemBehaviour : ItemInstanceBehaviour
 		StatTypeEnum readStatType = (StatTypeEnum)deserializer.ReadInt();
 		float readRegenAmount = deserializer.ReadFloat();
 
-		DbsContentApi.Modules.Logger.Log($"[RPC] Regen: {readStatType} {readRegenAmount}");
+		Logger.Log($"[RPC] Regen: {readStatType} {readRegenAmount}");
 
 		Player player = PlayerHandler.instance.TryGetPlayerFromViewID(playerViewId);
 		if (player != null)
@@ -46,7 +45,7 @@ public class RegenStatItemBehaviour : ItemInstanceBehaviour
 					if (uiFeedbackExtension != null)
 					{
 						uiFeedbackExtension.RegenOxygenFeedback();
-						DbsContentApi.Modules.Logger.Log($"PLAYING OXYGEN REGEN SFX");
+						Logger.Log($"PLAYING OXYGEN REGEN SFX");
 						oxygenRegenerationSfx.Play(base.transform.position);
 					}
 				}
@@ -73,14 +72,14 @@ public class RegenStatItemBehaviour : ItemInstanceBehaviour
 				binarySerializer.WriteInt((int)StatTypeEnum.Oxygen);
 				float gain = player.data.maxOxygen * (regenPercentageAmount / 100f);
 				binarySerializer.WriteFloat(gain);
-				DbsContentApi.Modules.Logger.Log($"[Update] Regen: Oxygen {gain}");
+				Logger.Log($"[Update] Regen: Oxygen {gain}");
 			}
 			else if (statType == StatTypeEnum.Health)
 			{
 				binarySerializer.WriteInt((int)StatTypeEnum.Health);
 				float gain = maxHealth * (regenPercentageAmount / 100f);
 				binarySerializer.WriteFloat(gain);
-				DbsContentApi.Modules.Logger.Log($"[Update] Regen: Health {gain}");
+				Logger.Log($"[Update] Regen: Health {gain}");
 			}
 			itemInstance.CallRPC(ItemRPC.RPC0, binarySerializer);
 			Player.localPlayer.refs.emotes.DoBookEquipEffect(Player.localPlayer.refs.view.ViewID, itemInstance.item.id, base.transform.position, base.transform.rotation);

@@ -96,7 +96,7 @@ public class CustomPlayerAnimator : MonoBehaviour
         currentCustomAnimation.AddResetKeyframesAtEnd(animationRigRoot, 28f);
         currentCustomAnimation.Finalize();
         animationStartTime = Time.time;
-        DbsContentApi.Modules.Logger.Log($"CustomPlayerAnimator: Activated throw animation");
+        Logger.Log($"CustomPlayerAnimator: Activated throw animation");
         currentCustomAnimation.LogKeyFrames();
 
         // Sync animation to other clients so they see this player's throw
@@ -117,7 +117,7 @@ public class CustomPlayerAnimator : MonoBehaviour
 
             if (timeSinceStart > effectiveDuration)
             {
-                DbsContentApi.Modules.Logger.Log($"CustomAnimation finished");
+                Logger.Log($"CustomAnimation finished");
                 currentCustomAnimation = null;
                 return;
             }

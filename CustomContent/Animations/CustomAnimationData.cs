@@ -102,7 +102,7 @@ public class CustomAnimation
         {
             foreach (var keyFrame in boneKeyFrames[bonePath])
             {
-                DbsContentApi.Modules.Logger.Log($"CustomAnimation: {keyFrame.time} {keyFrame.rotationValue} {keyFrame.bonePath}");
+                Logger.Log($"CustomAnimation: {keyFrame.time} {keyFrame.rotationValue} {keyFrame.bonePath}");
             }
         }
     }
