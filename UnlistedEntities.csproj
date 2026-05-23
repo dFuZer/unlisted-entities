@@ -3,8 +3,9 @@
     <PropertyGroup>
         <AssemblyName>UnlistedEntities</AssemblyName>
         <Product>Unlisted Entities</Product>
-        <Version>0.0.0</Version>
+        <Version>2.0.0</Version>
         <CWDir Condition=" '$(CWDir)' == '' ">C:\Program Files (x86)\Steam\steamapps\common\Content Warning</CWDir>
+        <DbsContentApiDir>C:\Users\ADMIN\Desktop\cw\DbsContentApi\bin\Debug\netstandard2.1</DbsContentApiDir>
     </PropertyGroup>
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
@@ -148,4 +149,10 @@
             <HintPath>$(DbsContentApiDir)\DbsContentApi.dll</HintPath>
         </Reference>
     </ItemGroup>
+
+      <ItemGroup>
+      <Reference Update="*">
+          <Private>false</Private>
+      </Reference>
+  </ItemGroup>
 </Project>
